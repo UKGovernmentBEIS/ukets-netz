@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="changelog_au_user_role_type_ddl.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_CREATE_USER_ROLE_TYPE_TABLE" author="P35066">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_user_role_type"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_user_role_type">
+            <column name="user_id" type="varchar(255)">
+                <constraints primaryKey="true" primaryKeyName="au_user_role_type_pk" nullable="false"/>
+            </column>
+            <column name="role_type" type="varchar(255)" remarks="The role type of the user">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_user_role_type CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

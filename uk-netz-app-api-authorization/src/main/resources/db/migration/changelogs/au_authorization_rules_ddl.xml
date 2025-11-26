@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_authorization_rules_ddl.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_AUTHORIZATION_RULE_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_rule_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_rule_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_rule_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORIZATION_RULE_CREATE_TABLE" author="P70453">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_rule"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_rule" remarks="Represents an authorization rule">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="au_rule_pk" nullable="false"/>
+            </column>
+            <column name="resource_type" type="varchar(255)" remarks="The role type of the user">
+                <constraints nullable="false" />
+            </column>
+            <column name="resource_sub_type" type="varchar(255)" remarks="The resource type">
+                <constraints nullable="true" />
+            </column>
+            <column name="handler" type="varchar(255)" remarks="The action on the resource">
+                <constraints nullable="false" />
+            </column>
+            <column name="role_type" type="varchar(255)" remarks="The role type of the user">
+                <constraints nullable="false" />
+            </column>
+            <column name="scope" type="varchar(255)" remarks="The authorization scope of the rule">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_rule;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORIZED_SERVICE_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_service_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_service_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_service_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORIZED_SERVICE_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_service"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_service" remarks="Represents an authorized service">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="au_service_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)" remarks="The service name">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_service CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORIZATION_SERVICE_RULE_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_service_rule"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_service_rule" remarks="Represents the relationship between services and rules">
+            <column name="service_id" type="bigint" remarks="au_service id">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rule_id" type="bigint" remarks="au_rule id">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="au_service_rule" columnNames="service_id, rule_id" constraintName="au_service_rule_pk"/>
+        <addForeignKeyConstraint baseTableName="au_service_rule" baseColumnNames="rule_id" constraintName="au_rule_fk" referencedTableName="au_rule" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="au_service_rule" baseColumnNames="service_id" constraintName="au_service_fk" referencedTableName="au_service" referencedColumnNames="id"/>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_service CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_RESOURCE_SCOPE_PERMISSION_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_resource_scope_permission_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_resource_scope_permission_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_resource_scope_permission_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_RESOURCE_SCOPE_PERMISSION_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_resource_scope_permission"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_resource_scope_permission" remarks="Represents a resource scope with the required permission">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="au_resource_scope_permission_pk" nullable="false"/>
+            </column>
+            <column name="resource_type" type="varchar(255)" remarks="The resource type">
+                <constraints nullable="false" />
+            </column>
+            <column name="resource_sub_type" type="varchar(255)" remarks="The resource sub type">
+                <constraints nullable="true" />
+            </column>
+            <column name="role_type" type="varchar(255)" remarks="The role type of the user">
+                <constraints nullable="false" />
+            </column>
+            <column name="scope" type="varchar(255)" remarks="The authorization scope of the permission">
+                <constraints nullable="true" />
+            </column>
+            <column name="permission" type="varchar(255)" remarks="The permission">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_resource_scope_permission;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="changelog_au_authority_ddl.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_ROLE_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_role_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_role_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_role_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ROLE_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_role"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_role" remarks="Represents a role template">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="role_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)" remarks="The name of the role">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="varchar(255)" remarks="The code of the role">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="type" type="varchar(255)" remarks="The type of the role (operator, verifier, regulator)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_role CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ROLE_PERMISSION_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_role_permission_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_role_permission_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_role_permission_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ROLE_PERMISSION_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_role_permission"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_role_permission" remarks="Represents a role permission">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="role_permission_pk" nullable="false"/>
+            </column>
+            <column name="role_id" type="bigint" remarks="The role of the permission (foreign key to role table)">
+                <constraints foreignKeyName="role_permission_role_fk" references="au_role(id)" nullable="false"/>
+            </column>
+            <column name="permission" type="varchar(255)" remarks="The permission name">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_role_permission CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ADD_UNIQUE_CONSTRAINT_ROLE_PERMISSION" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="au_role_permission" constraintName="role_permission_uc"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint tableName="au_role_permission" columnNames="role_id,permission" constraintName="role_permission_uc"/>
+        <rollback>
+            <dropUniqueConstraint tableName="au_role_permission" constraintName="role_permission_uc"/>
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="0_1_0_AUTHORITY_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_authority_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_authority_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_authority_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORITY_CREATE_TABLE" author="P70453">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_authority"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_authority" remarks="Represents an authority entity">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="authority_pk" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(255)" remarks="The user id the authority is assigned to">
+                <constraints nullable="false" />
+            </column>
+            <column name="type" type="varchar(50)" remarks="The type of the authority">
+				<constraints nullable="true"/>
+			</column>
+            <column name="code" type="varchar(255)" remarks="The code of the role the authority was based on"/>
+            <column name="status" type="varchar(255)" remarks="The status of the authority">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_id" type="bigint" remarks="The account of the authority (for operator authorities only)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority (for regulator authorities only)" />
+            <column name="verification_body_id" type="bigint" remarks="The verification body id (for verifier authorities only)"/>
+            <column name="creation_date" type="timestamp" remarks="The date the authority entry was created">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by" type="varchar(255)" remarks="The id of the user that last modified the authority">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="varchar(255)" remarks="Unique identifier for authority invitation">
+                <constraints unique="true" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_authority CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORITY_ADD_USER_ID_IDX" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="au_authority" indexName="authority_user_id_idx"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="authority_user_id_idx" tableName="au_authority">
+            <column name="user_id" />
+        </createIndex>
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS authority_user_id_idx CASCADE
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ADD_UNIQUE_CONSTRAINT_AUTHORITY" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="au_authority" constraintName="authority_uc"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint tableName="au_authority" columnNames="user_id,code,account_id,competent_authority" constraintName="authority_uc"/>
+        <rollback>
+            <dropUniqueConstraint tableName="au_authority" constraintName="authority_uc"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORITY_PERMISSION_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="au_authority_permission_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="au_authority_permission_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS au_authority_permission_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_AUTHORITY_PERMISSION_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="au_authority_permission"/>
+            </not>
+        </preConditions>
+        <createTable tableName="au_authority_permission" remarks="Represents an authority permission">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="authority_permission_pk" nullable="false"/>
+            </column>
+            <column name="authority_id" type="bigint" remarks="The authority of the permission (foreign key to authority table)">
+                <constraints foreignKeyName="authority_permission_authority_fk" references="au_authority(id)" nullable="false"/>
+            </column>
+            <column name="permission" type="varchar(255)" remarks="The permission name">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS au_authority_permission CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ADD_UNIQUE_CONSTRAINT_AUTHORITY_PERMISSION" author="P70366">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="au_authority_permission" constraintName="authority_permission_uc"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint tableName="au_authority_permission" columnNames="authority_id,permission" constraintName="authority_permission_uc"/>
+        <rollback>
+            <dropUniqueConstraint tableName="au_authority_permission" constraintName="authority_permission_uc"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ADD_DEFAULT_VALUE_TO_CREATION_DATE_COLUMN_OF_AUTHORITY_TABLE" author="pafilisa@unisystems.gr">
+        <sql>
+            ALTER TABLE au_authority ALTER COLUMN creation_date SET DEFAULT CURRENT_TIMESTAMP;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE au_authority ALTER COLUMN creation_date DROP DEFAULT;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_add_third_party_data_provider_column_in_authority_table" author="p35066">
+        <addColumn tableName="au_authority">
+            <column name="third_party_data_provider_id" type="bigint" />
+        </addColumn>
+        <rollback>
+            <sql>
+                alter table au_authority
+                drop column if exists third_party_data_provider_id;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
