@@ -1,0 +1,232 @@
+package uk.gov.netz.api.account.service;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import uk.gov.netz.api.account.domain.Account;
+import uk.gov.netz.api.account.domain.AccountContactType;
+import uk.gov.netz.api.account.domain.dto.AccountContactDTO;
+import uk.gov.netz.api.account.domain.dto.AccountContactInfoDTO;
+import uk.gov.netz.api.account.domain.dto.AccountContactInfoResponse;
+import uk.gov.netz.api.account.repository.AccountRepository;
+import uk.gov.netz.api.authorization.core.domain.AppAuthority;
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.rules.domain.Scope;
+import uk.gov.netz.api.authorization.rules.services.resource.CompAuthAuthorizationResourceService;
+import uk.gov.netz.api.authorization.rules.services.resource.RegulatorAuthorityResourceService;
+import uk.gov.netz.api.common.constants.RoleTypeConstants;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class AccountCaSiteContactServiceTest {
+
+    @InjectMocks
+    private AccountCaSiteContactService service;
+
+    @Mock
+    private AccountRepository accountRepository;
+
+    @Mock
+    private CompAuthAuthorizationResourceService compAuthAuthorizationResourceService;
+
+    @Mock
+    private RegulatorAuthorityResourceService regulatorAuthorityResourceService;
+
+    @Mock
+    private ApprovedAccountQueryService<?> approvedAccountQueryService;
+
+    @Test
+    void getAccountsAndCaSiteContacts() {
+        final CompetentAuthorityEnum ca = CompetentAuthorityEnum.WALES;
+        final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
+            .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
+        List<AccountContactInfoDTO> contacts = List.of(AccountContactInfoDTO.builder()
+            .accountId(1L).accountName("name").userId("userId").build());
+        Page<AccountContactInfoDTO> pagedAccounts = new PageImpl<>(contacts);
+
+        AccountContactInfoResponse expected = AccountContactInfoResponse.builder()
+            .contacts(contacts).editable(true).totalItems(1L).build();
+
+        when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER))
+            .thenReturn(true);
+        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1))
+            .thenReturn(pagedAccounts);
+
+        // Invoke
+        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, 0, 1);
+
+        // Assert
+        assertEquals(expected, actual);
+        verify(compAuthAuthorizationResourceService, times(1))
+            .hasUserScopeToCompAuth(user, Scope.EDIT_USER);
+        verify(approvedAccountQueryService, times(1))
+            .getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1);
+    }
+
+    @Test
+    void getAccountsAndCaSiteContacts_not_editable() {
+        final CompetentAuthorityEnum ca = CompetentAuthorityEnum.WALES;
+        final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
+            .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
+        List<AccountContactInfoDTO> contacts = List.of(AccountContactInfoDTO.builder()
+            .accountId(1L).accountName("name").userId("userId").build());
+        Page<AccountContactInfoDTO> pagedAccounts = new PageImpl<>(contacts);
+
+        AccountContactInfoResponse expected = AccountContactInfoResponse.builder()
+            .contacts(contacts).editable(false).totalItems(1L).build();
+
+        when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER))
+            .thenReturn(false);
+        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1))
+            .thenReturn(pagedAccounts);
+
+        // Invoke
+        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, 0, 1);
+
+        // Assert
+        assertEquals(expected, actual);
+        verify(compAuthAuthorizationResourceService, times(1))
+            .hasUserScopeToCompAuth(user, Scope.EDIT_USER);
+        verify(approvedAccountQueryService, times(1))
+            .getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1);
+    }
+
+
+    @Test
+    void getAccountsAndCaSiteContacts_no_contacts() {
+        final CompetentAuthorityEnum ca = CompetentAuthorityEnum.WALES;
+        final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
+            .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
+        Page<AccountContactInfoDTO> pagedAccounts = new PageImpl<>(List.of());
+
+        AccountContactInfoResponse expected = AccountContactInfoResponse.builder()
+            .contacts(List.of()).editable(true).totalItems(0L).build();
+
+        when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER)).thenReturn(true);
+        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1))
+            .thenReturn(pagedAccounts);
+
+        // Invoke
+        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, 0, 1);
+
+        // Assert
+        assertEquals(expected, actual);
+        verify(compAuthAuthorizationResourceService, times(1))
+            .hasUserScopeToCompAuth(user, Scope.EDIT_USER);
+        verify(approvedAccountQueryService, times(1))
+            .getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1);
+    }
+
+    @Test
+    void removeUserFromCaSiteContact() {
+        String userId = "user";
+
+        Map<String, String> accountContacts = new HashMap<>();
+        accountContacts.put(AccountContactType.CA_SITE, userId);
+
+        Account account = mock(Account.class);
+        when(account.getContacts()).thenReturn(accountContacts);
+
+        when(accountRepository.findAccountsByContactTypeAndUserId(AccountContactType.CA_SITE, userId))
+            .thenReturn(List.of(account));
+
+        //invoke
+        service.removeUserFromCaSiteContact(userId);
+        assertThat(account.getContacts()).doesNotContainKey(AccountContactType.CA_SITE);
+    }
+
+    @Test
+    void updateCaSiteContacts() {
+        final Long accountId = 1L;
+        final String oldUser = "old";
+        final String newUser = "new";
+        final CompetentAuthorityEnum ca = CompetentAuthorityEnum.WALES;
+        final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
+            .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
+        List<AccountContactDTO> caSiteContactsUpdate =
+            List.of(AccountContactDTO.builder().accountId(accountId).userId(newUser).build());
+
+        Map<String, String> accountContacts = new HashMap<>();
+        accountContacts.put(AccountContactType.CA_SITE, oldUser);
+
+        Account account = mock(Account.class);
+        when(account.getId()).thenReturn(accountId);
+        when(account.getContacts()).thenReturn(accountContacts);
+
+        when(approvedAccountQueryService.getAllApprovedAccountIdsByCa(ca)).thenReturn(List.of(accountId));
+        when(regulatorAuthorityResourceService.findUsersByCompetentAuthority(ca)).thenReturn(List.of(newUser));
+        when(accountRepository.findAllByIdIn(List.of(accountId))).thenReturn(List.of(account));
+
+        // Invoke
+        service.updateCaSiteContacts(user, caSiteContactsUpdate);
+
+        assertThat(account.getContacts()).containsEntry(AccountContactType.CA_SITE, newUser);
+
+        verify(approvedAccountQueryService, times(1)).getAllApprovedAccountIdsByCa(ca);
+        verify(regulatorAuthorityResourceService, times(1)).findUsersByCompetentAuthority(ca);
+        verify(accountRepository, times(1)).findAllByIdIn(List.of(accountId));
+    }
+
+    @Test
+    void updateCaSiteContacts_account_not_in_ca() {
+        final Long accountId = 1L;
+        final String newUser = "new";
+        final CompetentAuthorityEnum ca = CompetentAuthorityEnum.WALES;
+        final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
+            .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
+        List<AccountContactDTO> caSiteContactsUpdate =
+            List.of(AccountContactDTO.builder().accountId(accountId).userId(newUser).build());
+
+        when(approvedAccountQueryService.getAllApprovedAccountIdsByCa(ca)).thenReturn(List.of());
+
+        BusinessException businessException = assertThrows(BusinessException.class, () ->
+            service.updateCaSiteContacts(user, caSiteContactsUpdate));
+
+        // Assert
+        assertEquals(ErrorCode.ACCOUNT_NOT_RELATED_TO_CA, businessException.getErrorCode());
+        verifyNoInteractions(regulatorAuthorityResourceService, accountRepository);
+    }
+
+    @Test
+    void updateCaSiteContacts_user_not_in_ca() {
+        final Long accountId = 1L;
+        final String newUser = "new";
+        final CompetentAuthorityEnum ca = CompetentAuthorityEnum.WALES;
+        final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
+            .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
+        List<AccountContactDTO> caSiteContactsUpdate =
+            List.of(AccountContactDTO.builder().accountId(accountId).userId(newUser).build());
+
+        when(approvedAccountQueryService.getAllApprovedAccountIdsByCa(ca)).thenReturn(List.of(accountId));
+        when(regulatorAuthorityResourceService.findUsersByCompetentAuthority(ca)).thenReturn(List.of());
+
+        BusinessException businessException = assertThrows(BusinessException.class, () ->
+            service.updateCaSiteContacts(user, caSiteContactsUpdate));
+
+        // Assert
+        assertEquals(ErrorCode.AUTHORITY_USER_NOT_RELATED_TO_CA, businessException.getErrorCode());
+
+        verify(approvedAccountQueryService, times(1)).getAllApprovedAccountIdsByCa(ca);
+        verify(regulatorAuthorityResourceService, times(1)).findUsersByCompetentAuthority(ca);
+        verifyNoInteractions(accountRepository);
+    }
+}

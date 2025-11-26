@@ -1,0 +1,119 @@
+package uk.gov.netz.api.account.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.netz.api.account.domain.Account;
+import uk.gov.netz.api.account.domain.dto.AccountContactDTO;
+import uk.gov.netz.api.account.domain.dto.AccountContactInfoDTO;
+import uk.gov.netz.api.account.domain.dto.AccountContactInfoResponse;
+import uk.gov.netz.api.account.domain.AccountContactType;
+import uk.gov.netz.api.account.repository.AccountRepository;
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.rules.domain.Scope;
+import uk.gov.netz.api.authorization.rules.services.resource.CompAuthAuthorizationResourceService;
+import uk.gov.netz.api.authorization.rules.services.resource.RegulatorAuthorityResourceService;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AccountCaSiteContactService implements AccountCaSiteContactProvider {
+
+    private final AccountRepository accountRepository;
+    private final AccountContactQueryService accountContactQueryService;
+    private final CompAuthAuthorizationResourceService compAuthAuthorizationResourceService;
+    private final RegulatorAuthorityResourceService regulatorAuthorityResourceService;
+    private final ApprovedAccountQueryService<?> approvedAccountQueryService;
+
+    @Override
+    public Optional<String> findCASiteContactByAccount(Long accountId) {
+        return accountContactQueryService.findContactByAccountAndContactType(accountId, AccountContactType.CA_SITE);
+    }
+
+    public AccountContactInfoResponse getAccountsAndCaSiteContacts(AppUser user, Integer page, Integer pageSize) {
+        Page<AccountContactInfoDTO> contacts =
+                approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(user.getCompetentAuthority(), page, pageSize);
+
+        // Check if user has the permission of editing account contacts assignees
+        boolean isEditable = compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER);
+
+        // Transform properly
+        return AccountContactInfoResponse.builder()
+                .contacts(contacts.get().collect(Collectors.toList()))
+                .totalItems(contacts.getTotalElements())
+                .editable(isEditable)
+                .build();
+    }
+
+    @Transactional
+    public void removeUserFromCaSiteContact(String userId) {
+        List<Account> accounts = accountRepository.findAccountsByContactTypeAndUserId(AccountContactType.CA_SITE, userId);
+        accounts
+                .forEach(ac -> ac.getContacts().remove(AccountContactType.CA_SITE));
+    }
+
+    @Transactional
+    public void updateCaSiteContacts(AppUser user, List<AccountContactDTO> caSiteContacts) {
+        CompetentAuthorityEnum ca = user.getCompetentAuthority();
+
+        // Validate accounts belonging to CA
+        Set<Long> accountIds =
+                caSiteContacts.stream()
+                        .map(AccountContactDTO::getAccountId)
+                        .collect(Collectors.toSet());
+        validateAccountsByCa(accountIds, ca);
+
+        // Validate users belonging to CA
+        Set<String> userIds = caSiteContacts.stream()
+                .map(AccountContactDTO::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        validateUsersByCA(userIds, ca);
+
+        // Update contacts in DB
+        doUpdateCaSiteContacts(caSiteContacts);
+    }
+
+    private void doUpdateCaSiteContacts(List<AccountContactDTO> caSiteContactsUpdate) {
+        List<Long> accountIdsUpdate =
+                caSiteContactsUpdate.stream()
+                        .map(AccountContactDTO::getAccountId)
+                        .collect(Collectors.toList());
+        List<Account> accounts = accountRepository.findAllByIdIn(accountIdsUpdate);
+
+        caSiteContactsUpdate
+                .forEach(contact -> accounts.stream()
+                        .filter(ac -> ac.getId().equals(contact.getAccountId()))
+                        .findFirst()
+                        .ifPresent(ac -> {
+                            ac.getContacts().put(AccountContactType.CA_SITE, contact.getUserId());
+                        }));
+    }
+
+    /** Validates that account exists and belongs to CA */
+    private void validateAccountsByCa(Set<Long> accountIds, CompetentAuthorityEnum ca) {
+        List<Long> accounts = approvedAccountQueryService.getAllApprovedAccountIdsByCa(ca);
+
+        if (!accounts.containsAll(accountIds)) {
+            throw new BusinessException(ErrorCode.ACCOUNT_NOT_RELATED_TO_CA);
+        }
+    }
+
+    /** Validates that user exists and belongs to CA */
+    private void validateUsersByCA(Set<String> userIds, CompetentAuthorityEnum ca) {
+        List<String> users = regulatorAuthorityResourceService.findUsersByCompetentAuthority(ca);
+
+        if (!users.containsAll(userIds)) {
+            throw new BusinessException(ErrorCode.AUTHORITY_USER_NOT_RELATED_TO_CA);
+        }
+    }
+}

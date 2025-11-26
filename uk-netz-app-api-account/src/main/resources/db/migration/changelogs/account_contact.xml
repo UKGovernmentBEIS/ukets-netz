@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="changelog_account.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+    
+    <changeSet id="0_1_0_RECREATE_ACCOUNT_CONTACT_TABLE" author="P35066">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="account_contact"/>
+            </not>
+        </preConditions>
+
+        <comment>Create account_contact type table</comment>
+        <createTable tableName="account_contact" remarks="The account contact relationship table">
+            <column name="account_id" type="bigint" remarks="The account id where contact belongs to (foreign key to account table)">
+                 <constraints foreignKeyName="account_contact_acc_fk" references="account(id)" nullable="false" />
+            </column>
+            <column name="contact_type" type="varchar(255)" remarks="The type of the contact">
+                <constraints nullable="false" />
+            </column>
+            <column name="user_id" type="varchar(255)" remarks="The user id responsible for the contact type">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS account_contact CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

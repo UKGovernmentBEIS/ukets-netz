@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_account.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+	
+	<changeSet id="0_1_0_ACCOUNT_CREATE_TABLE" author="P35066">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="account"/>
+            </not>
+        </preConditions>
+
+		<createTable tableName="account" 
+        		remarks="Represents an operator account">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="account_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)" remarks="The name of the account">
+                <constraints nullable="false" />
+            </column>
+            <column name="business_id" type="varchar(255)" remarks="The account business id">
+                <constraints unique="true" uniqueConstraintName="business_id_uq" nullable="true" />
+            </column>
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority">
+            	<constraints nullable="false" />
+            </column>
+            <column name="accepted_date" type="timestamp" remarks="The date the account was accepted">
+                <constraints nullable="true" />
+            </column>
+            <column name="verification_body_id" type="bigint" remarks="The verification body id">
+                <constraints nullable="true" />
+            </column>
+            <column name="emission_trading_scheme" type="varchar(255)" remarks="The emission trading scheme the installation account">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+        <rollback>
+        	<sql>
+        		DROP TABLE IF EXISTS account CASCADE;
+        	</sql>
+        </rollback>
+	</changeSet>
+
+
+    <changeSet id="0_1_0_ACCOUNT_IDENTIFIER_CREATE_TABLE" author="P70383">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="account_identifier"/>
+            </not>
+        </preConditions>
+
+        <comment>Create account identifier table</comment>
+        <createTable tableName="account_identifier" remarks="Represents the latest account id value">
+            <column name="id" type="integer" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="account_identifier_pk" nullable="false"/>
+            </column>
+            <column name="account_id" type="bigint" remarks="The latest account id value">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS account_identifier CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_CREATE_INDEXES_FOR_ACCOUNT_SEARCHABLE_COLUMNS" author="P35066">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="account" indexName="trgm_gin_idx_account_name"/>
+            </not>
+        </preConditions>
+
+        <sql>
+            CREATE INDEX trgm_gin_idx_account_name ON account USING gin (name gin_trgm_ops);
+        </sql>
+        <rollback>
+            <sql>
+                DROP INDEX trgm_gin_idx_account_name;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ACCOUNT_SEARCH_ADDITIONAL_KEYWORD_SEQUENCE" author="P62629">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="account_search_additional_keyword_seq"/>
+            </not>
+        </preConditions>
+
+        <createSequence sequenceName="account_search_additional_keyword_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS account_search_additional_keyword_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ACCOUNT_SEARCH_ADDITIONAL_KEYWORD" author="P62629">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="account_search_additional_keyword"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="account_search_additional_keyword" remarks="Represents an account-related additional keyword for search purposes">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="account_search_additional_keyword_pk" nullable="false"/>
+            </column>
+            <column name="account_id" type="bigint" remarks="The account id related to the keyword">
+                <constraints foreignKeyName="account_search_additional_keywordacc_fk" references="account(id)" nullable="false" />
+            </column>
+            <column name="value" type="varchar(255)" remarks="The value of the keyword (e.g. permit_id)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS account_search_additional_keyword CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_CREATE_INDEXES_FOR_ACCOUNT_SEARCH_ADDITIONAL_KEYWORD_SEARCHABLE_COLUMN" author="P62629">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="account_search_additional_keyword" indexName="trgm_gin_idx_account_search_additional_keyword_value"/>
+            </not>
+        </preConditions>
+
+        <sql>
+            CREATE INDEX trgm_gin_idx_account_search_additional_keyword_value
+                ON account_search_additional_keyword USING gin (value gin_trgm_ops);
+        </sql>
+        <rollback>
+            <sql>
+                DROP INDEX trgm_gin_idx_account_search_additional_keyword_value;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ACCOUNT_ADD_CA_IDX" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="account" indexName="account_ca_idx"/>
+            </not>
+        </preConditions>
+
+        <comment>Add CA index in account table</comment>
+        <createIndex indexName="account_ca_idx" tableName="account">
+            <column name="competent_authority" />
+        </createIndex>
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS account_ca_idx CASCADE
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_drop_emission_trading_scheme_column_from_account_table" author="P35066">
+		<dropColumn tableName="account" columnName="emission_trading_scheme"/>
+	</changeSet>
+
+    <changeSet id="0_1_0_ACCOUNT_SEARCH_ADDITIONAL_KEYWORD_ADD_KEY_COLUMN_AND_UNIQUE_CONSTRAINT" author="P70311">
+        <addColumn tableName="account_search_additional_keyword">
+            <column name="key" type="varchar(255)" remarks="The keyword that identifies a term along with account">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addUniqueConstraint tableName="account_search_additional_keyword" columnNames="account_id,key"
+                             constraintName="account_id_additional_keyword_type_uc"/>
+        <rollback>
+            <dropUniqueConstraint tableName="account_search_additional_keyword" constraintName="account_id_additional_keyword_type_uc"/>
+            <dropColumn tableName="account_search_additional_keyword" columnName="key"/>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_add_third_party_data_provider_column_in_account_table" author="p35066">
+        <addColumn tableName="account">
+            <column name="third_party_data_provider_id" type="bigint" />
+        </addColumn>
+        <rollback>
+            <sql>
+                alter table account
+                drop column if exists third_party_data_provider_id;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

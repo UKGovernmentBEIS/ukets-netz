@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_account.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_CA_EXTERNAL_CONTACTS_SEQUENCE" author="p70366">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="account_ca_external_contacts_seq"/>
+            </not>
+        </preConditions>
+
+        <createSequence sequenceName="account_ca_external_contacts_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS account_ca_external_contacts_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_CA_EXTERNAL_CONTACTS_TABLE" author="p70366">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="account_ca_external_contacts"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="account_ca_external_contacts" remarks="Represents a ca external contact">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="ca_external_contacts_pk" nullable="false"/>
+            </column>
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)" remarks="The name of the contact">
+                <constraints nullable="false" />
+            </column>
+            <column name="email" type="varchar(255)" remarks="The email of the contact">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(255)" remarks="The description of the contact">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_updated_date" type="timestamp" remarks="The last updated date of the contact">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="account_ca_external_contacts" columnNames="competent_authority,name" constraintName="ca_name_uc"/>
+        <addUniqueConstraint tableName="account_ca_external_contacts" columnNames="competent_authority,email" constraintName="ca_email_uc"/>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS account_ca_external_contacts;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_CA_EXTERNAL_CONTACTS_IDX" author="p70366">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="account_ca_external_contacts" indexName="ca_external_contacts_idx"/>
+            </not>
+        </preConditions>
+
+        <createIndex indexName="ca_external_contacts_idx" tableName="account_ca_external_contacts">
+            <column name="competent_authority" />
+        </createIndex>
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS ca_external_contacts_idx;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

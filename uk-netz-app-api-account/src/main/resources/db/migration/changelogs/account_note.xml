@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="changelog_account_note.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_CREATE_TABLE_ACCOUNT_NOTE" author="P70605">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="account_note"/>
+            </not>
+        </preConditions>
+
+        <createSequence sequenceName="account_note_seq"/>
+        <createTable tableName="account_note">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="account_note_pk" nullable="false"/>
+            </column>
+            <column name="account_id" type="bigint">
+                <constraints foreignKeyName="account_id_fk" references="account(id)" nullable="false"/>
+            </column>
+            <column name="payload" type="jsonb">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitter" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitter_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated_on" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS account_note CASCADE;
+                DROP SEQUENCE IF EXISTS account_note_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
