@@ -1,0 +1,19 @@
+package uk.gov.netz.api.workflow.request.application.verificationbodyappointed;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import uk.gov.netz.api.account.domain.event.AccountVerificationBodyAppointedEvent;
+
+@RequiredArgsConstructor
+@Component
+public class AccountVerificationBodyAppointedEventListener {
+    
+    private final RequestVerificationBodyService requestVerificationBodyService;
+
+    //TODO: CHECK WHAT NEED TO BE DONE AND IN WHICH REQUESTS
+    @EventListener
+    public void onAccountVerificationBodyAppointedEvent(AccountVerificationBodyAppointedEvent event) {
+        requestVerificationBodyService.appointVerificationBodyToRequestsOfAccount(event.getVerificationBodyId(), event.getAccountId());
+    }
+}

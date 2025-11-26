@@ -1,0 +1,14 @@
+package uk.gov.netz.api.workflow.request.flow.rfi.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import uk.gov.netz.api.common.config.MapperConfig;
+import uk.gov.netz.api.workflow.request.flow.rfi.domain.RfiSubmitRequestTaskActionPayload;
+import uk.gov.netz.api.workflow.request.flow.rfi.domain.RfiSubmittedRequestActionPayload;
+
+@Mapper(componentModel = "spring", config = MapperConfig.class)
+public interface RfiMapper {
+    
+    @Mapping(target = "payloadType", expression = "java(uk.gov.netz.api.workflow.request.core.domain.constants.RequestActionPayloadTypes.RFI_SUBMITTED_PAYLOAD)")
+    RfiSubmittedRequestActionPayload toRfiSubmittedRequestActionPayload(RfiSubmitRequestTaskActionPayload taskActionPayload);
+}

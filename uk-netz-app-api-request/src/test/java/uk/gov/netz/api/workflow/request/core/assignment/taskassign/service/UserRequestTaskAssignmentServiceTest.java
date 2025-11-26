@@ -1,0 +1,136 @@
+package uk.gov.netz.api.workflow.request.core.assignment.taskassign.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.netz.api.authorization.rules.domain.ResourceType;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
+import uk.gov.netz.api.common.constants.RoleTypeConstants;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.workflow.request.core.assignment.taskassign.dto.RequestTaskAssignmentDTO;
+import uk.gov.netz.api.workflow.request.core.assignment.taskassign.service.operator.OperatorRequestTaskAssignmentService;
+import uk.gov.netz.api.workflow.request.core.assignment.taskassign.service.regulator.RegulatorRequestTaskAssignmentService;
+import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
+import uk.gov.netz.api.workflow.request.core.domain.RequestTaskType;
+import uk.gov.netz.api.workflow.request.core.service.RequestTaskService;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class UserRequestTaskAssignmentServiceTest {
+
+    @InjectMocks
+    private UserRequestTaskAssignmentService userRequestTaskAssignmentService;
+
+    @Mock
+    private RequestTaskService requestTaskService;
+
+    @Mock
+    private RequestTaskAssignmentValidationService requestTaskAssignmentValidationService;
+
+    @Mock
+    private AuthorizationRulesQueryService authorizationRulesQueryService;
+
+    @Mock
+    private OperatorRequestTaskAssignmentService operatorRequestTaskAssignmentService;
+
+    @Mock
+    private RegulatorRequestTaskAssignmentService regulatorRequestTaskAssignmentService;
+
+    @BeforeEach
+    void setup() {
+        userRequestTaskAssignmentService = new UserRequestTaskAssignmentService(
+                requestTaskService,
+                requestTaskAssignmentValidationService,
+                authorizationRulesQueryService,
+                List.of(operatorRequestTaskAssignmentService, regulatorRequestTaskAssignmentService));
+    }
+
+    @Test
+    void assignTask_operator() {
+        Long requestTaskId = 1L;
+        String userId = "userId";
+
+        RequestTaskAssignmentDTO requestTaskAssignmentDTO = RequestTaskAssignmentDTO.builder()
+                .taskId(requestTaskId)
+                .userId(userId)
+                .build();
+
+        RequestTask requestTask = RequestTask.builder().id(requestTaskId).type(RequestTaskType.builder().code("type").build()).build();
+
+        when(requestTaskService.findTaskById(requestTaskId)).thenReturn(requestTask);
+        when(authorizationRulesQueryService
+                .findRoleTypeByResourceTypeAndSubType(ResourceType.REQUEST_TASK, requestTask.getType().getCode()))
+                .thenReturn(Optional.of(RoleTypeConstants.OPERATOR));
+        when(operatorRequestTaskAssignmentService.getRoleType()).thenReturn(RoleTypeConstants.OPERATOR);
+
+        userRequestTaskAssignmentService.assignTask(requestTaskAssignmentDTO);
+
+        verify(operatorRequestTaskAssignmentService, times(1)).assignTask(requestTask, userId);
+        verify(requestTaskAssignmentValidationService, times(1)).validateTaskAssignmentCapability(requestTask);
+        verify(regulatorRequestTaskAssignmentService, never()).assignTask(any(), anyString());
+    }
+
+    @Test
+    void assignTask_regulator() {
+        Long requestTaskId = 1L;
+        String userId = "userId";
+
+        RequestTaskAssignmentDTO requestTaskAssignmentDTO = RequestTaskAssignmentDTO.builder()
+                .taskId(requestTaskId)
+                .userId(userId)
+                .build();
+
+        RequestTask requestTask = RequestTask.builder().id(requestTaskId).type(RequestTaskType.builder().code("requestTaskTypeCode").build()).build();
+
+        when(requestTaskService.findTaskById(requestTaskId)).thenReturn(requestTask);
+        when(authorizationRulesQueryService
+                .findRoleTypeByResourceTypeAndSubType(ResourceType.REQUEST_TASK, requestTask.getType().getCode()))
+                .thenReturn(Optional.of(RoleTypeConstants.REGULATOR));
+        when(operatorRequestTaskAssignmentService.getRoleType()).thenReturn(RoleTypeConstants.OPERATOR);
+        when(regulatorRequestTaskAssignmentService.getRoleType()).thenReturn(RoleTypeConstants.REGULATOR);
+
+        userRequestTaskAssignmentService.assignTask(requestTaskAssignmentDTO);
+
+        verify(regulatorRequestTaskAssignmentService, times(1)).assignTask(requestTask, userId);
+        verify(requestTaskAssignmentValidationService, times(1)).validateTaskAssignmentCapability(requestTask);
+        verify(operatorRequestTaskAssignmentService, never()).assignTask(any(), anyString());
+    }
+
+    @Test
+    void assignTask_no_task_found() {
+        Long requestTaskId = 1L;
+        String userId = "userId";
+
+        RequestTaskAssignmentDTO requestTaskAssignmentDTO = RequestTaskAssignmentDTO.builder()
+                .taskId(requestTaskId)
+                .userId(userId)
+                .build();
+
+        when(requestTaskService.findTaskById(requestTaskId)).thenThrow(new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        BusinessException businessException = assertThrows(BusinessException.class,
+                () -> userRequestTaskAssignmentService.assignTask(requestTaskAssignmentDTO));
+
+        assertEquals(ErrorCode.RESOURCE_NOT_FOUND, businessException.getErrorCode());
+
+        verifyNoInteractions(authorizationRulesQueryService, operatorRequestTaskAssignmentService,
+                regulatorRequestTaskAssignmentService, requestTaskAssignmentValidationService);
+    }
+
+}

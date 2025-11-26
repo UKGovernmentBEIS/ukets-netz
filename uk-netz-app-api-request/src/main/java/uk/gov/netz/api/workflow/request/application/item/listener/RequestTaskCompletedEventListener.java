@@ -1,0 +1,24 @@
+package uk.gov.netz.api.workflow.request.application.item.listener;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import uk.gov.netz.api.workflow.request.application.item.service.RequestTaskVisitService;
+import uk.gov.netz.api.workflow.request.application.taskcompleted.RequestTaskCompletedEvent;
+import uk.gov.netz.api.workflow.request.flow.common.service.RequestTaskAttachmentsUncoupleService;
+
+@RequiredArgsConstructor
+@Component
+public class RequestTaskCompletedEventListener {
+
+    private final RequestTaskVisitService requestTaskVisitService;
+    private final RequestTaskAttachmentsUncoupleService requestTaskAttachmentsUncoupleService;
+    
+    @EventListener
+    public void onRequestTaskCompletedEvent(RequestTaskCompletedEvent event) {
+        
+        final Long requestTaskId = event.getRequestTaskId();
+        requestTaskVisitService.deleteByTaskId(requestTaskId);
+        requestTaskAttachmentsUncoupleService.uncoupleAttachments(requestTaskId);
+    }
+}

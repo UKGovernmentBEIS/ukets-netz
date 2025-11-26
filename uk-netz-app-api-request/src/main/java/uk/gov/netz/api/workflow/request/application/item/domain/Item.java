@@ -1,0 +1,39 @@
+package uk.gov.netz.api.workflow.request.application.item.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import uk.gov.netz.api.workflow.request.core.domain.RequestTaskType;
+import uk.gov.netz.api.workflow.request.core.domain.RequestType;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class Item {
+
+    /** item fields **/
+    private LocalDateTime creationDate;
+
+    /** request fields **/
+    private String requestId;
+
+    private RequestType requestType;
+
+    /** request task fields **/
+    private Long taskId;
+
+    private RequestTaskType taskType;
+
+    private String taskAssigneeId;
+
+    private LocalDate taskDueDate;
+
+    private LocalDate pauseDate;
+
+    private boolean isNew;
+}

@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_request_ddl.xml"
+		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+		
+	<changeSet id="0_1_0_create_request_type_sequence" author="P35066">
+        <createSequence sequenceName="request_type_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+				drop sequence if exists request_type_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+	
+	<changeSet id="0_1_0_create_request_type_table" author="P35066">
+        <createTable tableName="request_type">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="request_type_pk" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="request_type_code_uq" />
+            </column>
+            <column name="description" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="process_definition_id" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="history_category" type="varchar(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="hold_history" type="boolean" />
+			<column name="displayed_in_progress" type="boolean" />
+			<column name="cascadable" type="boolean" />
+			<column name="can_create_manually" type="boolean" />
+        </createTable>
+        <rollback>
+            <sql>
+				drop table if exists request_type cascade;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_request_type_add_resource_type_column" author="P70453">
+        <addColumn tableName="request_type">
+            <column name="resource_type" type="varchar(255)" remarks="The Resource type the request is created on">
+            </column>
+        </addColumn>
+        <rollback>
+            <sql>
+                ALTER TABLE request_type
+                DROP COLUMN IF EXISTS resource_type;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_RESOURCE_TYPE_CHECK" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.constraint_column_usage where constraint_name = 'request_type_can_create_manually_resource_type_constraint' and table_name = 'request_type'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE request_type ADD CONSTRAINT request_type_can_create_manually_resource_type_constraint
+                CHECK (((can_create_manually IS FALSE OR can_create_manually IS NULL) AND resource_type IS NULL)
+                    OR (can_create_manually IS TRUE AND resource_type  IS NOT NULL))
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE request_type
+                DROP CONSTRAINT IF EXISTS request_type_can_create_manually_resource_type_constraint;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+	<changeSet id="0_1_0_create_request_table" author="pafilisa@unisystems.gr" context="migrate">
+        <createTable tableName="request">
+            <column name="id" type="varchar(20)" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="request_pk" nullable="false"/>
+            </column>
+            <column name="type_id" type="bigint" remarks="Foreign key to request_type table">
+                <constraints nullable="false" foreignKeyName="request_request_type_fk" referencedTableName="request_type" referencedColumnNames="id" />
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="process_instance_id" type="varchar(255)" remarks="The id of the process instance that was started for this request" />
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority issuing the request">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_id" type="bigint" remarks="The account id the request is related to" />
+            <column name="verification_body_id" type="bigint" remarks="The verification body id the request is related to" />
+            <column name="payload" type="jsonb" remarks="The request payload" />
+            <column name="metadata" type="jsonb" remarks="The request metadata details" />
+            <column name="creation_date" type="timestamp" remarks="The date-time that the request was submitted">
+                <constraints nullable="false" />
+            </column>
+            <column name="submission_date" type="timestamp" remarks="The submission date of the request (when the initial task of the flow was completed)" />
+            <column name="end_date" type="timestamp" remarks="The end date of the request (when the last task of the flow was completed)" />
+        </createTable>
+        <createIndex indexName="idx_request_process_instance_id" tableName="request" unique="true">
+            <column name="process_instance_id"/>
+        </createIndex>
+        <createIndex indexName="request_account_id_idx" tableName="request">
+            <column name="account_id"/>
+        </createIndex>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+	
+	<changeSet id="0_1_0_create_request_resource_table" author="apostolouk@unisystems.gr">
+        <createTable tableName="request_resource">
+            <column name="resource_type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_id" type="varchar(255)">
+            	<constraints nullable="false"/>
+            </column>
+            <column name="request_id" type="varchar(20)" remarks="Foreign key to request table">
+                <constraints nullable="false" foreignKeyName="request_resource_request_fk" referencedTableName="request" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+        <addPrimaryKey
+                columnNames="resource_type, request_id"
+                constraintName="request_resource_pk"
+                tableName="request_resource" />
+        <rollback>
+            <sql>
+				drop table if exists request_resource cascade;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_populate_request_resource_from_request" author="apostolouk@unisystems.gr">
+        	<sql>
+				insert into request_resource (resource_type, resource_id, request_id)
+				select 'ACCOUNT', r.account_id, r.id 
+				from request r
+				where r.account_id is not null;
+				
+				insert into request_resource (resource_type, resource_id, request_id)
+				select 'CA', r.competent_authority, r.id 
+				from request r;
+				
+				insert into request_resource (resource_type, resource_id, request_id)
+				select 'VERIFICATION_BODY', r.verification_body_id, r.id 
+				from request r
+				where r.verification_body_id is not null;
+            </sql>
+        <rollback>
+            <sql>
+				truncate request_resource;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_drop_ca_account_id_verification_body_id_columns_from_request_table" author="apostolouk@unisystems.gr">
+        <dropColumn tableName="request">
+            <column name="competent_authority"/>
+            <column name="account_id"/>
+            <column name="verification_body_id"/>
+        </dropColumn>
+        <rollback>
+            <addColumn tableName="request">
+            	<column name="competent_authority" type="varchar(255)" remarks="The competent authority issuing the request">
+                	<constraints nullable="false" />
+            	</column>
+            	<column name="account_id" type="bigint" remarks="The account id the request is related to" />
+            	<column name="verification_body_id" type="bigint" remarks="The verification body id the request is related to" />
+        	</addColumn>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_action_sequence" author="P35066">
+        <createSequence sequenceName="request_action_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+				drop sequence if exists request_action_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_action_table" author="pafilisa@unisystems.gr" context="migrate">
+        <createTable tableName="request_action" remarks="Represents a timeline event">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="request_action_pk" nullable="false"/>
+            </column>
+            <column name="type" type="varchar(255)" remarks="The request action type">
+                <constraints nullable="false" />
+            </column>
+            <column name="payload" type="jsonb" remarks="The data that were submitted with this action" />
+            <column name="submitter_id" type="varchar(255)" remarks="The user id that last modified the request action" />
+            <column name="submitter" type="varchar(512)" />
+            <column name="creation_date" type="timestamp" remarks="The creation time of the request action">
+                <constraints nullable="false" />
+            </column>
+            <column name="request_id" type="varchar(20)" remarks="Foreign key to REQUEST table">
+                <constraints nullable="false" foreignKeyName="request_action_request_fk" referencedTableName="request" referencedColumnNames="id" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_action CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_task_type_sequence" author="P35066">
+        <createSequence sequenceName="request_task_type_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+				drop sequence if exists request_task_type_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+	
+	<changeSet id="0_1_0_create_request_task_type_table" author="P35066">
+        <createTable tableName="request_task_type">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="request_task_type_pk" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="request_task_type_code_uq" />
+            </column>
+            <column name="assignable" type="boolean" />
+            <column name="expiration_key" type="varchar(255)" />
+            <column name="supporting" type="boolean" />
+             <column name="request_type_id" type="bigint" remarks="Foreign key to request_type table">
+                <constraints nullable="false" foreignKeyName="rtt_rt_fk" referencedTableName="request_type" referencedColumnNames="id" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+				drop table if exists request_task_type cascade;
+            </sql>
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="0_1_0_update_request_task_type_supporting" author="P70453">
+        <modifyDataType tableName="request_task_type" columnName="supporting" newDataType="varchar(255)"/>
+        <rollback>
+            <modifyDataType tableName="request_task_type" columnName="supporting" newDataType="boolean"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_request_task_action_type_sequence" author="P35066">
+        <createSequence sequenceName="request_task_action_type_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+				drop sequence if exists request_task_action_type_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+	
+	<changeSet id="0_1_0_create_request_task_action_type_table" author="P35066">
+        <createTable tableName="request_task_action_type">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="request_task_action_type_pk" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="type_code_uq" />
+            </column>
+            <column name="blocked_by_payment" type="boolean" />
+        </createTable>
+        <rollback>
+            <sql>
+				drop table if exists request_task_action_type cascade;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_task_type_action_type_table" author="P35066">
+        <createTable tableName="request_task_type_action_type">
+            <column name="request_task_type_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="request_task_action_type_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="request_task_type_action_type"
+			columnNames="request_task_type_id,request_task_action_type_id"
+			constraintName="request_task_type_action_type_pk" />
+        <addForeignKeyConstraint baseTableName="request_task_type_action_type"
+			baseColumnNames="request_task_type_id"
+			constraintName="request_task_type_fk"
+			referencedTableName="request_task_type" referencedColumnNames="id" />
+        <addForeignKeyConstraint baseTableName="request_task_type_action_type"
+			baseColumnNames="request_task_action_type_id"
+			constraintName="request_task_action_type_fk"
+			referencedTableName="request_task_action_type"
+			referencedColumnNames="id" />
+        <rollback>
+            <sql>
+                drop table if exists au_service cascade;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_task_sequence" author="P35066">
+        <createSequence sequenceName="request_task_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+				drop sequence if exists request_task_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_task_table" author="P35066">
+        <createTable tableName="request_task">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="request_task_pk" nullable="false"/>
+            </column>
+            <column name="type_id" type="bigint" remarks="The request task type that is related to">
+                <constraints foreignKeyName="request_task_type_request_task_fk" references="request_task_type(id)" nullable="false"/>
+            </column>
+            <column name="request_id" type="varchar(20)" remarks="The request the task is related to (foreign key to request table)">
+                <constraints foreignKeyName="request_task_request_fk" references="request(id)" nullable="false"/>
+            </column>
+            <column name="process_task_id" type="varchar(64)" remarks="The bpmn process task id">
+                <constraints nullable="false" />
+            </column>
+            <column name="assignee" type="varchar(255)" remarks="The assignee user of the task" />
+            <column name="start_date" type="timestamp" remarks="The start date time of the task">
+                <constraints nullable="false" />
+            </column>
+            <column name="due_date" type="date" remarks="The due date of the task" />
+            <column name="pause_date" type="date" remarks="The pause date"/>
+            <column name="payload" type="jsonb" remarks="The request task payload" />
+            <column name="version" type="bigint" remarks="The version number (optimistic locking)" />
+        </createTable>
+        <addUniqueConstraint tableName="request_task" columnNames="process_task_id" constraintName="request_task_uc"/>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_task CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_request_task_history_table" author="p70453">
+        <createTable tableName="request_task_history">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="request_task_history_pk" nullable="false"/>
+            </column>
+            <column name="request_id" type="varchar(20)" remarks="The request the task is related to (foreign key to request table)">
+                <constraints foreignKeyName="request_task_history_request_fk" references="request(id)" nullable="false"/>
+            </column>
+            <column name="process_task_id" type="varchar(64)" remarks="The bpmn process task id">
+                <constraints nullable="false" />
+            </column>
+            <column name="type" type="varchar(255)" remarks="The type of the task">
+                <constraints nullable="false" />
+            </column>
+            <column name="assignee" type="varchar(255)" remarks="The assignee user of the task" />
+            <column name="start_date" type="timestamp" remarks="The start date time of the task">
+                <constraints nullable="false" />
+            </column>
+            <column name="due_date" type="date" remarks="The due date of the task" />
+            <column name="pause_date" type="date" remarks="The pause date"/>
+            <column name="end_date" type="timestamp" remarks="The end date time of the task" />
+            <column name="payload" type="jsonb" remarks="The request task payload" />
+        </createTable>
+        <addUniqueConstraint tableName="request_task_history" columnNames="process_task_id" constraintName="request_task_history_uc"/>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_task_history CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_sequence_sequence" author="P35066">
+        <createSequence sequenceName="request_sequence_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+				drop sequence if exists request_sequence_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_create_request_sequence_table" author="P62629">
+        <createSequence sequenceName="request_sequence_seq" />
+        <createTable tableName="request_sequence" remarks="Represents a request sequence">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="request_sequence_pk" nullable="false"/>
+            </column>
+            <column name="version" type="bigint" remarks="The version number (for optimistic locking)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="business_identifier" type="varchar(255)" remarks="The business identifier">
+                <constraints nullable="true" />
+            </column>
+            <column name="request_type_id" type="bigint" remarks="The request type the sequence is related to (foreign key to request type table)">
+                <constraints foreignKeyName="request_sequence_request_type_fk" references="request_type(id)" nullable="false"/>
+            </column>
+            <column name="sequence" type="bigint"
+                    remarks="The sequence, specific to each request type (e.g. incrementing number or year etc.)">
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_sequence CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_request_note_table" author="P70605">
+        <createSequence sequenceName="request_note_seq"/>
+        <createTable tableName="request_note">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="request_note_pk" nullable="false"/>
+            </column>
+            <column name="request_id" type="varchar(20)">
+                <constraints foreignKeyName="request_id_fk" references="request(id)" nullable="false"/>
+            </column>
+            <column name="payload" type="jsonb">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitter" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitter_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated_on" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_note CASCADE;
+                DROP SEQUENCE IF EXISTS request_note_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_OPENED_ITEM" author="p70366">
+        <createTable tableName="request_task_visit" remarks="Represents an opened dashboard item">
+            <column name="task_id" type="bigint" remarks="The task id that the opened item is related to (foreign key to request_task table)">
+                <constraints foreignKeyName="request_task_visit_request_task_fk" references="request_task(id)" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(64)" remarks="The user id to which the opened item is related to">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <addPrimaryKey
+                columnNames="task_id, user_id"
+                constraintName="request_task_visit_pk"
+                tableName="request_task_visit" />
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_task_visit CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_MODIFY_REQUEST_ID_TYPE_TO_VARCHAR_50" author="P70383">
+        <modifyDataType tableName="request" columnName="id" newDataType="varchar(50)"/>
+        <modifyDataType tableName="request_resource" columnName="request_id" newDataType="varchar(50)"/>
+        <modifyDataType tableName="request_note" columnName="request_id" newDataType="varchar(50)"/>
+        <modifyDataType tableName="request_task" columnName="request_id" newDataType="varchar(50)"/>
+        <modifyDataType tableName="request_action" columnName="request_id" newDataType="varchar(50)"/>
+        <modifyDataType tableName="request_task_history" columnName="request_id" newDataType="varchar(50)"/>
+
+        <rollback>
+            <modifyDataType tableName="request" columnName="id" newDataType="varchar(20)"/>
+            <modifyDataType tableName="request_resource" columnName="request_id" newDataType="varchar(20)"/>
+            <modifyDataType tableName="request_note" columnName="request_id" newDataType="varchar(20)"/>
+            <modifyDataType tableName="request_task" columnName="request_id" newDataType="varchar(20)"/>
+            <modifyDataType tableName="request_action" columnName="request_id" newDataType="varchar(20)"/>
+            <modifyDataType tableName="request_task_history" columnName="request_id" newDataType="varchar(20)"/>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_DROP_CONSTRAINT_FOR_RESOURCE_TYPE_CHECK" author="P35066">
+        <sql>
+            ALTER TABLE request_type
+                DROP CONSTRAINT IF EXISTS request_type_can_create_manually_resource_type_constraint;
+        </sql>
+        <rollback changeSetId="0_1_0_RESOURCE_TYPE_CHECK" changeSetAuthor="P70453"/>
+    </changeSet>
+    
+    <changeSet id="0_1_0_add_not_null_constraint_for_resource_type_column_of_request_type_table" author="P35066">
+    	<preConditions onFail="CONTINUE">
+    		<sqlCheck expectedResult="YES">
+				SELECT is_nullable FROM information_schema.columns
+				WHERE
+				table_schema = 'public'
+				AND table_name = 'request_type'
+				AND column_name = 'resource_type';
+			</sqlCheck>
+	    	<sqlCheck expectedResult="0">
+		        SELECT CASE 
+			         WHEN EXISTS (SELECT * FROM request_type where resource_type is null) THEN 1
+			         ELSE 0 
+			       END;
+			</sqlCheck>
+		</preConditions>
+       <addNotNullConstraint tableName="request_type" columnName="resource_type" />
+        <rollback>
+            <dropNotNullConstraint tableName="request_type" columnName="resource_type"/>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_add_engine_column_in_request_table" author="P35066">
+        <addColumn tableName="request">
+            <column name="engine" type="varchar(255)" remarks="The engine type (e.g. camunda, flowable)">
+            </column>
+        </addColumn>
+        <update tableName="request">
+	        <column name="engine" value="CAMUNDA"/>
+	    </update>
+	    <addNotNullConstraint tableName="request" columnName="engine" />
+        <rollback>
+            <sql>
+                alter table request
+                drop column if exists engine;
+            </sql>
+        </rollback>
+    </changeSet>
+    
+</databaseChangeLog>

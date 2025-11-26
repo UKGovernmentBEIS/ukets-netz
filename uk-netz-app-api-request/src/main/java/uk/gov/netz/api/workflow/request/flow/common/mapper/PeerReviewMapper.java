@@ -1,0 +1,15 @@
+package uk.gov.netz.api.workflow.request.flow.common.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import uk.gov.netz.api.common.config.MapperConfig;
+import uk.gov.netz.api.workflow.request.flow.common.domain.PeerReviewDecisionRequestTaskActionPayload;
+import uk.gov.netz.api.workflow.request.flow.common.domain.PeerReviewDecisionSubmittedRequestActionPayload;
+
+@Mapper(componentModel = "spring", config = MapperConfig.class)
+public interface PeerReviewMapper {
+
+    @Mapping(target = "payloadType", source = "payloadType")
+    PeerReviewDecisionSubmittedRequestActionPayload toPeerReviewDecisionSubmittedRequestActionPayload(
+        PeerReviewDecisionRequestTaskActionPayload taskActionPayload, String payloadType);
+}
