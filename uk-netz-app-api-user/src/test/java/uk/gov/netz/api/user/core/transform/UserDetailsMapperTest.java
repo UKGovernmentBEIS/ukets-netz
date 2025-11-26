@@ -1,0 +1,32 @@
+package uk.gov.netz.api.user.core.transform;
+
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+import uk.gov.netz.api.files.common.domain.dto.FileDTO;
+import uk.gov.netz.api.user.core.domain.model.UserDetailsRequest;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class UserDetailsMapperTest {
+
+    private UserDetailsMapper userDetailsMapper = Mappers.getMapper(UserDetailsMapper.class);
+
+    @Test
+    void toUserDetails() {
+        String userId = "userId";
+        FileDTO signature = FileDTO.builder()
+                .fileContent("content".getBytes())
+                .fileName("signature")
+                .fileSize(1L)
+                .fileType("type")
+                .build();
+        
+        UserDetailsRequest userDetailsRequest = userDetailsMapper.toUserDetails(userId, signature);
+        
+        assertThat(userDetailsRequest.getId()).isEqualTo(userId);
+        assertThat(userDetailsRequest.getSignature().getContent()).isEqualTo(signature.getFileContent());
+        assertThat(userDetailsRequest.getSignature().getName()).isEqualTo(signature.getFileName());
+        assertThat(userDetailsRequest.getSignature().getSize()).isEqualTo(signature.getFileSize());
+        assertThat(userDetailsRequest.getSignature().getType()).isEqualTo(signature.getFileType());
+    }
+}

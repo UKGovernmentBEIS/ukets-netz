@@ -1,0 +1,82 @@
+package uk.gov.netz.api.user.operator.service;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import uk.gov.netz.api.account.service.AccountQueryService;
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.core.domain.dto.AuthorityInfoDTO;
+import uk.gov.netz.api.user.core.domain.enumeration.UserInvitationStatus;
+import uk.gov.netz.api.user.operator.domain.OperatorUserDTO;
+import uk.gov.netz.api.user.operator.domain.OperatorUserWithAuthorityDTO;
+import uk.gov.netz.api.user.operator.transform.OperatorUserAcceptInvitationMapper;
+
+@ExtendWith(MockitoExtension.class)
+class OperatorUserAcceptInvitationServiceTest {
+
+    @InjectMocks
+    private OperatorUserAcceptInvitationService operatorUserAcceptInvitationService;
+
+    @Mock
+    private OperatorUserAuthService operatorUserAuthService;
+
+    @Mock
+    private OperatorUserRegisterValidationService operatorUserRegisterValidationService;
+
+    @Mock
+    private OperatorUserTokenVerificationService operatorUserTokenVerificationService;
+
+    @Mock
+    private OperatorUserAcceptInvitationMapper operatorUserAcceptInvitationMapper;
+
+    @Mock
+    private AccountQueryService accountQueryService;
+
+    @Mock
+    private OperatorRoleCodeAcceptInvitationServiceDelegator operatorRoleCodeAcceptInvitationServiceDelegator;
+
+    @Test
+    void acceptInvitation() {
+        String invitationToken = "token";
+        String userId = "userId";
+        AppUser currentUser = AppUser.builder().userId(userId).build();
+        Long accountId = 1L;
+        String authorityRoleCode = "roleCode";
+        String accountInstallationName = "accountInstallationName";
+        AuthorityInfoDTO authorityInfo = AuthorityInfoDTO.builder().userId(userId).accountId(accountId).code(authorityRoleCode).build();
+        OperatorUserDTO operatorUser = OperatorUserDTO.builder().build();
+        OperatorUserWithAuthorityDTO operatorUserAcceptInvitation = OperatorUserWithAuthorityDTO.builder().build();
+        UserInvitationStatus userInvitationStatus = UserInvitationStatus.ACCEPTED;
+
+
+        when(operatorUserTokenVerificationService.verifyInvitationToken(invitationToken, currentUser)).thenReturn(authorityInfo);
+        when(operatorUserAuthService.getUserById(authorityInfo.getUserId())).thenReturn(operatorUser);
+        when(accountQueryService.getAccountName(authorityInfo.getAccountId())).thenReturn(accountInstallationName);
+        when(operatorUserAcceptInvitationMapper.toOperatorUserWithAuthorityDTO(operatorUser, authorityInfo, accountInstallationName))
+            .thenReturn(operatorUserAcceptInvitation);
+        when(operatorRoleCodeAcceptInvitationServiceDelegator.acceptInvitation(operatorUserAcceptInvitation, authorityInfo.getCode()))
+            .thenReturn(userInvitationStatus);
+
+        operatorUserAcceptInvitationService.acceptInvitation(invitationToken, currentUser);
+
+        verify(operatorUserTokenVerificationService, times(1))
+            .verifyInvitationToken(invitationToken, currentUser);
+        verify(operatorUserRegisterValidationService, times(1)).validateRegisterForAccount(userId, authorityInfo.getAccountId());
+        verify(operatorUserAuthService, times(1)).getUserById(userId);
+        verify(accountQueryService, times(1)).getAccountName(accountId);
+        verify(operatorUserAcceptInvitationMapper, times(1)).
+        toOperatorUserWithAuthorityDTO(operatorUser, authorityInfo, accountInstallationName);
+        verify(operatorRoleCodeAcceptInvitationServiceDelegator, times(1))
+            .acceptInvitation(operatorUserAcceptInvitation, authorityRoleCode);
+        verify(operatorUserAcceptInvitationMapper, times(1))
+            .toOperatorInvitedUserInfoDTO(operatorUserAcceptInvitation, authorityRoleCode, userInvitationStatus);
+    }
+
+}

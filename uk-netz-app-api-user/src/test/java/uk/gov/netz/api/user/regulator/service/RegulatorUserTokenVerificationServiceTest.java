@@ -1,0 +1,49 @@
+package uk.gov.netz.api.user.regulator.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.core.domain.AuthorityStatus;
+import uk.gov.netz.api.authorization.core.domain.dto.AuthorityInfoDTO;
+import uk.gov.netz.api.token.JwtTokenAction;
+import uk.gov.netz.api.user.core.service.UserInvitationTokenVerificationService;
+
+@ExtendWith(MockitoExtension.class)
+class RegulatorUserTokenVerificationServiceTest {
+
+    @InjectMocks
+    private RegulatorUserTokenVerificationService regulatorUserTokenVerificationService;
+
+    @Mock
+    private UserInvitationTokenVerificationService userInvitationTokenVerificationService;
+
+    @Test
+    void verifyInvitationToken() {
+        String invitationToken = "invitationToken";
+        JwtTokenAction tokenAction = JwtTokenAction.REGULATOR_INVITATION;
+        AuthorityInfoDTO authorityInfo = AuthorityInfoDTO.builder()
+            .id(1L)
+            .userId("user")
+            .authorityStatus(AuthorityStatus.PENDING)
+            .accountId(1L)
+            .build();
+        
+        AppUser currentUser = AppUser.builder().userId("user").build();
+
+        when(userInvitationTokenVerificationService.verifyInvitationToken(invitationToken, tokenAction, currentUser))
+            .thenReturn(authorityInfo);
+
+        AuthorityInfoDTO actual = regulatorUserTokenVerificationService.verifyInvitationToken(invitationToken, currentUser);
+
+        assertEquals(authorityInfo, actual);
+
+    }
+
+}
