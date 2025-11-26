@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_third_party_data_provider.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_third_party_data_provider_sequence" author="p35066">
+        <createSequence sequenceName="third_party_data_provider_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                drop sequence if exists third_party_data_provider_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_third_party_data_provider_create_table" author="p35066">
+        <createTable tableName="third_party_data_provider">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="data_provider_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints unique="true" nullable="false" />
+            </column>
+            <column name="jwks_url" type="varchar(255)">
+                <constraints unique="true" nullable="false" />
+            </column>
+            <column name="client_id" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="data_provider_client_id_uc" />
+            </column>
+            <column name="created_date" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                drop table if exists third_party_data_provider cascade;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_update_third_party_data_provider_drop_col_jwks_url" author="P44065" >
+        <dropColumn tableName="third_party_data_provider" columnName="jwks_url"/>
+        <rollback>
+            <addColumn tableName="third_party_data_provider">
+                <column name="jwks_url" type="varchar(255)">
+                    <constraints unique="true" nullable="false" />
+                </column>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_update_third_party_data_provider_add_col_client_entity_id" author="P44065" >
+        <addColumn tableName="third_party_data_provider">
+            <column name="client_entity_id" type="varchar(255)">
+                <constraints unique="true" nullable="false" />
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="third_party_data_provider" columnName="client_entity_id"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
