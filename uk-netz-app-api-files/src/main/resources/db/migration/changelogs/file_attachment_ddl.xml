@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_file_attachment.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+        
+	<changeSet id="0_1_0_FILE_ATTACHMENT_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_attachment_seq"/>
+            </not>
+        </preConditions>
+
+        <createSequence sequenceName="file_attachment_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS file_attachment_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_FILE_ATTACHMENT_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_attachment"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="file_attachment" remarks="The table that contain attachment files">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="file_attachment_pk" nullable="false"/>
+            </column>
+            <column name="uuid" type="varchar(255)" remarks="The file attachment uuid">
+                <constraints nullable="false" unique="true" uniqueConstraintName="file_attachment_uuid_uq" />
+            </column>
+            <column name="file_name" type="varchar(255)" remarks="The file name">
+                <constraints nullable="false" />
+            </column>
+            <column name="file_content" type="bytea" remarks="The attachment binary content">
+            	<constraints nullable="false" />
+            </column>
+            <column name="file_size" type="bigint" remarks="The size of the file in bytes">
+                <constraints nullable="false" />
+            </column>
+            <column name="file_type" type="varchar(255)" remarks="The mime type of the file">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="varchar(255)" remarks="The status of the attachment">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by" type="varchar(255)" remarks="The creator of the entry">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_updated_on" type="timestamp" remarks="When the attachment last updated">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS file_attachment CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

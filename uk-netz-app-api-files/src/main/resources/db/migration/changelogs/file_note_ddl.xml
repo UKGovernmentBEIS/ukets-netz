@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_file_note.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_FILE_NOTE_CREATE_SEQUENCE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_note_seq"/>
+            </not>
+        </preConditions>
+
+        <createSequence sequenceName="file_note_seq" minValue="0" maxValue="999999999999999999" incrementBy="1" startValue="1"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS file_note_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_FILE_NOTE_CREATE_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_note"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="file_note">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="file_note_pk" nullable="false"/>
+            </column>
+            <column name="uuid" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="file_note_uuid_uq" />
+            </column>
+            <column name="file_name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="file_content" type="bytea">
+                <constraints nullable="false" />
+            </column>
+            <column name="file_size" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="file_type" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_updated_on" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_id" type="bigint"> </column>
+            <column name="request_id" type="varchar(20)"> </column>
+
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS file_note CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_FILE_NOTE_ADD_STATUS_DATE_IDX" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from pg_indexes where tablename = 'file_note' and indexname = 'file_note_status_date_idx'
+            </sqlCheck>
+        </preConditions>
+
+        <createIndex indexName="file_note_status_date_idx" tableName="file_note">
+            <column name="status"/>
+            <column name="last_updated_on"/>
+        </createIndex>
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS file_note_status_date_idx CASCADE
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_FILE_NOTE_ADD_CHECK" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.constraint_column_usage where constraint_name = 'file_note_account_id_request_id_constraint' and table_name = 'file_note'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE file_note ADD CONSTRAINT file_note_account_id_request_id_constraint
+                CHECK ((account_id IS NULL AND request_id IS NOT NULL)
+                    OR (account_id IS NOT NULL AND request_id  IS NULL))
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE file_note
+                DROP CONSTRAINT IF EXISTS file_note_account_id_request_id_constraint;
+                
+                ALTER TABLE file_note
+                DROP COLUMN IF EXISTS account_id,
+                DROP COLUMN IF EXISTS request_id;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
