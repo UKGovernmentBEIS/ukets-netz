@@ -7,6 +7,8 @@ import uk.gov.netz.api.common.exception.ErrorCode;
 
 import java.util.Set;
 
+import org.springframework.transaction.annotation.Transactional;
+
 public interface AuthorizationResourceRuleHandler {
 
     /**
@@ -16,5 +18,6 @@ public interface AuthorizationResourceRuleHandler {
      * @param resourceId the resourceId for which the rules apply.
      * @throws BusinessException {@link ErrorCode} FORBIDDEN if authorization fails.
      */
+	@Transactional
     void evaluateRules(Set<AuthorizationRuleScopePermission> authorizationRules, AppUser user, String resourceId);
 }

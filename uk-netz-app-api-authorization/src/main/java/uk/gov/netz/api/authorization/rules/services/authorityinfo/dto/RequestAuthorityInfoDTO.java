@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestAuthorityInfoDTO {
-
+	
+	private String type;
     private ResourceAuthorityInfo authorityInfo;
+    
 }

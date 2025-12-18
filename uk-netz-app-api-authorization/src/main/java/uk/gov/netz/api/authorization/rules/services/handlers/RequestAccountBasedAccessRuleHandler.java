@@ -15,6 +15,7 @@ import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +38,17 @@ public class RequestAccountBasedAccessRuleHandler implements AuthorizationResour
     @Override
     public void evaluateRules(@Valid Set<AuthorizationRuleScopePermission> authorizationRules, AppUser user, String resourceId) {
         RequestAuthorityInfoDTO requestInfoDTO = requestAuthorityInfoProvider.getRequestInfo(resourceId);
-        authorizationRules.forEach(rule -> {
+        
+        List<AuthorizationRuleScopePermission> appliedRules = 
+                authorizationRules.stream()
+                .filter(rule -> requestInfoDTO.getType().equals(rule.getResourceSubType()))
+                .toList();
+        
+        if (appliedRules.isEmpty()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
+        appliedRules.forEach(rule -> {
             AuthorizationCriteria authorizationCriteria = AuthorizationCriteria.builder()
             		.requestResources(Map.of(ResourceType.ACCOUNT, requestInfoDTO.getAuthorityInfo().getAccountId().toString()))
                     .permission(rule.getPermission())

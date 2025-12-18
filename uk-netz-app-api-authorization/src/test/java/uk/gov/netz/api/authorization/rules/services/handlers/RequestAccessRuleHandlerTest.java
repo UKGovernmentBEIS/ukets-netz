@@ -64,9 +64,11 @@ class RequestAccessRuleHandlerTest {
         AuthorizationRuleScopePermission authorizationRule1 = 
                 AuthorizationRuleScopePermission.builder()
             .permission(Permission.PERM_ACCOUNT_USERS_EDIT)
+            .resourceSubType("TEST_REQUEST_TYPE")
             .build();
 
         RequestAuthorityInfoDTO requestInfoDTO = RequestAuthorityInfoDTO.builder()
+        		.type("TEST_REQUEST_TYPE")
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(Map.of(ResourceType.ACCOUNT, "1", 
                 				ResourceType.CA, ENGLAND.name(),
@@ -90,14 +92,22 @@ class RequestAccessRuleHandlerTest {
     void multiple_rules() {
         AuthorizationRuleScopePermission authorizationRule1 = 
                 AuthorizationRuleScopePermission.builder()
+            .resourceSubType("TEST_REQUEST_TYPE")
             .permission(Permission.PERM_ACCOUNT_USERS_EDIT)
             .build();
         AuthorizationRuleScopePermission authorizationRule2 = 
                 AuthorizationRuleScopePermission.builder()
+            .resourceSubType("TEST_REQUEST_TYPE")
+            .permission(Permission.PERM_CA_USERS_EDIT)
+            .build();
+        AuthorizationRuleScopePermission authorizationRule3 = 
+                AuthorizationRuleScopePermission.builder()
+            .resourceSubType("TEST_REQUEST_TYPE2")
             .permission(Permission.PERM_CA_USERS_EDIT)
             .build();
 
         RequestAuthorityInfoDTO requestInfoDTO = RequestAuthorityInfoDTO.builder()
+        		.type("TEST_REQUEST_TYPE")
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(Map.of(ResourceType.ACCOUNT, "1", 
                 				ResourceType.CA, ENGLAND.name(),
@@ -106,7 +116,7 @@ class RequestAccessRuleHandlerTest {
                 .build();
         when(requestAuthorityInfoProvider.getRequestInfo("1")).thenReturn(requestInfoDTO);
 
-        Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1, authorizationRule2);
+        Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1, authorizationRule2, authorizationRule3);
         requestAccessRuleHandler.evaluateRules(rules, USER, "1");
 
         AuthorizationCriteria authorizationCriteria1 = AuthorizationCriteria.builder()
