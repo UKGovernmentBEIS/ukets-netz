@@ -14,6 +14,7 @@ import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
+import uk.gov.netz.api.workflow.request.core.domain.RequestType;
 import uk.gov.netz.api.workflow.request.core.service.RequestService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +37,7 @@ class RequestAuthorityInfoQueryServiceTest {
 
     @Test
     void getRequestInfo() {
-        Request request = Request.builder().build();
+        Request request = Request.builder().type(RequestType.builder().code("code").build()).build();
         addResourcesToRequest(1L, ENGLAND, request);
 
         when(requestService.findRequestById("1")).thenReturn(request);
@@ -44,6 +45,7 @@ class RequestAuthorityInfoQueryServiceTest {
         RequestAuthorityInfoDTO requestInfoDTO = service.getRequestInfo("1");
 
         RequestAuthorityInfoDTO expectedRequestInfoDTO = RequestAuthorityInfoDTO.builder()
+        		.type("code")
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(Map.of(ResourceType.ACCOUNT, "1", 
                 				ResourceType.CA, ENGLAND.name()))

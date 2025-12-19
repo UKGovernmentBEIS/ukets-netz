@@ -16,6 +16,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -38,14 +39,21 @@ class RequestDetailsRepositoryIT extends RequestAbstractTest {
     @Test
     void findRequestDetailsBySearchCriteria_filter_with_category_and_request_types_criteria_only() {
         Long accountId = 1L;
+        AppUser user = AppUser.builder().roleType("REGULATOR").build();
         
         RequestType requestType1 = createRequestType("DUMMY_REQUEST_TYPE", "descr1", "processdef1", "REPORTING", false, true, false, false, ResourceType.ACCOUNT);
         RequestType requestType2 = createRequestType("DUMMY_REQUEST_TYPE2", "descr2", "processdef2", "REPORTING", false, true, false, false, ResourceType.CA);
+        RequestType requestType3 = createRequestType("DUMMY_REQUEST_TYPE3", "descr3", "processdef3", "REPORTING", false, true, false, false, ResourceType.ACCOUNT);
         
         Request request1 = createRequest(accountId, CompetentAuthorityEnum.ENGLAND, null, requestType1, "procInstId1", "IN_PROGRESS", LocalDateTime.now());
     	createRequest(2L, CompetentAuthorityEnum.ENGLAND, null, requestType1, "procInstId2", "COMPLETED", LocalDateTime.now());
     	createRequest(2L, CompetentAuthorityEnum.ENGLAND, null, requestType1, "procInstId3", "IN_PROGRESS", LocalDateTime.now());
     	createRequest(accountId, CompetentAuthorityEnum.ENGLAND, null, requestType2, "procInstId4", "COMPLETED", LocalDateTime.now());
+    	createRequest(accountId, CompetentAuthorityEnum.ENGLAND, null, requestType3, "procInstId5", "IN_PROGRESS", LocalDateTime.now());
+    	
+    	createAuthorizationRuleForRequest("REQUEST", "DUMMY_REQUEST_TYPE", "requestAccessHandler", null, "REGULATOR");
+    	createAuthorizationRuleForRequest("REQUEST", "DUMMY_REQUEST_TYPE2", "requestAccessHandler", null, "REGULATOR");
+    	createAuthorizationRuleForRequest("REQUEST", "DUMMY_REQUEST_TYPE3", "requestAccessHandler", null, "OPERATOR");
         
         flushAndClear();
         
@@ -54,10 +62,10 @@ class RequestDetailsRepositoryIT extends RequestAbstractTest {
                 .resourceId(String.valueOf(accountId))
                 .paging(PagingRequest.builder().pageNumber(0).pageSize(30).build())
                 .historyCategory("REPORTING")
-                .requestTypes(Set.of("DUMMY_REQUEST_TYPE", "DUMMY_REQUEST_TYPE2"))
+                .requestTypes(Set.of("DUMMY_REQUEST_TYPE", "DUMMY_REQUEST_TYPE2", "DUMMY_REQUEST_TYPE3"))
                 .build();
         
-        RequestDetailsSearchResults results = repo.findRequestDetailsBySearchCriteria(criteria);
+        RequestDetailsSearchResults results = repo.findRequestDetailsBySearchCriteria(criteria, user);
         
         RequestDetailsDTO expectedWorkflowResult1 = new RequestDetailsDTO(request1.getId(), requestType1.getCode(), request1.getStatus(), request1.getCreationDate(), null);
 

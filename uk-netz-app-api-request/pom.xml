@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-request</artifactId>
-    <version>1.24.0</version>
+    <version>1.25.0</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>uk.gov.netz</groupId>
         <artifactId>uk-netz-app-api-parent</artifactId>
-        <version>1.6.0</version>
+        <version>1.7.0</version>
     </parent>
 
     <properties>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-common</artifactId>
-            <version>1.11.0</version>
+            <version>1.16.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
@@ -99,7 +99,7 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-authorization</artifactId>
-            <version>1.7.0</version>
+            <version>1.11.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
@@ -114,7 +114,7 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-files</artifactId>
-            <version>1.4.0</version>
+            <version>1.7.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
@@ -180,7 +180,7 @@
             <artifactId>uk-netz-app-api-common</artifactId>
             <classifier>tests</classifier>
             <type>test-jar</type>
-            <version>1.11.0</version>
+            <version>1.16.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

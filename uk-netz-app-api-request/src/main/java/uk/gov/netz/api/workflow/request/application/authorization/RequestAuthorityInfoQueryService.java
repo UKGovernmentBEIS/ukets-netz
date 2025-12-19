@@ -24,9 +24,11 @@ public class RequestAuthorityInfoQueryService implements RequestAuthorityInfoPro
     public RequestAuthorityInfoDTO getRequestInfo(String id) {
         Request request = requestService.findRequestById(id);
         return RequestAuthorityInfoDTO.builder()
+        		.type(request.getType().getCode())
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(request.getRequestResourcesMap())
                         .build())
                 .build();
     }
+
 }

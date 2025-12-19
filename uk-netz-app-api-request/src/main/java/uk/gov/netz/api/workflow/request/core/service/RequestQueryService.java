@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.application.taskview.RequestInfoDTO;
@@ -58,8 +60,8 @@ public class RequestQueryService {
         return requestRepository.existsByTypeAndStatusAndCompetentAuthority(type, status, competentAuthority);
     }
 
-    public RequestDetailsSearchResults findRequestDetailsBySearchCriteria(@Valid RequestSearchCriteria criteria) {
-        return requestDetailsRepository.findRequestDetailsBySearchCriteria(criteria);
+    public RequestDetailsSearchResults findRequestDetailsBySearchCriteria(@Valid RequestSearchCriteria criteria, AppUser appUser) {
+        return requestDetailsRepository.findRequestDetailsBySearchCriteria(criteria, appUser);
     }
 
     public RequestDetailsDTO findRequestDetailsById(String requestId) {

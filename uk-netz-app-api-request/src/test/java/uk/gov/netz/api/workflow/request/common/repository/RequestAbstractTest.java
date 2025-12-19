@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 
 import io.hypersistence.utils.hibernate.type.util.ObjectMapperWrapper;
 import jakarta.persistence.EntityManager;
+import uk.gov.netz.api.authorization.rules.domain.AuthorizationRule;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.common.AbstractContainerBaseTest;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -156,7 +157,7 @@ public abstract class RequestAbstractTest extends AbstractContainerBaseTest {
         entityManager.clear();
     }
 	
-	private void addResourcesToRequest(Long accountId, CompetentAuthorityEnum competentAuthority, Long vbId, Request request) {
+	protected void addResourcesToRequest(Long accountId, CompetentAuthorityEnum competentAuthority, Long vbId, Request request) {
 		RequestResource caResource = RequestResource.builder()
 				.resourceType(ResourceType.CA)
 				.resourceId(competentAuthority.name())
@@ -183,5 +184,17 @@ public abstract class RequestAbstractTest extends AbstractContainerBaseTest {
 					.build();
 			request.getRequestResources().add(vbIdResource);
 		}
+	}
+	
+	protected AuthorizationRule createAuthorizationRuleForRequest(String resourceType, String resourceSubType, String handler, String scope, String roleType) {
+		AuthorizationRule rule = AuthorizationRule.builder()
+                .resourceType(resourceType)
+                .resourceSubType(resourceSubType)
+                .handler(handler)
+                .scope(scope)
+                .roleType(roleType)
+                .build();
+		entityManager.persist(rule);
+		return rule;
 	}
 }

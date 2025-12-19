@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_request.xml"
+		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+		
+	<changeSet id="0_1_0_SET_UP_SYSTEM_MESSAGE_NOTIFICATION" author="p35066">
+		<preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+	            select count(*) FROM public.request_type where code = 'SYSTEM_MESSAGE_NOTIFICATION';
+	        </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO public.request_type
+            (id, code, description, process_definition_id, history_category, hold_history, displayed_in_progress, cascadable, can_create_manually, resource_type)
+            VALUES(nextval('request_type_seq'), 'SYSTEM_MESSAGE_NOTIFICATION', 'System Message Notification', 'SYSTEM_MESSAGE_NOTIFICATION', 'SYSTEM_MESSAGE_NOTIFICATION', false, true, false, false, 'ACCOUNT');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM public.request_type
+                WHERE code = 'SYSTEM_MESSAGE_NOTIFICATION';
+            </sql>
+        </rollback>
+    </changeSet>
+	
+    
+</databaseChangeLog>

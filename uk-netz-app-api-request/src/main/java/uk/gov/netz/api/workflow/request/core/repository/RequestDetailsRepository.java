@@ -2,12 +2,17 @@ package uk.gov.netz.api.workflow.request.core.repository;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Repository;
 
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.rules.domain.QAuthorizationRule;
+import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.workflow.request.core.domain.QRequest;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestResource;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestStatuses;
@@ -24,9 +29,10 @@ public class RequestDetailsRepository {
     @PersistenceContext
     private EntityManager entityManager;
     
-    public RequestDetailsSearchResults findRequestDetailsBySearchCriteria(RequestSearchCriteria criteria) {
+    public RequestDetailsSearchResults findRequestDetailsBySearchCriteria(RequestSearchCriteria criteria, AppUser appUser) {
         QRequest request = QRequest.request;
         QRequestResource requestResource = QRequestResource.requestResource;
+        QAuthorizationRule authorizationRule = QAuthorizationRule.authorizationRule;
 
         BooleanBuilder whereClause = new BooleanBuilder();
         
@@ -34,6 +40,8 @@ public class RequestDetailsRepository {
         whereClause.and(requestResource.resourceId.eq(criteria.getResourceId()));
         whereClause.and(request.type.resourceType.eq(criteria.getResourceType()));
         whereClause.and(request.type.historyCategory.eq(criteria.getHistoryCategory()));
+        // Filter request types based on authorization rules for this role
+        whereClause.and(request.type.code.in(constructUserGrantedRequestsSubquery(authorizationRule, appUser.getRoleType())));
         
         if(!ObjectUtils.isEmpty(criteria.getRequestTypes())) {
         	whereClause.and(request.type.code.in(criteria.getRequestTypes()));
@@ -75,7 +83,7 @@ public class RequestDetailsRepository {
                 .total(jpaQuery.fetchCount())
                 .build();
     }
-
+    
     public Optional<RequestDetailsDTO> findRequestDetailsById(String requestId) {
         QRequest request = QRequest.request;
 
@@ -93,4 +101,12 @@ public class RequestDetailsRepository {
 
         return Optional.ofNullable(jpaQuery.fetchFirst());
     }
+    
+    private JPQLQuery<String> constructUserGrantedRequestsSubquery(QAuthorizationRule authorizationRule,
+			String roleType) {
+    	return JPAExpressions.select(authorizationRule.resourceSubType).distinct()
+				.from(authorizationRule)
+				.where(authorizationRule.resourceType.eq(ResourceType.REQUEST)
+						.and(authorizationRule.roleType.eq(roleType)));
+	}
 }
