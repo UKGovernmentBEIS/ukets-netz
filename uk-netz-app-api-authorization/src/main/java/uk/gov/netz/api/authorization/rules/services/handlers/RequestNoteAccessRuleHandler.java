@@ -4,11 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermission;
+import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.AuthorizationResourceRuleHandler;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.RequestAuthorityInfoDTO;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.providers.RequestNoteAuthorityInfoProvider;
 import uk.gov.netz.api.authorization.rules.services.authorization.AppAuthorizationService;
 import uk.gov.netz.api.authorization.rules.services.authorization.AuthorizationCriteria;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
 
 import java.util.Set;
 
@@ -19,6 +23,7 @@ public class RequestNoteAccessRuleHandler implements AuthorizationResourceRuleHa
 
     private final AppAuthorizationService appAuthorizationService;
     private final RequestNoteAuthorityInfoProvider requestNoteAuthorityInfoProvider;
+    private final AuthorizationRulesQueryService authorizationRulesQueryService;
 
     @Override
     public void evaluateRules(final Set<AuthorizationRuleScopePermission> authorizationRules,
@@ -27,7 +32,14 @@ public class RequestNoteAccessRuleHandler implements AuthorizationResourceRuleHa
 
         final RequestAuthorityInfoDTO requestInfo =
             requestNoteAuthorityInfoProvider.getRequestNoteInfo(Long.parseLong(resourceId));
-
+        
+        final Set<String> userAllowedRequestTypes = authorizationRulesQueryService
+                .findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType());
+        
+        if(!userAllowedRequestTypes.contains(requestInfo.getType())) {
+        	throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
         authorizationRules.forEach(rule -> {
             AuthorizationCriteria authorizationCriteria = AuthorizationCriteria.builder()
             	.requestResources(requestInfo.getAuthorityInfo().getRequestResources())

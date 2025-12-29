@@ -13,6 +13,6 @@ public class RequestActionAuthorityInfoDTO {
 
     private Long id;
     private String type;
-    
+    private String requestType;
     private ResourceAuthorityInfo authorityInfo;
 }

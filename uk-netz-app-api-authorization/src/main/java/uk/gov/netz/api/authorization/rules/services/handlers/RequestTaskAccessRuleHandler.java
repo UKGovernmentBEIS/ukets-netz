@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermission;
+import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.AuthorizationResourceRuleHandler;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.RequestTaskAuthorityInfoDTO;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.providers.RequestTaskAuthorityInfoProvider;
 import uk.gov.netz.api.authorization.rules.services.authorization.AppAuthorizationService;
@@ -21,6 +23,7 @@ import java.util.Set;
 public class RequestTaskAccessRuleHandler implements AuthorizationResourceRuleHandler {
     private final AppAuthorizationService appAuthorizationService;
     private final RequestTaskAuthorityInfoProvider requestTaskAuthorityInfoProvider;
+    private final AuthorizationRulesQueryService authorizationRulesQueryService;
 
     /**
      * @param user the authenticated user
@@ -39,9 +42,16 @@ public class RequestTaskAccessRuleHandler implements AuthorizationResourceRuleHa
         List<AuthorizationRuleScopePermission> filteredRules = authorizationRules.stream()
                 .filter(rule -> rule.getResourceSubType().equals(requestTaskInfoDTO.getType()))
                 .toList();
-
+        
         if (filteredRules.isEmpty()) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
+        final Set<String> userAllowedRequestTypes = authorizationRulesQueryService
+                .findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType());
+        
+        if(!userAllowedRequestTypes.contains(requestTaskInfoDTO.getRequestType())) {
+        	throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
         filteredRules.forEach(rule -> {

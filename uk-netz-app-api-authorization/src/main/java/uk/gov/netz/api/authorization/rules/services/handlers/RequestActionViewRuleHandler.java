@@ -6,6 +6,7 @@ import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermission;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.AuthorizationResourceRuleHandler;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.RequestActionAuthorityInfoDTO;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.providers.RequestActionAuthorityInfoProvider;
 import uk.gov.netz.api.authorization.rules.services.authorization.AppAuthorizationService;
@@ -14,7 +15,6 @@ import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service("requestActionViewHandler")
@@ -23,6 +23,7 @@ public class RequestActionViewRuleHandler implements AuthorizationResourceRuleHa
 
     private final AppAuthorizationService appAuthorizationService;
     private final RequestActionAuthorityInfoProvider requestActionAuthorityInfoProvider;
+    private final AuthorizationRulesQueryService authorizationRulesQueryService;
 
     /**
      * Evaluates the {@code authorizationRules} on the {@code resourceId}, which must correspond to an existing request action.
@@ -43,7 +44,14 @@ public class RequestActionViewRuleHandler implements AuthorizationResourceRuleHa
         if (appliedRules.isEmpty()) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-
+        
+        final Set<String> userAllowedRequestTypes = authorizationRulesQueryService
+                .findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType());
+        
+        if(!userAllowedRequestTypes.contains(requestActionInfo.getRequestType())) {
+        	throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
         appliedRules.forEach(rule -> 
             appAuthorizationService.authorize(user, AuthorizationCriteria.builder()
             		.requestResources(requestActionInfo.getAuthorityInfo().getRequestResources())

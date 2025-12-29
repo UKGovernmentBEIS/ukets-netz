@@ -9,6 +9,7 @@ import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.core.domain.Permission;
 import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermission;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.RequestTaskAuthorityInfoDTO;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.ResourceAuthorityInfo;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.providers.RequestTaskAuthorityInfoProvider;
@@ -39,6 +40,9 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
 
     @Mock
     private RequestTaskAuthorityInfoProvider requestTaskAuthorityInfoProvider;
+    
+    @Mock
+    private AuthorizationRulesQueryService authorizationRulesQueryService;
 
     private final AppUser USER = AppUser.builder().userId("userId").roleType(RoleTypeConstants.OPERATOR).build();
 
@@ -70,6 +74,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
                 () -> requestTaskAccessRuleHandler.evaluateRules(rules, USER, "1"));
 
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, exception.getErrorCode());
+        verify(authorizationRulesQueryService, times(0)).findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, USER.getRoleType());
         verifyNoMoreInteractions(appAuthorizationService);
     }
 
@@ -83,6 +88,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
 
         RequestTaskAuthorityInfoDTO requestTaskInfoDTO = RequestTaskAuthorityInfoDTO.builder()
                 .type("ACCOUNT_USERS_SETUP")
+                .requestType("ACCOUNT_USERS")
                 .assignee(USER.getUserId())
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(Map.of(ResourceType.ACCOUNT, "2", 
@@ -91,6 +97,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
                         .build())
                 .build();
         when(requestTaskAuthorityInfoProvider.getRequestTaskInfo(1L)).thenReturn(requestTaskInfoDTO);
+        when(authorizationRulesQueryService.findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, USER.getRoleType())).thenReturn(Set.of("ACCOUNT_USERS"));
 
         Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1);
         requestTaskAccessRuleHandler.evaluateRules(rules, USER, "1");
@@ -144,6 +151,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
 
         RequestTaskAuthorityInfoDTO requestTaskInfoDTO = RequestTaskAuthorityInfoDTO.builder()
                 .type("ACCOUNT_USERS_SETUP")
+                .requestType("ACCOUNT_USERS")
                 .assignee(USER.getUserId())
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(Map.of(ResourceType.ACCOUNT, "2", 
@@ -152,6 +160,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
                         .build())
                 .build();
         when(requestTaskAuthorityInfoProvider.getRequestTaskInfo(1L)).thenReturn(requestTaskInfoDTO);
+        when(authorizationRulesQueryService.findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, USER.getRoleType())).thenReturn(Set.of("ACCOUNT_USERS"));
 
         Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1, authorizationRule2);
         requestTaskAccessRuleHandler.evaluateRules(rules, USER, "1");
@@ -167,6 +176,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
                 .permission(Permission.PERM_CA_USERS_EDIT)
                 .build();
         verify(appAuthorizationService, times(1)).authorize(USER, authorizationCriteria2);
+        verify(authorizationRulesQueryService, times(1)).findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, USER.getRoleType());
         verifyNoMoreInteractions(appAuthorizationService);
     }
 
@@ -186,6 +196,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
 
         RequestTaskAuthorityInfoDTO requestTaskInfoDTO = RequestTaskAuthorityInfoDTO.builder()
                 .type("ACCOUNT_USERS_SETUP")
+                .requestType("ACCOUNT_USERS")
                 .assignee(USER.getUserId())
                 .authorityInfo(ResourceAuthorityInfo.builder()
                 		.requestResources(Map.of(ResourceType.ACCOUNT, "2", 
@@ -194,6 +205,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
                         .build())
                 .build();
         when(requestTaskAuthorityInfoProvider.getRequestTaskInfo(1L)).thenReturn(requestTaskInfoDTO);
+        when(authorizationRulesQueryService.findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, USER.getRoleType())).thenReturn(Set.of("ACCOUNT_USERS"));
 
         Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1, authorizationRule2);
         requestTaskAccessRuleHandler.evaluateRules(rules, USER, "1");
@@ -203,6 +215,7 @@ class RequestTaskAccountBasedAccessRuleHandlerTest {
                 .permission(Permission.PERM_ACCOUNT_USERS_EDIT)
                 .build();
         verify(appAuthorizationService, times(1)).authorize(USER, authorizationCriteria1);
+        verify(authorizationRulesQueryService, times(1)).findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, USER.getRoleType());
         verifyNoMoreInteractions(appAuthorizationService);
     }
 }

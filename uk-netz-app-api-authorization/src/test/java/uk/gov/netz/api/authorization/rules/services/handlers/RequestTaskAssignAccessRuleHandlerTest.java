@@ -9,6 +9,7 @@ import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.core.domain.Permission;
 import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermission;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.RequestTaskAuthorityInfoDTO;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.ResourceAuthorityInfo;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.providers.RequestTaskAuthorityInfoProvider;
@@ -40,6 +41,9 @@ class RequestTaskAssignAccessRuleHandlerTest {
 
     @Mock
     private RequestTaskAuthorityInfoProvider requestTaskAuthorityInfoProvider;
+    
+    @Mock
+    private AuthorizationRulesQueryService authorizationRulesQueryService;
 
     @Test
     void evaluateRules() {
@@ -52,6 +56,7 @@ class RequestTaskAssignAccessRuleHandlerTest {
 
         RequestTaskAuthorityInfoDTO requestTaskInfoDTO = RequestTaskAuthorityInfoDTO.builder()
             .assignee(user.getUserId())
+            .requestType("TEST_REQUEST_TYPE")
             .authorityInfo(ResourceAuthorityInfo.builder()
             		.requestResources(Map.of(ResourceType.ACCOUNT, "1", 
             				ResourceType.CA, ENGLAND.name(),
@@ -59,6 +64,7 @@ class RequestTaskAssignAccessRuleHandlerTest {
                     .build())
             .build();
         when(requestTaskAuthorityInfoProvider.getRequestTaskInfo(requestTaskId)).thenReturn(requestTaskInfoDTO);
+        when(authorizationRulesQueryService.findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType())).thenReturn(Set.of("TEST_REQUEST_TYPE"));
 
         Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1);
         AuthorizationCriteria authorizationCriteria1 = AuthorizationCriteria.builder()
@@ -99,8 +105,9 @@ class RequestTaskAssignAccessRuleHandlerTest {
         when(requestTaskAuthorityInfoProvider.getRequestTaskInfo(requestTaskId)).thenThrow(new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
         Set<AuthorizationRuleScopePermission> rules = Set.of(authorizationRule1);
+        String requestTaskIdStr = requestTaskId.toString();
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> requestTaskAssignAccessRuleHandler.evaluateRules(rules, user, requestTaskId.toString()));
+            () -> requestTaskAssignAccessRuleHandler.evaluateRules(rules, user, requestTaskIdStr));
 
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, exception.getErrorCode());
         verifyNoMoreInteractions(appAuthorizationService);

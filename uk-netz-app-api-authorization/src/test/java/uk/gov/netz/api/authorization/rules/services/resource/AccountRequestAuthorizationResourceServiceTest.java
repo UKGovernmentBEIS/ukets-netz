@@ -10,6 +10,7 @@ import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermissi
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.domain.Scope;
 import uk.gov.netz.api.authorization.rules.repository.AuthorizationRuleRepository;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorization.AuthorizationCriteria;
 import uk.gov.netz.api.authorization.rules.services.authorization.RoleTypeAuthorizationServiceDelegator;
 import uk.gov.netz.api.common.constants.RoleTypeConstants;
@@ -33,6 +34,9 @@ class AccountRequestAuthorizationResourceServiceTest {
     @Mock
     private RoleTypeAuthorizationServiceDelegator roleTypeAuthorizationServiceDelegator;
     
+    @Mock
+    private AuthorizationRulesQueryService authorizationRulesQueryService;
+    
     @Test
     void findRequestCreateActionsByAccountId() {
         AppUser user = AppUser.builder().roleType(RoleTypeConstants.OPERATOR).build();
@@ -41,8 +45,10 @@ class AccountRequestAuthorizationResourceServiceTest {
         List<AuthorizationRuleScopePermission> rules = List.of(
                 AuthorizationRuleScopePermission.builder().resourceSubType("requestType").handler("handler").permission(null).build());
         
+        when(authorizationRulesQueryService.findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType())).thenReturn(Set.of("requestType"));
         when(authorizationRuleRepository.findRulePermissionsByResourceTypeScopeAndRoleType(ResourceType.ACCOUNT, Scope.REQUEST_CREATE, RoleTypeConstants.OPERATOR)).thenReturn(rules);
         
+
         when(roleTypeAuthorizationServiceDelegator.isAuthorized(user, AuthorizationCriteria.builder()
         		.requestResources(Map.of(ResourceType.ACCOUNT, accountId.toString()))
         		.permission(null).build()))
@@ -53,5 +59,21 @@ class AccountRequestAuthorizationResourceServiceTest {
         assertThat(results)
             .hasSize(1)
             .containsOnly("requestType");
+    }
+    
+    @Test
+    void findRequestCreateActionsByAccountId_no_rules_unauthorised_request_type() {
+        AppUser user = AppUser.builder().roleType(RoleTypeConstants.OPERATOR).build();
+        Long accountId = 1L;
+        
+        List<AuthorizationRuleScopePermission> rules = List.of(
+                AuthorizationRuleScopePermission.builder().resourceSubType("requestType").handler("handler").permission(null).build());
+        
+        when(authorizationRulesQueryService.findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType())).thenReturn(Set.of("requestType2"));
+        when(authorizationRuleRepository.findRulePermissionsByResourceTypeScopeAndRoleType(ResourceType.ACCOUNT, Scope.REQUEST_CREATE, RoleTypeConstants.OPERATOR)).thenReturn(rules);
+        
+        Set<String> results = service.findRequestCreateActionsByAccountId(user, accountId);
+
+		assertThat(results).isEmpty();
     }
 }

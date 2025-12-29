@@ -6,10 +6,13 @@ import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.AuthorizationRuleScopePermission;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.AuthorizationResourceRuleHandler;
+import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.dto.RequestTaskAuthorityInfoDTO;
 import uk.gov.netz.api.authorization.rules.services.authorityinfo.providers.RequestTaskAuthorityInfoProvider;
 import uk.gov.netz.api.authorization.rules.services.authorization.AppAuthorizationService;
 import uk.gov.netz.api.authorization.rules.services.authorization.AuthorizationCriteria;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
 
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +23,7 @@ public class RequestTaskAssignAccountBasedAccessRuleHandler implements Authoriza
 
     private final AppAuthorizationService appAuthorizationService;
     private final RequestTaskAuthorityInfoProvider requestTaskAuthorityInfoProvider;
+    private final AuthorizationRulesQueryService authorizationRulesQueryService;
 
     /**
      * Evaluates the {@code authorizationRules} on the {@code resourceId}, which must correspond to an existing request task.
@@ -30,6 +34,14 @@ public class RequestTaskAssignAccountBasedAccessRuleHandler implements Authoriza
     @Override
     public void evaluateRules(Set<AuthorizationRuleScopePermission> authorizationRules, AppUser user, String resourceId) {
         RequestTaskAuthorityInfoDTO requestTaskInfoDTO = requestTaskAuthorityInfoProvider.getRequestTaskInfo(Long.parseLong(resourceId));
+        
+        final Set<String> userAllowedRequestTypes = authorizationRulesQueryService
+                .findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST, user.getRoleType());
+        
+        if(!userAllowedRequestTypes.contains(requestTaskInfoDTO.getRequestType())) {
+        	throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
         authorizationRules.forEach(rule -> {
             AuthorizationCriteria authorizationCriteria = AuthorizationCriteria.builder()
             		.requestResources(Map.of(ResourceType.ACCOUNT, requestTaskInfoDTO.getAuthorityInfo().getAccountId().toString()))
