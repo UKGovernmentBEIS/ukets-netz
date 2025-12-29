@@ -14,6 +14,7 @@ import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
+import uk.gov.netz.api.workflow.request.core.domain.RequestType;
 import uk.gov.netz.api.workflow.request.core.repository.RequestNoteRepository;
 
 import java.util.List;
@@ -41,7 +42,7 @@ class RequestNoteAuthorityInfoQueryServiceTest {
         final long noteId = 1L;
         final Long accountId = 2L;
 
-        final Request request = Request.builder().build();
+        final Request request = Request.builder().type(RequestType.builder().code("TEST_REQUEST_TYPE").build()).build();
         addResourcesToRequest(accountId, ENGLAND, 1L, request);
 
         when(requestNoteRepository.getRequestByNoteId(noteId)).thenReturn(Optional.of(request));
@@ -49,6 +50,7 @@ class RequestNoteAuthorityInfoQueryServiceTest {
         final RequestAuthorityInfoDTO requestInfoDTO = service.getRequestNoteInfo(noteId);
 
         final RequestAuthorityInfoDTO expectedRequestInfoDTO = RequestAuthorityInfoDTO.builder()
+    		.type("TEST_REQUEST_TYPE")
             .authorityInfo(ResourceAuthorityInfo.builder()
             		.requestResources(Map.of(ResourceType.ACCOUNT, accountId.toString(), 
             				ResourceType.CA, ENGLAND.name(),

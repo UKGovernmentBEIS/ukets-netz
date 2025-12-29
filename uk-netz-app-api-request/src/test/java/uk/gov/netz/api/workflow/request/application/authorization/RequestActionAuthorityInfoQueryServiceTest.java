@@ -14,6 +14,7 @@ import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestAction;
 import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
+import uk.gov.netz.api.workflow.request.core.domain.RequestType;
 import uk.gov.netz.api.workflow.request.core.repository.RequestActionRepository;
 
 import java.util.List;
@@ -37,7 +38,7 @@ class RequestActionAuthorityInfoQueryServiceTest {
     @Test
     void getRequestActionAuthorityInfo() {
         Long requestActionId = 1L;
-        Request request = Request.builder().build();
+        Request request = Request.builder().type(RequestType.builder().code("TEST_REQUEST_TYPE").build()).build();
         addResourcesToRequest(1L, ENGLAND, 2L, request);
         
         RequestAction requestAction = RequestAction.builder()
