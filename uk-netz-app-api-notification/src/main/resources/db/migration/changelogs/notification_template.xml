@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_notification_template_ddl.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_cleanup_existing_values" author="p70453">
+    <sql>
+        delete from notification_template where name in ('ResetPasswordRequest', 'ResetPasswordConfirmation', 'Reset2FaConfirmation', 'Change2FA');
+    </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_insert_reset_password_request_message_notification_template" author="p70453">
+        <sql>
+            <![CDATA[
+            INSERT INTO notification_template (
+                id,
+                name,
+                subject,
+                text)
+            VALUES (
+                       nextval('notification_template_seq'),
+                       'ResetPasswordRequest',
+                       'Password reset request - Manage your online reporting service',
+                       'We received a request to reset your password for the online reporting service.
+
+Use this link to reset your password:
+
+[Reset your password](${resetPasswordLink})
+
+This link will expire in ${expirationMinutes} minutes.
+
+If you did not request this reset you must [contact your regulator](${contactRegulator}).
+
+This is an automatic email - please do not reply to this address.'
+                   )]]>;
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM notification_template WHERE name = 'ResetPasswordRequest';
+            </sql>
+        </rollback>
+
+    </changeSet>
+
+    <changeSet id="0_1_0_insert_reset_password_confirmation_message_notification_template" author="p70453">
+        <sql>
+            <![CDATA[
+            INSERT INTO notification_template (
+                id,
+                name,
+                subject,
+                text)
+            VALUES (
+                       nextval('notification_template_seq'),
+                       'ResetPasswordConfirmation',
+                       'Password reset - Manage your online reporting service',
+                       'You have successfully reset your password for the online reporting service. You can now [sign in to your account](${homeUrl}).
+
+If you did not request this reset you must [contact your regulator](${contactRegulator}).
+
+This is an automatic email - please do not reply to this address.'
+                   )]]>;
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM notification_template WHERE name = 'ResetPasswordConfirmation';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_insert_Reset2FaConfirmation_message_notification_template" author="p70453">
+        <sql>
+            <![CDATA[
+            INSERT INTO notification_template (
+                id,
+                name,
+                subject,
+                text)
+            VALUES (
+                       nextval('notification_template_seq'),
+                       'Reset2FaConfirmation',
+                       'Two-factor authentication reset - Manage your online reporting service',
+                       'We received a request to reset your two-factor authentication for the online reporting service.
+
+Sign in to the [online reporting service](${homeUrl}) to set up a new authenticator and access your account.
+
+If you did not make this request you must [contact your regulator](${contactRegulator}).
+
+This is an automatic email - please do not reply to this address.'
+                   )]]>;
+        </sql>
+
+        <rollback>
+            <sql>
+                DELETE FROM notification_template WHERE name = 'Reset2FaConfirmation';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_insert_Change2FA_message_notification_template" author="p70453">
+        <sql>
+            <![CDATA[
+            INSERT INTO notification_template (
+                id,
+                name,
+                subject,
+                text)
+            VALUES (
+                       nextval('notification_template_seq'),
+                       'Change2FA',
+                       'Two factor authentication device update request - Manage your online reporting service',
+                       'Use this link to sign in to the online reporting service and update your authenticator app:
+
+[Sign in and set up new two factor authentication](${change2FALink})
+
+This link will expire in ${expirationMinutes} minutes.
+
+If you did not make this application you must [contact your regulator](${contactRegulator}).
+
+This is an automatic email - please do not reply to this address.'
+                   )]]>;
+        </sql>
+
+        <rollback>
+            <sql>
+                DELETE FROM notification_template WHERE name = 'Change2FA';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

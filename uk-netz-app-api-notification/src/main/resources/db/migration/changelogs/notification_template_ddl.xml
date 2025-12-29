@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_notification_template_ddl.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_CREATE_TABLE_NOTIFICATION_TEMPLATE" author="pafilisa@unisystems.gr" context="migrate">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="notification_template"/>
+            </not>
+        </preConditions>
+
+        <comment>CREATE notification_template TABLE</comment>
+        <sql>
+            CREATE SEQUENCE notification_template_seq MINVALUE 0 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 1 NO CYCLE;
+
+            CREATE TABLE notification_template (
+            id bigint,
+            name VARCHAR(255) NOT NULL,
+            subject VARCHAR(255) NOT NULL,
+            text TEXT NOT NULL,
+            competent_authority VARCHAR(255),
+            event_trigger VARCHAR(255),
+            workflow VARCHAR(255),
+            role_type VARCHAR(255),
+            is_managed BOOLEAN DEFAULT FALSE,
+            last_updated_date TIMESTAMP);
+
+            ALTER TABLE notification_template ADD CONSTRAINT notification_template_pk PRIMARY KEY (id);
+            ALTER TABLE notification_template ADD CONSTRAINT notification_template_uc UNIQUE (name, competent_authority);
+
+            COMMENT ON TABLE notification_template IS 'Stores information about notification templates';
+            COMMENT ON COLUMN notification_template.name IS 'The notification template name';
+            COMMENT ON COLUMN notification_template.subject IS 'The notification template subject';
+            COMMENT ON COLUMN notification_template.text IS 'The notification template text';
+            COMMENT ON COLUMN notification_template.competent_authority IS 'The competent authority related to the notification';
+            COMMENT ON COLUMN notification_template.event_trigger IS 'The description of the event that triggers the notification';
+            COMMENT ON COLUMN notification_template.workflow IS 'The workflow that triggers the notification';
+            COMMENT ON COLUMN notification_template.role_type IS 'The type of user that manages the notification';
+            COMMENT ON COLUMN notification_template.is_managed IS 'The indication that the notification is managed';
+            COMMENT ON COLUMN notification_template.last_updated_date IS 'The date that the notification template was modified';
+
+            CREATE INDEX trgm_gin_idx_notification_template_name ON notification_template USING gin (name gin_trgm_ops);
+            CREATE INDEX trgm_gin_idx_notification_template_workflow ON notification_template USING gin (workflow gin_trgm_ops);
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS notification_template CASCADE;
+                DROP SEQUENCE IF EXISTS notification_template_seq;
+            </sql>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

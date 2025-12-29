@@ -1,0 +1,88 @@
+package uk.gov.netz.api.notification.template.service;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.netz.api.common.constants.RoleTypeConstants;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
+import uk.gov.netz.api.notification.template.domain.NotificationTemplate;
+import uk.gov.netz.api.notification.template.domain.dto.NotificationTemplateUpdateDTO;
+import uk.gov.netz.api.notification.template.repository.NotificationTemplateRepository;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class NotificationTemplateUpdateServiceTest {
+
+    @InjectMocks
+    private NotificationTemplateUpdateService notificationTemplateUpdateService;
+
+    @Mock
+    private NotificationTemplateRepository notificationTemplateRepository;
+
+    @Test
+    void updateNotificationTemplate() {
+        Long notificationTemplateId = 1L;
+        String updatedNotificationTemplateSubject = "updated subject";
+        String updatedNotificationTemplateText = "updated text";
+        NotificationTemplate notificationTemplate = NotificationTemplate.builder()
+            .id(notificationTemplateId)
+            .name("EMAIL_CONFIRMATION")
+            .subject("subject")
+            .text("text")
+            .competentAuthority(CompetentAuthorityEnum.WALES)
+            .roleType(RoleTypeConstants.OPERATOR)
+            .managed(true)
+            .lastUpdatedDate(LocalDateTime.now())
+            .build();
+
+        NotificationTemplateUpdateDTO notificationTemplateUpdateDTO = NotificationTemplateUpdateDTO.builder()
+            .subject(updatedNotificationTemplateSubject)
+            .text(updatedNotificationTemplateText)
+            .build();
+
+        when(notificationTemplateRepository.findManagedNotificationTemplateById(notificationTemplateId))
+            .thenReturn(Optional.of(notificationTemplate));
+
+        notificationTemplateUpdateService.updateNotificationTemplate(notificationTemplateId, notificationTemplateUpdateDTO);
+
+        assertEquals(updatedNotificationTemplateSubject, notificationTemplateUpdateDTO.getSubject());
+        assertEquals(updatedNotificationTemplateText, notificationTemplateUpdateDTO.getText());
+    }
+
+    @Test
+    void updateNotificationTemplate_not_found() {
+        Long notificationTemplateId = 1L;
+        String updatedNotificationTemplateSubject = "updated subject";
+        String updatedNotificationTemplateText = "updated text";
+        NotificationTemplateUpdateDTO notificationTemplateUpdateDTO = NotificationTemplateUpdateDTO.builder()
+            .subject(updatedNotificationTemplateSubject)
+            .text(updatedNotificationTemplateText)
+            .build();
+
+        when(notificationTemplateRepository.findManagedNotificationTemplateById(notificationTemplateId))
+            .thenReturn(Optional.empty());
+
+        BusinessException be = assertThrows(BusinessException.class, () ->
+            notificationTemplateUpdateService.updateNotificationTemplate(notificationTemplateId, notificationTemplateUpdateDTO));
+
+        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+
+        verify(notificationTemplateRepository, times(1))
+            .findManagedNotificationTemplateById(notificationTemplateId);
+        verifyNoMoreInteractions(notificationTemplateRepository);
+    }
+}
