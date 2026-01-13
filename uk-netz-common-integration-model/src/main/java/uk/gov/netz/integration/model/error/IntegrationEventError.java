@@ -1,9 +1,16 @@
 package uk.gov.netz.integration.model.error;
 
-import static uk.gov.netz.integration.model.error.ContactPoint.*;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
+
+import static uk.gov.netz.integration.model.error.ContactPoint.desnz;
+import static uk.gov.netz.integration.model.error.ContactPoint.metsRegulators;
+import static uk.gov.netz.integration.model.error.ContactPoint.registryAdministrators;
+import static uk.gov.netz.integration.model.error.ContactPoint.registryDesnz;
+import static uk.gov.netz.integration.model.error.ContactPoint.registryMets;
+import static uk.gov.netz.integration.model.error.ContactPoint.registryServiceDeskAndTuSupport;
+import static uk.gov.netz.integration.model.error.ContactPoint.serviceDeskAndTU;
 
 @AllArgsConstructor
 public enum IntegrationEventError {
@@ -39,18 +46,34 @@ public enum IntegrationEventError {
     ERROR_0304("0304","CRN or CRN Justification field not provided", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0306("0306","FYVE value is before 2026 (only for Maritime)", registryMets(), List.of()),
     ERROR_0307("0307","Country Code does not exist", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0308("0308","Regulator value does not exist", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0309("0309","Account Holder Type does not exist", registryServiceDeskAndTuSupport(), desnz()),
-    ERROR_0310("0310","Company IMO number already exists in Registry (only for Maritime)", registryAdministrators(), metsRegulators()),
+    ERROR_0310("0310","Company IMO number already exists in another account (only for Maritime)", registryAdministrators(), metsRegulators()),
     ERROR_0311("0311","FYVE value is before 2021 (only for METS)", registryMets(), List.of()),
     ERROR_0312("0312","Regulated activity does not exist (only for Installations)", registryServiceDeskAndTuSupport(), desnz()),
-    ERROR_0313("0313","Invalid account status (the status is ‘Closed’/ ‘Closure Pending’)", registryAdministrators(), metsRegulators()),
-    ERROR_0314("0314","Legal Status cannot be changed", registryAdministrators(), metsRegulators()),
-    ERROR_0315("0315","FYVE cannot be set to a later date if emissions have been reported (zero, positive integer, " +
-            "or excluded) for the years that will be excluded after the update", registryAdministrators(), metsRegulators()),
+    ERROR_0313("0313","Invalid account status (the status is ‘Closed’/ ‘Closure Pending’)", registryMets(), List.of()),
+    ERROR_0314("0314","Legal Status cannot be changed", registryMets(), List.of()),
+    ERROR_0315("0315","FYVE cannot be set after a year that has allocations, emissions, or exclude flag", registryMets(), List.of()),
     ERROR_0316("0316","Invalid account type", registryServiceDeskAndTuSupport(), desnz()),
-    ERROR_0317("0317","Invalid Operator ID", registryServiceDeskAndTuSupport(), desnz()),
-    ERROR_0318("0318","Permit ID already exists in Registry", registryAdministrators(), metsRegulators()),
-    ERROR_0319("0319","Monitoring Plan ID already exists in Registry", registryAdministrators(), metsRegulators()),
+    ERROR_0317("0317","Invalid Operator ID", registryMets(), List.of()),
+    ERROR_0318("0318","Permit ID already exists in another account", registryAdministrators(), metsRegulators()),
+    ERROR_0319("0319","Monitoring Plan ID already exists in another account", registryAdministrators(), metsRegulators()),
+
+    // Exemption
+    ERROR_0400("0400","Internal Server Error", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0401("0401","Data not in expected format", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0402("0402","Mandatory field is not provided", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0403("0403","Invalid Operator ID", registryMets(), List.of()),
+    ERROR_0404("0404","Year must not be before the FYVE", registryMets(), List.of()),
+    ERROR_0405("0405","Year must not be after the LYVE", registryMets(), List.of()),
+    ERROR_0406("0406","Invalid account status (‘Closed’, ‘Closure Pending’, or ‘Transfer pending’)", registryMets(), List.of()),
+    ERROR_0407("0407","The Year must not be equal to a future year", registryMets(), List.of()),
+
+    // Mets contacts
+    ERROR_0700("0700","Internal Server Error", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0701("0701","Data not in expected format", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0702("0702","Mandatory field is not provided", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0703("0703","Invalid Operator ID", registryMets(), List.of()),
 
     // Emissions
     ERROR_0800("0800","Internal Server Error", registryServiceDeskAndTuSupport(), desnz()),

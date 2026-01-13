@@ -16,7 +16,7 @@ import lombok.Data;
 public class UpdateAccountDetailsMessage {
 
     private Set<String> installationActivityTypes = new HashSet<>();
-    private String service;
+    private String accountType;
     private String registryId;
 
     //Common properties with the create account
@@ -31,4 +31,5 @@ public class UpdateAccountDetailsMessage {
      * Cannot be less than 2026 for MOHA
      */
     private Integer firstYearOfVerifiedEmissions;
+    private String regulator;
 }

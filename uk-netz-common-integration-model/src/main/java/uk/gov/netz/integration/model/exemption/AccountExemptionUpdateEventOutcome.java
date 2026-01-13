@@ -1,24 +1,21 @@
-package uk.gov.netz.integration.model.account;
+package uk.gov.netz.integration.model.exemption;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import uk.gov.netz.integration.model.IntegrationEventOutcome;
 import uk.gov.netz.integration.model.error.IntegrationEventErrorDetails;
 
 import java.util.List;
 
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountUpdatingEventOutcome {
+public class AccountExemptionUpdateEventOutcome {
 
-    private AccountUpdatingEvent event;
-    private String accountIdentifier;
+    private AccountExemptionUpdateEvent event;
     private List<IntegrationEventErrorDetails> errors;
     private IntegrationEventOutcome outcome;
-    private Boolean isModifiedInRegistry;
 }
