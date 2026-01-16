@@ -66,7 +66,7 @@ public enum IntegrationEventError {
     ERROR_0403("0403","Invalid Operator ID", registryMets(), List.of()),
     ERROR_0404("0404","Year must not be before the FYVE", registryMets(), List.of()),
     ERROR_0405("0405","Year must not be after the LYVE", registryMets(), List.of()),
-    ERROR_0406("0406","Invalid account status (‘Closed’, ‘Closure Pending’, or ‘Transfer pending’)", registryMets(), List.of()),
+    ERROR_0406("0406","Invalid account status (‘Closed’ or ‘Closure Pending’)", registryMets(), List.of()),
     ERROR_0407("0407","The Year must not be equal to a future year", registryMets(), List.of()),
 
     // Mets contacts

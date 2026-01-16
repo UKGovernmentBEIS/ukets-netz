@@ -6,7 +6,7 @@
 
     <groupId>uk.gov.netz</groupId>
     <artifactId>uk-netz-common-integration-model</artifactId>
-    <version>1.8.0</version>
+    <version>1.9.0</version>
     <packaging>jar</packaging>
 
     <properties>
