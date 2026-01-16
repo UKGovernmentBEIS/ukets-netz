@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="consoleJSONAppender" target="SYSTEM_OUT">
+            <JsonTemplateLayout  eventTemplateUri="classpath:ApplicationLogJsonLayout.json"
+                                 stackTraceEnabled="true" maxStringLength="32768">
+            </JsonTemplateLayout >
+        </Console>
+        <Console name="noMaskAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'} %-5level [%logger] - %msg%n"/>
+        </Console>
+        <Rewrite name="mask">
+            <MaskRewritePolicy>
+                <property name="payloadProperty">password</property>
+                <property name="payloadProperty">token</property>
+                <property name="payloadProperty">emailToken</property>
+                <property name="payloadProperty">invitationToken</property>
+                <property name="payloadProperty">email</property>
+                <property name="payloadProperty">name</property>
+                <property name="payloadProperty">firstName</property>
+                <property name="payloadProperty">lastName</property>
+                <property name="payloadProperty">line1</property>
+                <property name="payloadProperty">line2</property>
+                <property name="payloadProperty">city</property>
+                <property name="payloadProperty">country</property>
+                <property name="payloadProperty">postcode</property>
+                <property name="payloadProperty">number</property>
+                <property name="payloadProperty">phoneNumber</property>
+                <property name="payloadProperty">phoneNumberCode</property>
+                <property name="payloadProperty">mobileNumber</property>
+                <property name="payloadProperty">mobileNumberCode</property>
+                <property name="payloadProperty">countryCode</property>
+                <property name="payloadProperty">jobTitle</property>
+            </MaskRewritePolicy>
+            <AppenderRef ref="consoleJSONAppender"/>
+        </Rewrite>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="consoleJSONAppender"/>
+        </Root>
+        <Logger name="uk.gov" additivity="false">
+            <AppenderRef ref="mask"/>
+        </Logger>
+        <Logger name="NoMaskLogger" additivity="false">
+            <AppenderRef ref="noMaskAppender"/>
+        </Logger>
+    </Loggers>
+</Configuration>
