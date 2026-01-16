@@ -18,7 +18,9 @@ import uk.gov.netz.api.files.common.domain.dto.FileStatusInfoDTO;
 import uk.gov.netz.api.files.common.service.FileValidatorService;
 import uk.gov.netz.api.files.common.transform.FileMapper;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +28,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Validated
@@ -130,6 +134,29 @@ public class FileAttachmentService {
         }
         return nonNullUuids.size() == fileAttachmentRepository.countAllByUuidIn(nonNullUuids);
     }
+    
+    @Transactional
+	public void writeBulkFilesToZipStream(Set<String> uuids, OutputStream out) throws IOException {
+		final ZipOutputStream zipOut = new ZipOutputStream(out);
+
+		for (String uuid : uuids) {
+			FileDTO file = getFileDTO(uuid);
+			byte[] fileContent = file.getFileContent();
+			zipOut.putNextEntry(new ZipEntry(file.getFileName()));
+
+			byte[] buffer = new byte[8192];
+			int length;
+			ByteArrayInputStream bais = new ByteArrayInputStream(fileContent);
+			while ((length = bais.read(buffer)) > 0) {
+				zipOut.write(buffer, 0, length);
+			}
+
+			zipOut.closeEntry();
+			bais.close();
+		}
+
+		zipOut.finish();
+	}
 
     private FileAttachment findFileAttachmentByUuid(String uuid) {
     	return fileAttachmentRepository.findByUuid(uuid)
