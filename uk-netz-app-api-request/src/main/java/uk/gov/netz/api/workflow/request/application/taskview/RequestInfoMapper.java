@@ -12,5 +12,8 @@ public interface RequestInfoMapper {
     @Mapping(target = "requestMetadata", source = "metadata")
     @Mapping(target = "paymentCompleted", source = "payload.paymentCompleted")
     @Mapping(target = "paymentAmount", source = "payload.paymentAmount")
+    @Mapping(target = "resources", source = "requestResourcesMap")
+    @Mapping(target = "resourceType", source = "type.resourceType")
     RequestInfoDTO toRequestInfoDTO(Request request);
+
 }

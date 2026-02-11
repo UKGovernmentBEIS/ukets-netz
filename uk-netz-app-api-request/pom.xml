@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-request</artifactId>
-    <version>1.26.0</version>
+    <version>1.27.0</version>
     <packaging>jar</packaging>
 
     <parent>

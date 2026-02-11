@@ -99,7 +99,7 @@ class RequestTaskViewServiceTest {
         assertThat(result.getAllowedRequestTaskActions()).containsExactlyInAnyOrderElementsOf(allowedRequestTaskActions);
         assertThat(result.isUserAssignCapable()).isTrue();
         assertThat(result.getRequestTask().getAssigneeUserId()).isEqualTo(user);
-        assertThat(result.getRequestInfo().getCompetentAuthority()).isEqualTo(ca);
+        assertThat(result.getRequestInfo().getResources().get(ResourceType.CA)).isEqualTo(ca.name());
 
         verify(requestTaskService, times(1)).findTaskById(requestTaskId);
         verify(userServiceDelegator, times(1)).getUserById(requestTask.getAssignee());
@@ -151,7 +151,7 @@ class RequestTaskViewServiceTest {
         assertThat(result.getAllowedRequestTaskActions()).containsExactlyInAnyOrderElementsOf(List.of("action1"));
         assertThat(result.isUserAssignCapable()).isTrue();
         assertThat(result.getRequestTask().getAssigneeUserId()).isEqualTo(user);
-        assertThat(result.getRequestInfo().getCompetentAuthority()).isEqualTo(ca);
+        assertThat(result.getRequestInfo().getResources().get(ResourceType.CA)).isEqualTo(ca.name());
 
         verify(requestTaskService, times(1)).findTaskById(requestTaskId);
         verify(userServiceDelegator, times(1)).getUserById(requestTask.getAssignee());
@@ -199,7 +199,7 @@ class RequestTaskViewServiceTest {
         assertThat(result.getRequestTask().getDaysRemaining()).isEqualTo(14);
         assertThat(result.getAllowedRequestTaskActions()).isEmpty();
         assertThat(result.isUserAssignCapable()).isFalse();
-        assertThat(result.getRequestInfo().getCompetentAuthority()).isEqualTo(ca);
+        assertThat(result.getRequestInfo().getResources().get(ResourceType.CA)).isEqualTo(ca.name());
 
         verify(requestTaskService, times(1)).findTaskById(requestTaskId);
         verify(userServiceDelegator, times(1)).getUserById(requestTask.getAssignee());
@@ -244,7 +244,7 @@ class RequestTaskViewServiceTest {
         assertThat(result.getRequestTask().getDaysRemaining()).isEqualTo(14);
         assertThat(result.getAllowedRequestTaskActions()).isEmpty();
         assertThat(result.isUserAssignCapable()).isTrue();
-        assertThat(result.getRequestInfo().getCompetentAuthority()).isEqualTo(ca);
+        assertThat(result.getRequestInfo().getResources().get(ResourceType.CA)).isEqualTo(ca.name());
 
         verify(requestTaskService, times(1)).findTaskById(requestTaskId);
         verify(userServiceDelegator, times(1)).getUserById(requestTask.getAssignee());
@@ -258,7 +258,7 @@ class RequestTaskViewServiceTest {
         Long accountId, String requestTypeCode) {
     	Request request = Request.builder()
             .id(requestId)
-            .type(RequestType.builder().code(requestTypeCode).build())
+            .type(RequestType.builder().code(requestTypeCode).resourceType(ResourceType.ACCOUNT).build())
             .status("inprogress")
             .processInstanceId("procInst")
             .creationDate(LocalDateTime.now())
