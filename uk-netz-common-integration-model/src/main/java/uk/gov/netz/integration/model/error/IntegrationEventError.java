@@ -44,11 +44,11 @@ public enum IntegrationEventError {
     ERROR_0301("0301","Data not in expected format", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0303("0303","Mandatory field is not provided", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0304("0304","CRN or CRN Justification field not provided", registryServiceDeskAndTuSupport(), desnz()),
-    ERROR_0306("0306","FYVE value is before 2026 (only for Maritime)", registryMets(), List.of()),
+    ERROR_0306("0306","FYVE value is before 2026", registryMets(), List.of()),
     ERROR_0307("0307","Country Code does not exist", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0308("0308","Regulator value does not exist", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0309("0309","Account Holder Type does not exist", registryServiceDeskAndTuSupport(), desnz()),
-    ERROR_0310("0310","Company IMO number already exists in another account (only for Maritime)", registryAdministrators(), metsRegulators()),
+    ERROR_0310("0310","Company IMO number already exists in another account", registryAdministrators(), metsRegulators()),
     ERROR_0311("0311","FYVE value is before 2021 (only for METS)", registryMets(), List.of()),
     ERROR_0312("0312","Regulated activity does not exist (only for Installations)", registryServiceDeskAndTuSupport(), desnz()),
     ERROR_0313("0313","Invalid account status (the status is ‘Closed’/ ‘Closure Pending’)", registryMets(), List.of()),
@@ -68,6 +68,24 @@ public enum IntegrationEventError {
     ERROR_0405("0405","Year must not be after the LYVE", registryMets(), List.of()),
     ERROR_0406("0406","Invalid account status (‘Closed’ or ‘Closure Pending’)", registryMets(), List.of()),
     ERROR_0407("0407","The Year must not be equal to a future year", registryMets(), List.of()),
+
+    // Withhold
+    ERROR_0500("0500","Internal Server Error", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0501("0501","Data not in expected format", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0502("0502","Mandatory field is not provided", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0503("0503","Invalid Operator ID", registryMets(), List.of()),
+    ERROR_0504("0504","Year must not be before the FYVE", registryMets(), List.of()),
+    ERROR_0505("0505","Year must not be after the LYVE", registryMets(), List.of()),
+    ERROR_0506("0506","Invalid account status (‘Closed’, ‘Closure Pending’, or ‘Transfer pending’)", registryMets(), List.of()),
+    ERROR_0508("0508","There is no allocation entitlement", registryAdministrators(), List.of()),
+
+    //Mets Notifications
+    ERROR_0600("0600","Internal Server Error", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0601("0601","Data not in expected format", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0602("0602","Mandatory field is not provided", registryServiceDeskAndTuSupport(), desnz()),
+    ERROR_0603("0603","Invalid Operator ID", registryMets(), List.of()),
+    ERROR_0604("0604","Malicious notification file", registryServiceDeskAndTuSupport(), List.of()),
+    ERROR_0605("0605","Invalid file type", registryMets(), List.of()),
 
     // Mets contacts
     ERROR_0700("0700","Internal Server Error", registryServiceDeskAndTuSupport(), desnz()),
