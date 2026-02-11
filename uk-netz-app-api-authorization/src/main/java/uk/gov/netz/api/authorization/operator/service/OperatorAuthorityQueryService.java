@@ -21,6 +21,7 @@ import uk.gov.netz.api.authorization.rules.services.resource.AccountAuthorizatio
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,16 +51,16 @@ public class OperatorAuthorityQueryService {
                 .editable(hasAuthUserEditUserScopeOnAccount)
                 .build();
     }
-    
+
+    public List<AuthorityRoleDTO> findOperatorUserAuthorityRoleListByAccountAndStatus(Long accountId, Set<AuthorityStatus> statuses) {
+        return authorityRepository.findOperatorUserAuthorityRoleListByAccountAndStatus(accountId, statuses);
+    }
+
     /**
      * Find operator user authorities by account.
      * @param accountId the account id
      * @return the list of operator user authority info along with role info
      */
-    public List<AuthorityRoleDTO> findOperatorUserAuthorityRoleListByAccount(Long accountId) {
-        return authorityRepository.findOperatorUserAuthorityRoleListByAccount(accountId);
-    }
-
     public List<AuthorityRoleDTO> findOperatorUserAuthoritiesListByAccount(Long accountId) {
         return authorityRepository.findOperatorUserAuthorityRoleListByAccount(accountId);
     }

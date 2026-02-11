@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import uk.gov.netz.api.authorization.AuthorityConstants;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.core.domain.Authority;
@@ -21,6 +20,7 @@ import uk.gov.netz.api.authorization.rules.services.resource.AccountAuthorizatio
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -156,32 +156,34 @@ class OperatorAuthorityQueryServiceTest {
 		
 		verify(authorityRepository, times(1)).existsByUserIdAndAccountIdIsNull(userId);
 	}
-	
-	@Test
-    void findOperatorUserAuthorityRoleListByAccount() {
-        Long accountId = 1L;
 
-    	List<AuthorityRoleDTO> authorityRoleList = List.of(
-		    	AuthorityRoleDTO.builder()
-		    		.userId("user1")
-		    		.roleName("operator_admin")
-		    		.authorityStatus(AuthorityStatus.ACTIVE)
-		    		.build());
-    	
-    	when(authorityRepository.findOperatorUserAuthorityRoleListByAccount(accountId))
-    			.thenReturn(authorityRoleList);
-    	
-    	//invoke
-    	List<AuthorityRoleDTO> authorityRoleListFound = service.findOperatorUserAuthorityRoleListByAccount(accountId);
-    	
-    	//verify
-    	verify(authorityRepository, times(1)).findOperatorUserAuthorityRoleListByAccount(accountId);
-    	
-    	//assert
-    	assertThat(authorityRoleListFound.size()).isEqualTo(authorityRoleList.size());
-    	assertThat(authorityRoleListFound.get(0)).isEqualTo(authorityRoleList.get(0));
-    }
-	
+	@Test
+	void findOperatorUserAuthorityRoleListByAccountAndStatus() {
+		Long accountId = 1L;
+
+		List<AuthorityRoleDTO> authorityRoleList = List.of(
+			AuthorityRoleDTO.builder()
+				.userId("user1")
+				.roleName("operator_admin")
+				.authorityStatus(AuthorityStatus.ACCEPTED)
+				.build());
+
+		when(authorityRepository.findOperatorUserAuthorityRoleListByAccountAndStatus(accountId, Set.of(AuthorityStatus.ACCEPTED)))
+			.thenReturn(authorityRoleList);
+
+		//invoke
+		List<AuthorityRoleDTO> authorityRoleListFound =
+			service.findOperatorUserAuthorityRoleListByAccountAndStatus(accountId, Set.of(AuthorityStatus.ACCEPTED));
+
+		//verify
+		verify(authorityRepository, times(1))
+			.findOperatorUserAuthorityRoleListByAccountAndStatus(accountId, Set.of(AuthorityStatus.ACCEPTED));
+
+		//assert
+		assertThat(authorityRoleListFound.size()).isEqualTo(authorityRoleList.size());
+		assertThat(authorityRoleListFound.get(0)).isEqualTo(authorityRoleList.get(0));
+	}
+
 	@Test
     void findActiveOperatorUsersByAccount() {
     	Long accountId = 1L;

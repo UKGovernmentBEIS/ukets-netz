@@ -18,4 +18,5 @@ public class ResourceType {
     public static final String DOCUMENT_TEMPLATE = "DOCUMENT_TEMPLATE";
     public static final String ACCOUNT_NOTE = "ACCOUNT_NOTE";
     public static final String REQUEST_NOTE = "REQUEST_NOTE";
+    public static final String MI_REPORT_USER_DEFINED = "MI_REPORT_USER_DEFINED";
 }

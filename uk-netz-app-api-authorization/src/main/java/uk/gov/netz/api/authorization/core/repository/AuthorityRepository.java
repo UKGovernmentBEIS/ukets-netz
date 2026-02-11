@@ -43,11 +43,15 @@ public interface AuthorityRepository extends JpaRepository<Authority, Long>, Aut
     @Transactional(readOnly = true)
     @EntityGraph(value = "authority-permissions-graph", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Authority> findByUserIdAndVerificationBodyId(String verifierUserId, Long verificationBodyId);
-    
+
     @Transactional(readOnly = true)
     @Query(name =  Authority.NAMED_QUERY_FIND_OPERATOR_USER_AUTHORITY_ROLE_LIST_BY_ACCOUNT)
     List<AuthorityRoleDTO> findOperatorUserAuthorityRoleListByAccount(Long accountId);
-    
+
+    @Transactional(readOnly = true)
+    @Query(name =  Authority.NAMED_QUERY_FIND_OPERATOR_USER_AUTHORITY_ROLE_LIST_BY_ACCOUNT_AND_STATUS)
+    List<AuthorityRoleDTO> findOperatorUserAuthorityRoleListByAccountAndStatus(Long accountId, Set<AuthorityStatus> statuses);
+
     @Transactional(readOnly = true)
     @Query(name =  Authority.NAMED_QUERY_FIND_VERIFIER_USER_AUTHORITY_ROLE_LIST_BY_VERIFICATION_BODY)
     List<AuthorityRoleDTO> findVerifierUserAuthorityRoleListByVerificationBody(Long verificationBodyId);

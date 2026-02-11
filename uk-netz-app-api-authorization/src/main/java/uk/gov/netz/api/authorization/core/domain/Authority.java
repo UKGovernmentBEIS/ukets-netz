@@ -76,6 +76,14 @@ import java.util.List;
                 + "join Role r on r.code = au.code "
                 + "where au.accountId = :accountId ")
 @NamedQuery(
+    name = Authority.NAMED_QUERY_FIND_OPERATOR_USER_AUTHORITY_ROLE_LIST_BY_ACCOUNT_AND_STATUS,
+    query = "select new uk.gov.netz.api.authorization.core.domain.dto.AuthorityRoleDTO("
+        + "au.userId, au.status, r.name, r.code, au.creationDate) "
+        + "from Authority au "
+        + "join Role r on r.code = au.code "
+        + "where au.accountId = :accountId "
+        + "and au.status in (:statuses)")
+@NamedQuery(
         name = Authority.NAMED_QUERY_FIND_NON_PENDING_OPERATOR_USER_AUTHORITY_ROLE_LIST_BY_ACCOUNT,
         query = "select new uk.gov.netz.api.authorization.core.domain.dto.AuthorityRoleDTO("
                 + "au.userId, au.status, r.name, r.code, au.creationDate) "
@@ -254,6 +262,7 @@ public class Authority implements GrantedAuthority {
     
 	public static final String NAMED_QUERY_FIND_ASSIGNED_PERMISSIONS_BY_USER_ID = "Authority.findAssignedPermissionsByUserId";
     public static final String NAMED_QUERY_FIND_OPERATOR_USER_AUTHORITY_ROLE_LIST_BY_ACCOUNT = "Authority.findOperatorUserAuthorityRoleListByAccount";
+    public static final String NAMED_QUERY_FIND_OPERATOR_USER_AUTHORITY_ROLE_LIST_BY_ACCOUNT_AND_STATUS = "Authority.findOperatorUserAuthorityRoleListByAccountAndStatus";
     public static final String NAMED_QUERY_FIND_ACTIVE_OPERATOR_USERS_BY_ACCOUNT_AND_ROLE = "Authority.findActiveOperatorUsersByAccountAndRole";
     public static final String NAMED_QUERY_FIND_VERIFIER_USER_AUTHORITY_ROLE_LIST_BY_VERIFICATION_BODY = "Authority.findVerifierUserAuthorityRoleListByVerificationBody";
     public static final String NAMED_QUERY_FIND_USERS_BY_VERIFICATION_BODY_AND_ROLE_CODE = "Authority.findUsersByVerificationBodyAndRoleCode";

@@ -31,6 +31,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.netz.api.authorization.core.domain.AuthorityStatus.ACCEPTED;
 import static uk.gov.netz.api.authorization.core.domain.AuthorityStatus.ACTIVE;
 import static uk.gov.netz.api.authorization.core.domain.AuthorityStatus.DISABLED;
 import static uk.gov.netz.api.authorization.core.domain.AuthorityStatus.PENDING;
@@ -138,6 +139,34 @@ class AuthorityRepositoryIT extends AbstractContainerBaseTest {
     	assertThat(authorityRoleList.get(0).getAuthorityStatus()).isEqualTo(ACTIVE);
     	assertThat(authorityRoleList.get(0).getCreationDate()).isNotNull();
     }
+
+	@Test
+	void findOperatorUserAuthorityRoleListByAccountAndStatus() {
+		//prepare data
+		String roleOperatorAdminCode = "operator_admin";
+		Role roleOperatorAdmin = createRole(roleOperatorAdminCode, RoleTypeConstants.OPERATOR, "Operator admin");
+
+		Long account1 = 1L;
+		Long account2 = 2L;
+
+		createOperatorAuthority("user1", roleOperatorAdminCode, AuthorityStatus.ACCEPTED, account1);
+		createOperatorAuthority("user2", roleOperatorAdminCode, AuthorityStatus.ACTIVE, account2);
+		createRegulatorAuthority("user3", "regulator", AuthorityStatus.ACTIVE, CompetentAuthorityEnum.ENGLAND);
+
+		flushAndClear();
+
+		// invoke
+		List<AuthorityRoleDTO> authorityRoleList = repo
+			.findOperatorUserAuthorityRoleListByAccountAndStatus(account1, Set.of(AuthorityStatus.ACCEPTED));
+
+		//assert
+		assertThat(authorityRoleList).hasSize(1);
+		assertThat(authorityRoleList.get(0).getUserId()).isEqualTo("user1");
+		assertThat(authorityRoleList.get(0).getRoleName()).isEqualTo(roleOperatorAdmin.getName());
+		assertThat(authorityRoleList.get(0).getRoleCode()).isEqualTo(roleOperatorAdmin.getCode());
+		assertThat(authorityRoleList.get(0).getAuthorityStatus()).isEqualTo(ACCEPTED);
+		assertThat(authorityRoleList.get(0).getCreationDate()).isNotNull();
+	}
     
     @Test
     void findByUserIdAndAccountId() {
