@@ -14,7 +14,7 @@ public class ThirdPartyDataProviderClientCreateResponseDTO {
     @JsonProperty("id")
     private String clientEntityId;
     private String name;
+    private String jwksUrl;
     private String clientId;
-    private String clientSecret;
     private String serviceAccountUserId;
 }

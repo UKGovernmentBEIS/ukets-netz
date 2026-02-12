@@ -3,6 +3,9 @@ package uk.gov.netz.api.thirdpartydataprovider.service;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,8 +17,12 @@ import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.thirdpartydataprovider.auth.KeycloakClientCustomClient;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClientCreateResponseDTO;
+import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClientResponseDTO;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderCreateDTO;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderSaveDTO;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,18 +55,21 @@ class ThirdPartyDataProviderOrchestratorTest {
     void createThirdPartyDataProvider() {
         String name = "name";
         String clientId = "clientId";
-        String clientSecret = "clientSecret";
+        String jwksUrl = "jwksUrl";
         String serviceAccountUserId = "serviceAccountUserId";
         String clientEntityId = "clientEntityId";
         long thirdPartyDataProviderId = 1L;
 
         AppUser appUser = AppUser.builder().userId("user-id").build();
-        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder().name(name).build();
+        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder()
+            .jwksUrl(jwksUrl)
+            .name(name)
+            .build();
         ThirdPartyDataProviderClientCreateResponseDTO keycloakResponseDTO = ThirdPartyDataProviderClientCreateResponseDTO.builder()
             .clientId(clientId)
             .clientEntityId(clientEntityId)
             .serviceAccountUserId(serviceAccountUserId)
-            .clientSecret(clientSecret)
+            .jwksUrl(jwksUrl)
             .name(name)
             .build();
         ThirdPartyDataProviderSaveDTO saveDTO = ThirdPartyDataProviderSaveDTO.builder()
@@ -69,6 +79,8 @@ class ThirdPartyDataProviderOrchestratorTest {
             .build();
 
         when(thirdPartyDataProviderQueryService.existsByNameIgnoreCase(name)).thenReturn(false);
+        when(keycloakClientCustomClient.getAllThirdPartyDataProviderClients())
+            .thenReturn(List.of(ThirdPartyDataProviderClientResponseDTO.builder().jwksUrl("notjwksUrl").build()));
         when(keycloakClientCustomClient.createThirdPartyDataProviderClient(createDTO)).thenReturn(keycloakResponseDTO);
         when(thirdPartyDataProviderService.create(saveDTO)).thenReturn(thirdPartyDataProviderId);
 
@@ -79,6 +91,7 @@ class ThirdPartyDataProviderOrchestratorTest {
         verify(userRoleTypeService)
             .createUserRoleTypeIfNotExist(serviceAccountUserId, RoleTypeConstants.THIRD_PARTY_DATA_PROVIDER);
         verify(thirdPartyDataProviderQueryService).existsByNameIgnoreCase(name);
+        verify(keycloakClientCustomClient).getAllThirdPartyDataProviderClients();
         verify(keycloakClientCustomClient).createThirdPartyDataProviderClient(createDTO);
         verify(thirdPartyDataProviderService).create(saveDTO);
         verify(entityManager).flush();
@@ -92,17 +105,20 @@ class ThirdPartyDataProviderOrchestratorTest {
         String clientEntityId = "clientEntityId";
         String name = "name";
         String clientId = "clientId";
-        String clientSecret = "clientSecret";
+        String jwksUrl = "jwksUrl";
         String serviceAccountUserId = "serviceAccountUserId";
         long thirdPartyDataProviderId = 1L;
 
         AppUser appUser = AppUser.builder().userId("user-id").build();
-        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder().name(name).build();
+        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder()
+            .name(name)
+            .jwksUrl(jwksUrl)
+            .build();
         ThirdPartyDataProviderClientCreateResponseDTO keycloakResponseDTO = ThirdPartyDataProviderClientCreateResponseDTO.builder()
             .clientId(clientId)
             .clientEntityId(clientEntityId)
             .serviceAccountUserId(serviceAccountUserId)
-            .clientSecret(clientSecret)
+            .jwksUrl(jwksUrl)
             .name(name)
             .build();
         ThirdPartyDataProviderSaveDTO saveDTO = ThirdPartyDataProviderSaveDTO.builder()
@@ -114,6 +130,8 @@ class ThirdPartyDataProviderOrchestratorTest {
         Exception error = new RuntimeException("Error upon flush");
 
         when(thirdPartyDataProviderQueryService.existsByNameIgnoreCase(name)).thenReturn(false);
+        when(keycloakClientCustomClient.getAllThirdPartyDataProviderClients())
+            .thenReturn(List.of(ThirdPartyDataProviderClientResponseDTO.builder().jwksUrl("notjwksUrl").build()));
         when(keycloakClientCustomClient.createThirdPartyDataProviderClient(createDTO)).thenReturn(keycloakResponseDTO);
         when(thirdPartyDataProviderService.create(saveDTO)).thenReturn(thirdPartyDataProviderId);
         doThrow(error).when(entityManager).flush();
@@ -129,6 +147,7 @@ class ThirdPartyDataProviderOrchestratorTest {
         verify(userRoleTypeService)
             .createUserRoleTypeIfNotExist(serviceAccountUserId, RoleTypeConstants.THIRD_PARTY_DATA_PROVIDER);
         verify(thirdPartyDataProviderQueryService).existsByNameIgnoreCase(name);
+        verify(keycloakClientCustomClient).getAllThirdPartyDataProviderClients();
         verify(keycloakClientCustomClient).createThirdPartyDataProviderClient(createDTO);
         verify(thirdPartyDataProviderService).create(saveDTO);
         verify(entityManager).flush();
@@ -141,9 +160,13 @@ class ThirdPartyDataProviderOrchestratorTest {
     @Test
     void createThirdPartyDataProvider_throws_exception_THIRD_PARTY_DATA_PROVIDER_NAME_EXISTS() {
         String name = "name";
+        String jwksUrl = "jwksUrl";
 
         AppUser appUser = AppUser.builder().userId("user-id").build();
-        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder().name(name).build();
+        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder()
+            .name(name)
+            .jwksUrl(jwksUrl)
+            .build();
 
         when(thirdPartyDataProviderQueryService.existsByNameIgnoreCase(name)).thenReturn(true);
 
@@ -157,5 +180,42 @@ class ThirdPartyDataProviderOrchestratorTest {
         verifyNoMoreInteractions(thirdPartyDataProviderQueryService);
         verifyNoInteractions(thirdPartyDataProviderService, keycloakClientCustomClient, userRoleTypeService,
             thirdPartyDataProviderAuthorityService, entityManager);
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("createThirdPartyDataProviderJwksUrlExistsScenarios")
+    void createThirdPartyDataProvider_throws_exception_THIRD_PARTY_DATA_PROVIDER_JWKS_URL_EXISTS(String  dtoJwksUrl,
+                                                                                                 String  keycloakJwksUrl) {
+        String name = "name";
+
+        AppUser appUser = AppUser.builder().userId("user-id").build();
+        ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder()
+            .name(name)
+            .jwksUrl(dtoJwksUrl)
+            .build();
+
+        when(keycloakClientCustomClient.getAllThirdPartyDataProviderClients())
+            .thenReturn(List.of(ThirdPartyDataProviderClientResponseDTO.builder().jwksUrl(keycloakJwksUrl).build()));
+        when(thirdPartyDataProviderQueryService.existsByNameIgnoreCase(name)).thenReturn(false);
+        BusinessException businessException = assertThrows(BusinessException.class, () ->
+            orchestrator.createThirdPartyDataProvider(appUser, createDTO));
+
+        assertEquals(ErrorCode.THIRD_PARTY_DATA_PROVIDER_JWKS_URL_EXISTS, businessException.getErrorCode());
+
+        verify(keycloakClientCustomClient).getAllThirdPartyDataProviderClients();
+        verify(thirdPartyDataProviderQueryService).existsByNameIgnoreCase(name);
+
+        verifyNoMoreInteractions(thirdPartyDataProviderQueryService, keycloakClientCustomClient);
+        verifyNoInteractions(thirdPartyDataProviderService, userRoleTypeService,
+            thirdPartyDataProviderAuthorityService, entityManager);
+    }
+
+    private static Stream<Arguments> createThirdPartyDataProviderJwksUrlExistsScenarios() {
+        return Stream.of(
+            Arguments.of("jwksurl", "JWKSURL"),
+            Arguments.of("JwksUrl", "jWksurl"),
+            Arguments.of("jwksUrl", "jwksUrl")
+        );
     }
 }

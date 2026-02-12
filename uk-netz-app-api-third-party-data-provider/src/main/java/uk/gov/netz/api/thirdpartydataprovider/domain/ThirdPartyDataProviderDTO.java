@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
+import org.hibernate.validator.constraints.URL;
 
 @Data
 @NoArgsConstructor
@@ -24,6 +25,7 @@ public class ThirdPartyDataProviderDTO {
     private String clientId;
 
     @NotBlank
+    @URL(protocol = "https")
     @With
-    private String clientSecret;
+    private String jwksUrl;
 }

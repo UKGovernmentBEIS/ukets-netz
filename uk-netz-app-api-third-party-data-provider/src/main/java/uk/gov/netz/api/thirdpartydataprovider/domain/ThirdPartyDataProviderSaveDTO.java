@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
+import org.hibernate.validator.constraints.URL;
 
 @Data
 @NoArgsConstructor

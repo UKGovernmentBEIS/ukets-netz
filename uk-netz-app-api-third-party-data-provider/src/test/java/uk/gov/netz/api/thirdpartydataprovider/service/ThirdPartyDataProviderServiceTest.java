@@ -124,7 +124,7 @@ class ThirdPartyDataProviderServiceTest {
 		when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(appUser, Scope.MANAGE_THIRD_PARTY_DATA_PROVIDERS))
 			.thenReturn(isEditable);
 		when(keycloakClientCustomClient.getThirdPartyDataProviderClient("clientEntityId"))
-			.thenReturn(ThirdPartyDataProviderClientResponseDTO.builder().clientSecret("clientSecret").build());
+			.thenReturn(ThirdPartyDataProviderClientResponseDTO.builder().jwksUrl("jwksUrl").build());
 
 		ThirdPartyDataProvidersResponseDTO response = cut.getAllThirdPartyDataProviders(appUser);
 
@@ -132,15 +132,16 @@ class ThirdPartyDataProviderServiceTest {
 		assertEquals(ThirdPartyDataProviderDTO.builder()
 			.id(1L)
 			.clientId("clientId")
-			.clientSecret("clientSecret")
+			.jwksUrl("jwksUrl")
 			.name("clientname")
 			.build(), response.getThirdPartyDataProviders().getFirst());
 		assertEquals(isEditable, response.isEditable());
 
 		verify(compAuthAuthorizationResourceService)
 			.hasUserScopeToCompAuth(appUser, Scope.MANAGE_THIRD_PARTY_DATA_PROVIDERS);
+		verify(keycloakClientCustomClient).getThirdPartyDataProviderClient("clientEntityId");
 		verify(repo).findAll();
-		verifyNoMoreInteractions(repo, compAuthAuthorizationResourceService);
+		verifyNoMoreInteractions(repo, compAuthAuthorizationResourceService, keycloakClientCustomClient);
 	}
 
 	@Test

@@ -22,6 +22,8 @@ import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClien
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderCreateDTO;
 import uk.gov.netz.api.thirdpartydataprovider.enumeration.KeycloakClientRestEndPointEnum;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,6 +51,7 @@ class KeycloakClientCustomClientTest {
         String name = "name";
         ThirdPartyDataProviderCreateDTO createDTO = ThirdPartyDataProviderCreateDTO.builder()
             .name(name)
+            .jwksUrl("jwksUrl")
             .build();
 
         String token = "token";
@@ -67,7 +70,7 @@ class KeycloakClientCustomClientTest {
             .build();
         ThirdPartyDataProviderClientCreateResponseDTO expectedResponseDTO = ThirdPartyDataProviderClientCreateResponseDTO.builder()
             .clientEntityId("clientEntityId")
-            .clientSecret("clientSecret")
+            .jwksUrl("jwksUrl")
             .serviceAccountUserId("serviceAccountUserId")
             .clientId("clientId")
             .build();
@@ -106,7 +109,7 @@ class KeycloakClientCustomClientTest {
             .restTemplate(restTemplate)
             .build();
         ThirdPartyDataProviderClientResponseDTO expectedResponseDTO = ThirdPartyDataProviderClientResponseDTO.builder()
-            .clientSecret("clientSecret")
+            .jwksUrl("jwksUrl")
             .serviceAccountUserId("serviceAccountUserId")
             .clientId("clientId")
             .build();
@@ -123,6 +126,45 @@ class KeycloakClientCustomClientTest {
 
         verify(restTemplate, times(1)).exchange(appRestApi.getUri(), HttpMethod.GET, new HttpEntity<>(httpHeaders),
             new ParameterizedTypeReference<ThirdPartyDataProviderClientResponseDTO>() {});
+        verify(keycloakCustomClientUtilsProvider).realmEndpointUrl();
+        verify(keycloakCustomClientUtilsProvider).httpHeaders();
+
+        verifyNoMoreInteractions(keycloakCustomClientUtilsProvider, restTemplate);
+    }
+
+    @Test
+    void getAllThirdPartyDataProviderClients() {
+        String token = "token";
+        HttpHeaders httpHeaders = httpHeaders(token);
+
+        RestClientApi appRestApi = RestClientApi.builder()
+            .uri(UriComponentsBuilder
+                .fromUriString(AUTH_SERVER_URL)
+                .path(KeycloakClientRestEndPointEnum.KEYCLOAK_GET_ALL_THIRD_PARTY_DATA_PROVIDERS.getPath())
+                .build().toUri())
+            .restEndPoint(KeycloakClientRestEndPointEnum.KEYCLOAK_GET_ALL_THIRD_PARTY_DATA_PROVIDERS)
+            .headers(httpHeaders)
+            .restTemplate(restTemplate)
+            .build();
+        List<ThirdPartyDataProviderClientResponseDTO> expectedResponseDTO = List.of(
+            ThirdPartyDataProviderClientResponseDTO.builder()
+                .jwksUrl("jwksUrl")
+                .serviceAccountUserId("serviceAccountUserId")
+                .clientId("clientId")
+                .build());
+
+        when(keycloakCustomClientUtilsProvider.realmEndpointUrl()).thenReturn(AUTH_SERVER_URL);
+        when(keycloakCustomClientUtilsProvider.httpHeaders()).thenReturn(httpHeaders);
+        when(restTemplate.exchange(appRestApi.getUri(), HttpMethod.GET, new HttpEntity<>(httpHeaders),
+            new ParameterizedTypeReference<List<ThirdPartyDataProviderClientResponseDTO>>() {}))
+            .thenReturn(new ResponseEntity<>(expectedResponseDTO, HttpStatus.OK));
+
+        List<ThirdPartyDataProviderClientResponseDTO> actualResponseDTO = client.getAllThirdPartyDataProviderClients();
+
+        assertEquals(expectedResponseDTO, actualResponseDTO);
+
+        verify(restTemplate, times(1)).exchange(appRestApi.getUri(), HttpMethod.GET, new HttpEntity<>(httpHeaders),
+            new ParameterizedTypeReference<List<ThirdPartyDataProviderClientResponseDTO>>() {});
         verify(keycloakCustomClientUtilsProvider).realmEndpointUrl();
         verify(keycloakCustomClientUtilsProvider).httpHeaders();
 

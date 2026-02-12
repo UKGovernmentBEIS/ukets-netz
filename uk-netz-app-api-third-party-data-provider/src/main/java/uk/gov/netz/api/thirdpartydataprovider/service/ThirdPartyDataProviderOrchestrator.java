@@ -14,9 +14,12 @@ import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.thirdpartydataprovider.auth.KeycloakClientCustomClient;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClientCreateResponseDTO;
+import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClientResponseDTO;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderCreateDTO;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderSaveDTO;
 import uk.gov.netz.api.thirdpartydataprovider.mapper.ThirdPartyDataProviderMapper;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +74,16 @@ public class ThirdPartyDataProviderOrchestrator {
 		if (thirdPartyDataProviderQueryService.existsByNameIgnoreCase(dto.getName())) {
 			throw new BusinessException(ErrorCode.THIRD_PARTY_DATA_PROVIDER_NAME_EXISTS);
 		}
+
+		if (existsByJwksUrlIgnoreCase(dto.getJwksUrl())) {
+			throw new BusinessException(ErrorCode.THIRD_PARTY_DATA_PROVIDER_JWKS_URL_EXISTS);
+		}
+	}
+
+	private boolean existsByJwksUrlIgnoreCase(String jwksUrl) {
+		List<ThirdPartyDataProviderClientResponseDTO> allClients =
+			keycloakClientCustomClient.getAllThirdPartyDataProviderClients();
+
+        return allClients.stream().anyMatch(client -> jwksUrl.equalsIgnoreCase(client.getJwksUrl()));
 	}
 }

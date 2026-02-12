@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class ThirdPartyDataProviderClientResponseDTO {
     private String name;
     private String clientId;
-    private String clientSecret;
+    private String jwksUrl;
     private String serviceAccountUserId;
 }

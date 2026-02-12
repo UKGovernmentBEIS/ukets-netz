@@ -8,6 +8,8 @@ import uk.gov.netz.api.restclient.RestClientEndPoint;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClientCreateResponseDTO;
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClientResponseDTO;
 
+import java.util.List;
+
 /**
  * The Keycloak client rest points enum.
  */
@@ -18,7 +20,8 @@ public enum KeycloakClientRestEndPointEnum implements RestClientEndPoint {
     /** Return clients registered in Keycloak. */
     KEYCLOAK_CREATE_THIRD_PARTY_DATA_PROVIDER("/third-party-data-provider-clients", HttpMethod.POST, new ParameterizedTypeReference<ThirdPartyDataProviderClientCreateResponseDTO>() {}),
     KEYCLOAK_DELETE_THIRD_PARTY_DATA_PROVIDER("/third-party-data-provider-clients", HttpMethod.DELETE, new ParameterizedTypeReference<Void>() {}),
-    KEYCLOAK_GET_THIRD_PARTY_DATA_PROVIDER("/third-party-data-provider-clients/{client-entity-id}",HttpMethod.GET, new ParameterizedTypeReference<ThirdPartyDataProviderClientResponseDTO>() {})
+    KEYCLOAK_GET_THIRD_PARTY_DATA_PROVIDER("/third-party-data-provider-clients/{client-entity-id}",HttpMethod.GET, new ParameterizedTypeReference<ThirdPartyDataProviderClientResponseDTO>() {}),
+    KEYCLOAK_GET_ALL_THIRD_PARTY_DATA_PROVIDERS("/third-party-data-provider-clients",HttpMethod.GET, new ParameterizedTypeReference<List<ThirdPartyDataProviderClientResponseDTO>>() {})
     ;
 
     /** The url. */

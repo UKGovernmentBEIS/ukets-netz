@@ -25,9 +25,9 @@ import java.util.List;
 public class ThirdPartyDataProviderService {
 
 	private final ThirdPartyDataProviderRepository repo;
-	private final KeycloakClientCustomClient keycloakClientCustomClient;
 	private static final ThirdPartyDataProviderMapper MAPPER = Mappers.getMapper(ThirdPartyDataProviderMapper.class);
 	private final CompAuthAuthorizationResourceService compAuthAuthorizationResourceService;
+	private final KeycloakClientCustomClient keycloakClientCustomClient;
 
 	@Transactional
 	public Long create(ThirdPartyDataProviderSaveDTO data) {
@@ -50,9 +50,9 @@ public class ThirdPartyDataProviderService {
 
 		List<ThirdPartyDataProviderDTO> thirdPartyDataProviders = repo.findAll()
 			.stream()
-			.map(provider -> MAPPER.mapToDTO(provider).withClientSecret(
-				keycloakClientCustomClient.getThirdPartyDataProviderClient(provider.getClientEntityId()).getClientSecret()
-			))
+			.map(provider -> MAPPER.mapToDTO(provider).withJwksUrl(
+				keycloakClientCustomClient.getThirdPartyDataProviderClient(provider.getClientEntityId()).getJwksUrl())
+			)
 			.toList();
 
 		return ThirdPartyDataProvidersResponseDTO.builder()

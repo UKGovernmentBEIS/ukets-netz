@@ -14,6 +14,8 @@ import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderClien
 import uk.gov.netz.api.thirdpartydataprovider.domain.ThirdPartyDataProviderCreateDTO;
 import uk.gov.netz.api.thirdpartydataprovider.enumeration.KeycloakClientRestEndPointEnum;
 
+import java.util.List;
+
 @Log4j2
 @Component
 @RequiredArgsConstructor
@@ -59,6 +61,28 @@ public class KeycloakClientCustomClient {
 
         try {
             ResponseEntity<ThirdPartyDataProviderClientResponseDTO> res = appRestApi.performApiCall();
+            return res.getBody();
+        } catch (HttpClientErrorException e) {
+            log.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ThirdPartyDataProviderClientResponseDTO> getAllThirdPartyDataProviderClients() {
+
+        RestClientApi appRestApi = RestClientApi.builder()
+            .uri(UriComponentsBuilder
+                .fromUriString(keycloakCustomClientUtilsProvider.realmEndpointUrl())
+                .path(KeycloakClientRestEndPointEnum.KEYCLOAK_GET_ALL_THIRD_PARTY_DATA_PROVIDERS.getPath())
+                .build()
+                .toUri())
+            .restEndPoint(KeycloakClientRestEndPointEnum.KEYCLOAK_GET_ALL_THIRD_PARTY_DATA_PROVIDERS)
+            .headers(keycloakCustomClientUtilsProvider.httpHeaders())
+            .restTemplate(restTemplate)
+            .build();
+
+        try {
+            ResponseEntity<List<ThirdPartyDataProviderClientResponseDTO>> res = appRestApi.performApiCall();
             return res.getBody();
         } catch (HttpClientErrorException e) {
             log.error(e.getMessage());

@@ -77,7 +77,7 @@ class ThirdPartyDataProviderMapperTest {
 	void mapToDTO_from_create_DTO() {
 		ThirdPartyDataProviderClientCreateResponseDTO createDTO = ThirdPartyDataProviderClientCreateResponseDTO.builder()
 			.name("clientname")
-			.clientSecret("clientSecret")
+			.jwksUrl("jwksUrl")
 			.serviceAccountUserId("serviceAccountUserId")
 			.clientId("clientId")
 			.build();
