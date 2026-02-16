@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="changelog_mi_reports.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+
+    <changeSet id="0_1_0_CREATE_MI_REPORT_TABLE" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="mi_report"/>
+            </not>
+        </preConditions>
+        <comment>Stores mi report type, competent authority combinations</comment>
+        <createTable tableName="mi_report" remarks="Represents a mi report">
+            <column name="id" type="integer" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="mi_report_pkey" nullable="false"/>
+            </column>
+            <column name="competent_authority" type="varchar(255)" remarks="The Competent authority name">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(255)" remarks="The report type">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS mi_report CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ADD_UNIQUE_INDEX_ON_MI_REPORT" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="mi_report" indexName="mi_report_uq"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="mi_report_uq" tableName="mi_report" unique="true">
+            <column name="competent_authority"/>
+            <column name="type"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="mi_report_uq" tableName="mi_report"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="0_1_0_add_type_column_mi_report_table" author="P70453">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="mi_report" columnName="entity_type"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="mi_report">
+            <column name="entity_type" type="varchar(50)" remarks="The type of the mi_report">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="mi_report" columnName="entity_type"/>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="rename_mi_report_table_to_mi_report_system" author="p35066">
+        <renameTable newTableName="mi_report_system" oldTableName="mi_report" />
+        <rollback>
+            <renameTable newTableName="mi_report" oldTableName="mi_report_system" />
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_MI_REPORT_USER_DEFINED_SEQUENCE" author="P70311">
+        <createSequence sequenceName="mi_report_user_defined_seq" cycle="false" incrementBy="1" minValue="0"
+                        maxValue="999999999999999999" startValue="1"/>
+        <rollback>
+            <dropSequence sequenceName="mi_report_user_defined_seq"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_MI_REPORT_USER_DEFINED_TABLE_CREATION" author="P70311">
+        <createTable tableName="mi_report_user_defined" remarks="Represents a collection of user defined queries">
+            <column name="id" type="bigint" remarks="The id of the user defined query">
+                <constraints primaryKey="true" primaryKeyName="mi_report_user_defined_id_pk" nullable="false"/>
+            </column>
+            <column name="report_name" type="varchar(255)" remarks="Report name">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description"  type="varchar(10000)"/>
+            <column name="query_definition" type="varchar(10000)" remarks="The user defined query for the report">
+                <constraints nullable="false" />
+            </column>
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_by" type="varchar(255)" remarks="The creator of the user defined query">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_updated_on" type="timestamp" remarks="When the query last updated">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="mi_report_user_defined" cascadeConstraints="true" />
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="0_1_0_add_unique_constraint_mi_report_user_defined_table" author="P70311">
+        <addUniqueConstraint tableName="mi_report_user_defined" columnNames="report_name, competent_authority"
+                             constraintName="mi_report_user_defined_uc"/>
+        <rollback>
+            <dropUniqueConstraint tableName="mi_report_user_defined" constraintName="mi_report_user_defined_uc"/>
+        </rollback>
+    </changeSet>
+
+
+</databaseChangeLog>

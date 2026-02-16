@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="v0.1.0/changelog_mi_reports.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_create_ca_reporting_schemas_for_mi_reports" author="P70453">
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS sch_report_sepa;
+            CREATE SCHEMA IF NOT EXISTS sch_report_opred;
+            CREATE SCHEMA IF NOT EXISTS sch_report_nrw;
+            CREATE SCHEMA IF NOT EXISTS sch_report_niea;
+            CREATE SCHEMA IF NOT EXISTS sch_report_ea;
+        </sql>
+        <rollback>
+            <sql>
+                DROP SCHEMA sch_report_ea CASCADE;
+                DROP SCHEMA sch_report_niea CASCADE;
+                DROP SCHEMA sch_report_opred CASCADE;
+                DROP SCHEMA sch_report_sepa CASCADE;
+                DROP SCHEMA sch_report_nrw CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_users_ea" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(1) FROM pg_catalog.pg_user where usename='usr_report_ea';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE USER usr_report_ea WITH PASSWORD '${report_user_password_ea}';
+
+            GRANT CONNECT ON DATABASE ${report_datasource_name} TO usr_report_ea;
+
+        </sql>
+        <rollback>
+            <sql>
+                DROP OWNED BY usr_report_ea;
+
+                DROP USER usr_report_ea;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_users_sepa" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(1) FROM pg_catalog.pg_user where usename='usr_report_sepa';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE USER usr_report_sepa WITH PASSWORD '${report_user_password_sepa}';
+
+            GRANT CONNECT ON DATABASE ${report_datasource_name} TO usr_report_sepa;
+
+        </sql>
+        <rollback>
+            <sql>
+                DROP OWNED BY usr_report_sepa;
+
+                DROP USER usr_report_sepa;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_users_opred" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(1) FROM pg_catalog.pg_user where usename='usr_report_opred';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE USER usr_report_opred WITH PASSWORD '${report_user_password_opred}';
+
+            GRANT CONNECT ON DATABASE ${report_datasource_name} TO usr_report_opred;
+
+        </sql>
+        <rollback>
+            <sql>
+                DROP OWNED BY usr_report_opred;
+
+                DROP USER usr_report_opred;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_users_nrw" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(1) FROM pg_catalog.pg_user where usename='usr_report_nrw';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE USER usr_report_nrw WITH PASSWORD '${report_user_password_nrw}';
+
+            GRANT CONNECT ON DATABASE ${report_datasource_name} TO usr_report_nrw;
+
+        </sql>
+        <rollback>
+            <sql>
+                DROP OWNED BY usr_report_nrw;
+
+                DROP USER usr_report_nrw;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_users_niea" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(1) FROM pg_catalog.pg_user where usename='usr_report_niea';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE USER usr_report_niea WITH PASSWORD '${report_user_password_niea}';
+
+            GRANT CONNECT ON DATABASE ${report_datasource_name} TO usr_report_niea;
+
+        </sql>
+        <rollback>
+            <sql>
+                DROP OWNED BY usr_report_niea;
+
+                DROP USER usr_report_niea;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_user_permissions_ea" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(1) FROM information_schema.schemata where schema_name='sch_report_ea';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            GRANT USAGE ON SCHEMA sch_report_ea TO usr_report_ea;
+
+            GRANT SELECT ON ALL TABLES IN SCHEMA sch_report_ea TO usr_report_ea;
+
+            ALTER DEFAULT PRIVILEGES IN SCHEMA sch_report_ea GRANT SELECT ON TABLES TO usr_report_ea;
+        </sql>
+        <rollback>
+            <sql>
+                REVOKE CONNECT ON DATABASE ${report_datasource_name} FROM usr_report_ea;
+
+                REVOKE ALL ON ALL TABLES IN SCHEMA sch_report_ea FROM usr_report_ea;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_user_permissions_sepa" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(1) FROM information_schema.schemata where schema_name='sch_report_sepa';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            GRANT USAGE ON SCHEMA sch_report_sepa TO usr_report_sepa;
+
+            GRANT SELECT ON ALL TABLES IN SCHEMA sch_report_sepa TO usr_report_sepa;
+
+            ALTER DEFAULT PRIVILEGES IN SCHEMA sch_report_sepa GRANT SELECT ON TABLES TO usr_report_sepa;
+        </sql>
+        <rollback>
+            <sql>
+                REVOKE CONNECT ON DATABASE ${report_datasource_name} FROM usr_report_sepa;
+
+                REVOKE ALL ON ALL TABLES IN SCHEMA sch_report_sepa FROM usr_report_sepa;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_user_permissions_opred" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(1) FROM information_schema.schemata where schema_name='sch_report_opred';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            GRANT USAGE ON SCHEMA sch_report_opred TO usr_report_opred;
+
+            GRANT SELECT ON ALL TABLES IN SCHEMA sch_report_opred TO usr_report_opred;
+
+            ALTER DEFAULT PRIVILEGES IN SCHEMA sch_report_opred GRANT SELECT ON TABLES TO usr_report_opred;
+        </sql>
+        <rollback>
+            <sql>
+                REVOKE CONNECT ON DATABASE ${report_datasource_name} FROM usr_report_opred;
+
+                REVOKE ALL ON ALL TABLES IN SCHEMA sch_report_opred FROM usr_report_opred;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_user_permissions_nrw" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(1) FROM information_schema.schemata where schema_name='sch_report_nrw';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            GRANT USAGE ON SCHEMA sch_report_nrw TO usr_report_nrw;
+
+            GRANT SELECT ON ALL TABLES IN SCHEMA sch_report_nrw TO usr_report_nrw;
+
+            ALTER DEFAULT PRIVILEGES IN SCHEMA sch_report_nrw GRANT SELECT ON TABLES TO usr_report_nrw;
+        </sql>
+        <rollback>
+            <sql>
+                REVOKE CONNECT ON DATABASE ${report_datasource_name} FROM usr_report_nrw;
+
+                REVOKE ALL ON ALL TABLES IN SCHEMA sch_report_nrw FROM usr_report_nrw;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_create_ca_reporting_user_permissions_niea" author="dridakis@unisystems.gr">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(1) FROM information_schema.schemata where schema_name='sch_report_niea';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            GRANT USAGE ON SCHEMA sch_report_niea TO usr_report_niea;
+
+            GRANT SELECT ON ALL TABLES IN SCHEMA sch_report_niea TO usr_report_niea;
+
+            ALTER DEFAULT PRIVILEGES IN SCHEMA sch_report_niea GRANT SELECT ON TABLES TO usr_report_niea;
+        </sql>
+        <rollback>
+            <sql>
+                REVOKE CONNECT ON DATABASE ${report_datasource_name} FROM usr_report_niea;
+
+                REVOKE ALL ON ALL TABLES IN SCHEMA sch_report_niea FROM usr_report_niea;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_update_reporting_user_password" author="P70453" runAlways="true">
+        <validCheckSum>ANY</validCheckSum>
+        <sql>
+            ALTER USER usr_report_ea WITH PASSWORD '${report_user_password_ea}';
+            ALTER USER usr_report_sepa WITH PASSWORD '${report_user_password_sepa}';
+            ALTER USER usr_report_niea WITH PASSWORD '${report_user_password_niea}';
+            ALTER USER usr_report_opred WITH PASSWORD '${report_user_password_opred}';
+            ALTER USER usr_report_nrw WITH PASSWORD '${report_user_password_nrw}';
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
