@@ -19,6 +19,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -54,6 +55,7 @@ public class RequestTaskType {
     
     @Column(name = "supporting")
     @Enumerated(EnumType.STRING)
+    @Getter(AccessLevel.NONE)
     private SupportingTaskType supporting;
 
     @NotNull
@@ -77,7 +79,11 @@ public class RequestTaskType {
         return supporting == SupportingTaskType.PEER_REVIEW;
     }
 
-    public boolean isSupporting() {
-        return supporting != null;
+    public boolean doesCascadeReassignment() {
+    	return supporting == null;
+    }
+    
+    public boolean doesPopulateRequestAssignment() {
+    	return supporting == null;
     }
 }

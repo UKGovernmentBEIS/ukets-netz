@@ -20,7 +20,7 @@ public class RequestReleaseService {
     
     @Transactional
     public void releaseRequest(RequestTask requestTask) {
-        if (requestTask.getType().isSupporting()) {
+        if (!requestTask.getType().doesPopulateRequestAssignment()) {
             return;
         }
         

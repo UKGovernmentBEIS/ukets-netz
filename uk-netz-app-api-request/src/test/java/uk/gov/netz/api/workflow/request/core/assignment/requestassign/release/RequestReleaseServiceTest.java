@@ -12,6 +12,7 @@ import uk.gov.netz.api.common.constants.RoleTypeConstants;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskType;
+import uk.gov.netz.api.workflow.request.core.domain.enumeration.SupportingTaskType;
 
 import java.util.List;
 import java.util.Optional;
@@ -113,7 +114,19 @@ class RequestReleaseServiceTest {
         verify(userRoleTypeOperatorRequestReleaseService, times(1)).getRoleType();
         verify(userRoleTypeRegulatorRequestReleaseService, times(1)).getRoleType();
         verifyNoMoreInteractions(userRoleTypeOperatorRequestReleaseService, userRoleTypeRegulatorRequestReleaseService);
+    }
+    
+    @Test
+    void releaseRequest_not_populate_request_payload_task() {
+        Request request = Request.builder().build();
+        RequestTask requestTask = RequestTask.builder()
+            .request(request)
+            .type(RequestTaskType.builder().code("code").supporting(SupportingTaskType.DEFAULT).build())
+            .build();
 
+        cut.releaseRequest(requestTask);
+        
+        verifyNoInteractions(authorizationRulesQueryService);
     }
 
 }
