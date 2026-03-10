@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_verification_body.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_VERIFICATION_BODY_CREATE_SEQUENCE" author="pafilisa@unisystems.gr">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="verification_body_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="verification_body_seq" minValue="0" maxValue="999999999999999999"
+                        incrementBy="1" startValue="1" cycle="false"/>
+        <rollback>
+            <sql>
+                DROP SEQUENCE IF EXISTS verification_body_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_CREATE_VERIFICATION_BODY_TABLE" author="pafilisa@unisystems.gr">
+        <validCheckSum>1:any</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="verification_body"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="verification_body" remarks="Stores information about verification bodies">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="verification_body_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)" remarks="The verification body name">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="varchar(255)" remarks="The status">
+                <constraints nullable="false" />
+            </column>
+            <column name="addr_line1" type="varchar(255)" remarks="The line 1 address">
+                <constraints nullable="false" />
+            </column>
+            <column name="addr_line2" type="varchar(255)" remarks="The line 2 address">
+                <constraints nullable="true" />
+            </column>
+            <column name="addr_city" type="varchar(255)" remarks="The city">
+                <constraints nullable="false" />
+            </column>
+            <column name="addr_country" type="varchar(8)" remarks="The country">
+                <constraints nullable="false" />
+            </column>
+            <column name="addr_postcode" type="varchar(64)" remarks="The postcode">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_date" type="timestamp" remarks="The created date">
+                <constraints nullable="false" />
+            </column>
+            <column name="accreditation_reference_number" type="varchar(255)" remarks="The accreditation reference number">
+                <constraints nullable="false" unique="true" uniqueConstraintName="verification_body_accreditation_ref_num_uc" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS verification_body CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+
+    <changeSet id="0_1_0_VERIFICATION_BODY_EMISSION_TRADING_SCHEME_CREATE_TABLE" author="pafilisa@unisystems.gr">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="verification_body_emission_trading_scheme"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="verification_body_emission_trading_scheme" remarks="Represents a verification body emission trading scheme">
+            <column name="verification_body_id" type="bigint" remarks="The verification body id (foreign key to verification body table)">
+                <constraints foreignKeyName="verification_body_emission_trading_scheme_fk" references="verification_body(id)" nullable="false"/>
+            </column>
+            <column name="emission_trading_scheme" type="varchar(255)" remarks="The emission trading scheme">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS verification_body_emission_trading_scheme CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_ADD_VERIFICATION_BODY_EMISSION_TRADING_SCHEME_UNIQUE_CONSTRAINT" author="pafilisa@unisystems.gr">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="verification_body_emission_trading_scheme" constraintName="verification_body_emission_trading_scheme_uc"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint tableName="verification_body_emission_trading_scheme"
+                             columnNames="verification_body_id, emission_trading_scheme"
+                             constraintName="verification_body_emission_trading_scheme_uc"/>
+        <rollback>
+            <dropUniqueConstraint tableName="verification_body_emission_trading_scheme" constraintName="verification_body_emission_trading_scheme_uc"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_add_third_party_data_provider_column_in_verification_body_table" author="P44065">
+        <addColumn tableName="verification_body">
+            <column name="third_party_data_provider_id" type="bigint" />
+        </addColumn>
+        <rollback>
+            <sql>
+                alter table verification_body
+                drop column if exists third_party_data_provider_id;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
