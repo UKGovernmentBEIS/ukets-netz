@@ -25,16 +25,19 @@ public class MiReportUserDefinedService {
     private final MiReportUserDefinedRepository miReportUserDefinedRepository;
     private final MiReportUserDefinedGeneratorDelegator miReportUserDefinedGeneratorDelegator;
     private static final MiReportUserDefinedMapper MI_REPORT_USER_DEFINED_MAPPER = Mappers.getMapper(MiReportUserDefinedMapper.class);
-    
-	@Transactional(readOnly = true)
-	public MiReportUserDefinedResults findAllByCA(CompetentAuthorityEnum competentAuthority, int pageNumber,
-			int pageSize) {
-		Page<MiReportUserDefinedInfoDTO> page = miReportUserDefinedRepository.findAllByCA(competentAuthority,
-				getPageable(pageNumber, pageSize));
-		return page.isEmpty() ? MiReportUserDefinedResults.emptyMiReportUserDefinedResults()
-				: MiReportUserDefinedResults.builder().queries(page.getContent()).total(page.getTotalElements())
-						.build();
-	}
+
+    @Transactional(readOnly = true)
+    public MiReportUserDefinedResults findAllByCA(CompetentAuthorityEnum competentAuthority, int pageNumber,
+                                                  int pageSize) {
+        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthority(competentAuthority,
+                getPageable(pageNumber, pageSize));
+
+        return page.isEmpty() ? MiReportUserDefinedResults.emptyMiReportUserDefinedResults()
+                : MiReportUserDefinedResults.builder()
+                    .queries(page.getContent().stream().map(MI_REPORT_USER_DEFINED_MAPPER::toMiReportUserDefinedInfoDTO).toList())
+                    .total(page.getTotalElements())
+                    .build();
+    }
 	
 	@Transactional(readOnly = true)
     public MiReportUserDefinedDTO findById(Long miReportUserDefinedId) {

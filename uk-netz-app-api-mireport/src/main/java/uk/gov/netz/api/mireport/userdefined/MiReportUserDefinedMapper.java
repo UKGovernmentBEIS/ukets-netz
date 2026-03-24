@@ -14,4 +14,6 @@ public interface MiReportUserDefinedMapper {
     MiReportUserDefinedDTO toMiReportUserDefinedDTO(MiReportUserDefinedEntity miReportUserDefinedEntity);
 
     void updateMiReportUserDefinedEntity(@MappingTarget MiReportUserDefinedEntity entity, MiReportUserDefinedDTO dto);
+
+    MiReportUserDefinedInfoDTO toMiReportUserDefinedInfoDTO(MiReportUserDefinedEntity entity);
 }

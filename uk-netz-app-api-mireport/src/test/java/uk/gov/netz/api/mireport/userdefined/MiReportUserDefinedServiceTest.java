@@ -54,32 +54,30 @@ class MiReportUserDefinedServiceTest {
         final int pageSize = 10;
         final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "reportName"));
 
-        final MiReportUserDefinedInfoDTO miReportQueryInfoDTO1 = MiReportUserDefinedInfoDTO.builder()
+        final MiReportUserDefinedEntity entity1 = MiReportUserDefinedEntity.builder()
                 .id(queryId)
                 .reportName(reportName)
                 .description(description)
                 .build();
 
-        final MiReportUserDefinedInfoDTO miReportQueryInfoDTO2 = MiReportUserDefinedInfoDTO.builder()
+        final MiReportUserDefinedEntity entity2 = MiReportUserDefinedEntity.builder()
                 .id(queryId2)
                 .reportName(reportName2)
                 .description(description2)
                 .build();
 
-        final List<MiReportUserDefinedInfoDTO> queries = List.of(miReportQueryInfoDTO1, miReportQueryInfoDTO2);
-        final Page<MiReportUserDefinedInfoDTO> page = new PageImpl<>(queries);
+        final Page<MiReportUserDefinedEntity> page = new PageImpl<>(List.of(entity1, entity2));
 
-        MiReportUserDefinedResults expectedResults = MiReportUserDefinedResults.builder()
-                .queries(queries)
-                .total(2L)
-                .build();
-
-        when(miReportUserDefinedRepository.findAllByCA(CompetentAuthorityEnum.ENGLAND, pageable)).thenReturn(page);
+        when(miReportUserDefinedRepository.findAllByCompetentAuthority(CompetentAuthorityEnum.ENGLAND, pageable)).thenReturn(page);
 
         // invoke
         MiReportUserDefinedResults actualResults = service.findAllByCA(CompetentAuthorityEnum.ENGLAND, pageNumber, pageSize);
 
-        assertEquals(actualResults, expectedResults);
+        assertThat(actualResults.getTotal()).isEqualTo(2);
+        assertThat(actualResults.getQueries()).hasSize(2).containsExactlyInAnyOrder(
+                MiReportUserDefinedInfoDTO.builder().id(queryId).reportName(reportName).description(description).build(),
+                MiReportUserDefinedInfoDTO.builder().id(queryId2).reportName(reportName2).description(description2).build()
+        );
     }
 
     @Test

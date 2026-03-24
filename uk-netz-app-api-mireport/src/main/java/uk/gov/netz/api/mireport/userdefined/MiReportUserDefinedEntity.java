@@ -16,8 +16,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
 import org.springframework.data.annotation.LastModifiedDate;
@@ -25,18 +28,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
 @Entity
-@NamedQuery(
-        name = MiReportUserDefinedEntity.NAMED_QUERY_FIND_ALL_BY_CA,
-        query = "select new uk.gov.netz.api.mireport.userdefined.MiReportUserDefinedInfoDTO(m.id, m.reportName, m.description) "
-                + "from MiReportUserDefinedEntity m "
-                + "where m.competentAuthority = :competentAuthority "
-)
 @NamedQuery(
         name = MiReportUserDefinedEntity.NAMED_QUERY_FIND_BY_REPORT_NAME_AND_CA,
         query = "select m.id from MiReportUserDefinedEntity m "
@@ -45,8 +44,7 @@ import java.time.LocalDateTime;
 )
 @Table(name = "mi_report_user_defined")
 public class MiReportUserDefinedEntity {
-	
-    public static final String NAMED_QUERY_FIND_ALL_BY_CA = "MiReportUserDefinedEntity.findAllByCA";
+
     public static final String NAMED_QUERY_FIND_BY_REPORT_NAME_AND_CA = "MiReportUserDefinedEntity.findByReportNameAndCA";
 
     @Id
@@ -54,6 +52,7 @@ public class MiReportUserDefinedEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mi_report_user_defined_id_generator")
     private Long id;
 
+    @EqualsAndHashCode.Include
     @Column(name = "report_name", nullable = false)
     @NotBlank
     private String reportName;
@@ -66,7 +65,8 @@ public class MiReportUserDefinedEntity {
     @Size(max = 10000)
     @NotNull
     private String queryDefinition;
-    
+
+    @EqualsAndHashCode.Include
     @Enumerated(EnumType.STRING)
     @Column(name = "competent_authority")
     @NotNull
