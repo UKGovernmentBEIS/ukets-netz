@@ -61,7 +61,7 @@ public interface RequestRepository extends JpaRepository<Request, String> {
 
     @Transactional(readOnly = true)
     List<Request> findByIdInAndStatus(Set<String> requestIds, String status);
-    
+
     @Transactional(readOnly = true)
     @Query("select req "
             + "from Request req "
@@ -70,6 +70,16 @@ public interface RequestRepository extends JpaRepository<Request, String> {
             + "where res.resourceType = 'ACCOUNT' "
             + "and res.resourceId = :accountId")
     List<Request> findAllByAccountId(Long accountId);
+
+    @Transactional(readOnly = true)
+    @Query("select req "
+        + "from Request req "
+        + "join RequestResource res "
+        + "on req.id = res.request.id "
+        + "where res.resourceType = 'ACCOUNT' "
+        + "and res.resourceId in (:accountIds)"
+        + "and req.type.code = :type")
+    List<Request> findAllByAccountIdInAndType(Set<Long> accountIds, String type);
 
     @Transactional(readOnly = true)
     @Query("select req "

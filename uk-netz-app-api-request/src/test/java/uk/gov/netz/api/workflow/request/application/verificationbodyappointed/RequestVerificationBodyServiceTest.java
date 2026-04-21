@@ -11,6 +11,9 @@ import uk.gov.netz.api.workflow.request.TestRequestPayload;
 import uk.gov.netz.api.workflow.request.WorkflowService;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
+import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
+import uk.gov.netz.api.workflow.request.core.domain.RequestTaskType;
+import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTypes;
 import uk.gov.netz.api.workflow.request.core.repository.RequestRepository;
 import uk.gov.netz.api.workflow.request.core.service.RequestService;
 
@@ -19,7 +22,9 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,6 +85,25 @@ class RequestVerificationBodyServiceTest {
         assertNull(request2.getVerificationBodyId());
         assertNull(request2.getPayload().getVerifierAssignee());
         verifyNoInteractions(workflowService);
+        verifyNoInteractions(requestService);
+    }
+
+    @Test
+    void completeExistingNewVerificationBodySystemMessage() {
+        Long accountId = 1L;
+        Long verificationBodyId = 11L;
+        RequestTask requestTask1 = RequestTask.builder().processTaskId("processTaskId1").type(RequestTaskType.builder().code("NEW_VERIFICATION_BODY_TEST").build()).build();
+        RequestTask requestTask2 = RequestTask.builder().processTaskId("processTaskId2").type(RequestTaskType.builder().code("VERIFICATION_BODY_NO_LONGER_AVAILABLE_TEST").build()).build();
+        Request request1 = Request.builder().requestTasks(List.of(requestTask1, requestTask2)).build();
+        addResourcesToRequest(accountId, verificationBodyId, request1);
+
+        when(requestRepository.findAllByAccountIdInAndType(Set.of(accountId), RequestTypes.SYSTEM_MESSAGE_NOTIFICATION)).thenReturn(List.of(request1));
+
+        service.completeExistingNewVerificationBodySystemMessage(Set.of(accountId));
+
+        verify(requestRepository).findAllByAccountIdInAndType(Set.of(accountId), RequestTypes.SYSTEM_MESSAGE_NOTIFICATION);
+        verify(workflowService).completeTask("processTaskId1");
+        verifyNoMoreInteractions(workflowService, requestRepository);
         verifyNoInteractions(requestService);
     }
     

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-request</artifactId>
-    <version>1.28.0</version>
+    <version>1.29.0</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -94,7 +94,7 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-account</artifactId>
-            <version>1.9.0</version>
+            <version>1.10.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>

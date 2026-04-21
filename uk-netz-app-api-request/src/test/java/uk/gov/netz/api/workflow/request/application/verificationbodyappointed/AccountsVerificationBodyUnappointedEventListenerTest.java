@@ -6,11 +6,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.netz.api.account.domain.event.AccountsVerificationBodyUnappointedEvent;
+import uk.gov.netz.api.account.service.AccountVerificationBodyNotificationService;
 
 import java.util.Set;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class AccountsVerificationBodyUnappointedEventListenerTest {
@@ -21,6 +23,9 @@ class AccountsVerificationBodyUnappointedEventListenerTest {
     @Mock
     private RequestVerificationBodyService requestVerificationBodyService;
 
+    @Mock
+    private AccountVerificationBodyNotificationService accountVerificationBodyNotificationService;
+
     @Test
     void onAccountsVerificationBodyUnappointedEvent() {
         Set<Long> accountIds = Set.of(1L, 2L);
@@ -30,5 +35,8 @@ class AccountsVerificationBodyUnappointedEventListenerTest {
         listener.onAccountsVerificationBodyUnappointedEvent(event);
 
         verify(requestVerificationBodyService, times(1)).unappointVerificationBodyFromRequestsOfAccounts(accountIds);
+        verify(requestVerificationBodyService, times(1)).completeExistingNewVerificationBodySystemMessage(accountIds);
+        verify(accountVerificationBodyNotificationService, times(1)).createVerificationBodyNoLongerAvailableSystemMessage(accountIds);
+        verifyNoMoreInteractions(requestVerificationBodyService, accountVerificationBodyNotificationService);
     }
 }

@@ -112,7 +112,29 @@ class RequestRepositoryIT extends RequestAbstractTest {
             .extracting(Request::getId)
             .containsExactlyInAnyOrder(acc1Request.getId(), acc2Request.getId());
     }
-    
+
+    @Test
+    void findAllByAccountIdInAndType() {
+        Long accountId1 = 1L;
+        Long accountId2 = 2L;
+        Long accountId3 = 3L;
+
+        RequestType requestType = createRequestType("DUMMY_REQUEST_TYPE", "descr1", "processdef1", "REPORTING", false, true, false, false, ResourceType.ACCOUNT);
+        RequestType requestType2 = createRequestType("DUMMY_REQUEST_TYPE2", "descr2", "processdef2", "REPORTING", false, true, false, false, ResourceType.ACCOUNT);
+        Request acc1Request = createRequest(accountId1, CompetentAuthorityEnum.ENGLAND, null, requestType, "procInstId1", "APPROVED", LocalDateTime.now());
+        createRequest(accountId2, CompetentAuthorityEnum.ENGLAND, null, requestType2, "procInstId2", "IN_PROGRESS", LocalDateTime.now());
+        createRequest(accountId3, CompetentAuthorityEnum.ENGLAND, null, requestType, "procInstId23", "IN_PROGRESS", LocalDateTime.now());
+
+        flushAndClear();
+
+        List<Request> retrievedRequests = requestRepository.findAllByAccountIdInAndType(Set.of(accountId1, accountId2), "DUMMY_REQUEST_TYPE");
+
+        assertThat(retrievedRequests).hasSize(1);
+        assertThat(retrievedRequests)
+            .extracting(Request::getId)
+            .containsExactlyInAnyOrder(acc1Request.getId());
+    }
+
     @Test
     void existsByTypeAndStatusAndCompetentAuthority_exists() {
     	RequestType requestType = createRequestType("DUMMY_REQUEST_TYPE", "descr1", "processdef1", "REPORTING", false, true, false, false, ResourceType.ACCOUNT);

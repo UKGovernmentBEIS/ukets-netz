@@ -4,15 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import uk.gov.netz.api.account.domain.event.AccountsVerificationBodyUnappointedEvent;
+import uk.gov.netz.api.account.service.AccountVerificationBodyNotificationService;
 
 @RequiredArgsConstructor
 @Component
 public class AccountsVerificationBodyUnappointedEventListener {
 
     private final RequestVerificationBodyService requestVerificationBodyService;
+    private final AccountVerificationBodyNotificationService accountVerificationBodyNotificationService;
 
     @EventListener
     public void onAccountsVerificationBodyUnappointedEvent(AccountsVerificationBodyUnappointedEvent event) {
         requestVerificationBodyService.unappointVerificationBodyFromRequestsOfAccounts(event.getAccountIds());
+        requestVerificationBodyService.completeExistingNewVerificationBodySystemMessage(event.getAccountIds());
+        accountVerificationBodyNotificationService.createVerificationBodyNoLongerAvailableSystemMessage(event.getAccountIds());
     }
 }

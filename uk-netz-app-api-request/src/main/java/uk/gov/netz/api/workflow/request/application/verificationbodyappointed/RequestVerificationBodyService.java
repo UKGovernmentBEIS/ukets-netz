@@ -3,7 +3,6 @@ package uk.gov.netz.api.workflow.request.application.verificationbodyappointed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
@@ -14,9 +13,11 @@ import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestActionTypes;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTaskTypes;
+import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTypes;
 import uk.gov.netz.api.workflow.request.core.repository.RequestRepository;
 import uk.gov.netz.api.workflow.request.core.service.RequestService;
 import uk.gov.netz.api.workflow.request.flow.common.constants.BpmnProcessConstants;
+import uk.gov.netz.api.workflow.request.flow.notificationsystemmessage.constants.SystemMessageRequestTaskTypePrefixes;
 
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,19 @@ class RequestVerificationBodyService {
             });
             request.getRequestResources().remove(getVbResource(request));
             removeVerifierAssignee(request);
+        });
+    }
+
+    @Transactional
+    public void completeExistingNewVerificationBodySystemMessage(Set<Long> accountIds) {
+        List<Request> requests = requestRepository.findAllByAccountIdInAndType(accountIds, RequestTypes.SYSTEM_MESSAGE_NOTIFICATION);
+
+        requests.forEach(request -> {
+            List<RequestTask> newVerificationBodyNotificationTasks = request.getRequestTasks().stream()
+                .filter(requestTask -> requestTask.getType().getCode().startsWith(SystemMessageRequestTaskTypePrefixes.NEW_VERIFICATION_BODY))
+                .collect(Collectors.toList());
+
+            newVerificationBodyNotificationTasks.forEach(task -> workflowService.completeTask(task.getProcessTaskId()));
         });
     }
 
