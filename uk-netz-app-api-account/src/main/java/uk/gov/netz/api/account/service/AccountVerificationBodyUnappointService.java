@@ -24,7 +24,6 @@ public class AccountVerificationBodyUnappointService {
     private final AccountBaseRepository<? extends Account> accountBaseRepository;
     private final AccountVbSiteContactService accountVbSiteContactService;
     private final ApplicationEventPublisher eventPublisher;
-    private final AccountVerificationBodyNotificationService accountVerificationBodyNotificationService;
 
     @Transactional
     public void unappointAccountsAppointedToVerificationBodyForEmissionTradingSchemes(
@@ -63,9 +62,6 @@ public class AccountVerificationBodyUnappointService {
         });
         
         accountVbSiteContactService.removeVbSiteContactFromAccounts(accountsToBeUnappointed);
-
-        // Notify users for unappointment
-        accountVerificationBodyNotificationService.notifyUsersForVerificationBodyUnappointment(accountsToBeUnappointed);
 
         eventPublisher.publishEvent(AccountsVerificationBodyUnappointedEvent.builder()
             .accountIds(accountsToBeUnappointed.stream()

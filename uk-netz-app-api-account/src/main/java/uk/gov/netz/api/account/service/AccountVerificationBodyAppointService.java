@@ -20,7 +20,6 @@ public class AccountVerificationBodyAppointService {
     private final ApprovedAccountQueryService approvedAccountQueryService;
     private final VerificationBodyQueryService verificationBodyQueryService;
     private final ApplicationEventPublisher eventPublisher;
-    private final AccountVerificationBodyNotificationService accountVerificationBodyNotificationService;
 
     @Transactional
     public void appointVerificationBodyToAccount(Long verificationBodyId, Long accountId) {
@@ -47,14 +46,12 @@ public class AccountVerificationBodyAppointService {
         //appoint
         account.setVerificationBodyId(verificationBodyId);
 
-        accountVerificationBodyNotificationService
-            .notifyUsersForVerificationBodyAppointment(verificationBodyId, account);
-
         //publish event
         eventPublisher.publishEvent(
                 AccountVerificationBodyAppointedEvent.builder()
                                 .accountId(account.getId())
                                 .verificationBodyId(verificationBodyId).build());
+
     }
 
     @Transactional
@@ -85,10 +82,6 @@ public class AccountVerificationBodyAppointService {
         // Update account vb appointment and delete VB contact site
         account.setVerificationBodyId(verificationBodyId);
         account.getContacts().remove(AccountContactType.VB_SITE);
-
-        // Notify
-        accountVerificationBodyNotificationService
-            .notifyUsersForVerificationBodyAppointment(verificationBodyId, account);
 
         eventPublisher.publishEvent(
             AccountVerificationBodyAppointedEvent.builder()

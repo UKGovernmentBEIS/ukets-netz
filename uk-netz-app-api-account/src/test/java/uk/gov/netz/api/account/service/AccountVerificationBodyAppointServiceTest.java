@@ -49,9 +49,6 @@ class AccountVerificationBodyAppointServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private AccountVerificationBodyNotificationService accountVerificationBodyNotificationService;
-
     @Test
     void appointVerificationBodyToAccount() {
         Long verificationBodyId = 1L;
@@ -83,8 +80,6 @@ class AccountVerificationBodyAppointServiceTest {
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(verificationBodyId);
         verify(verificationBodyQueryService, times(1)).isVerificationBodyAccreditedToEmissionTradingScheme(verificationBodyId, account.getEmissionTradingScheme());
         verify(account, times(1)).setVerificationBodyId(verificationBodyId);
-        verify(accountVerificationBodyNotificationService, times(1))
-            .notifyUsersForVerificationBodyAppointment(verificationBodyId, account);
         verify(eventPublisher, times(1)).publishEvent(AccountVerificationBodyAppointedEvent.builder()
                                 .accountId(accountId)
                                 .verificationBodyId(verificationBodyId).build());
@@ -117,7 +112,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(accountQueryService, times(1)).getAccountVerificationBodyId(accountId);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(verificationBodyId);
         verifyNoMoreInteractions(verificationBodyQueryService);
-        verifyNoInteractions(eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
     
@@ -143,7 +138,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(accountQueryService, times(1)).getAccountById(accountId);
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verifyNoMoreInteractions(accountQueryService);
-        verifyNoInteractions(verificationBodyQueryService, eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(verificationBodyQueryService, eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
     
@@ -166,7 +161,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(accountQueryService, times(1)).getAccountById(accountId);
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verifyNoMoreInteractions(accountQueryService);
-        verifyNoInteractions(verificationBodyQueryService, eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(verificationBodyQueryService, eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
     
@@ -200,7 +195,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(accountQueryService, times(1)).getAccountVerificationBodyId(accountId);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(verificationBodyId);
         verify(verificationBodyQueryService, times(1)).isVerificationBodyAccreditedToEmissionTradingScheme(verificationBodyId, account.getEmissionTradingScheme());
-        verifyNoInteractions(eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
 
@@ -231,8 +226,6 @@ class AccountVerificationBodyAppointServiceTest {
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(newVerificationBodyId);
         verify(verificationBodyQueryService, times(1)).isVerificationBodyAccreditedToEmissionTradingScheme(newVerificationBodyId, account.getEmissionTradingScheme());
-        verify(accountVerificationBodyNotificationService, times(1))
-            .notifyUsersForVerificationBodyAppointment(newVerificationBodyId, account);
         verify(eventPublisher, times(1))
             .publishEvent(AccountVerificationBodyAppointedEvent.builder()
                 .accountId(accountId)
@@ -263,7 +256,7 @@ class AccountVerificationBodyAppointServiceTest {
         assertThat(account.getContacts()).containsExactlyInAnyOrderEntriesOf(contacts);
         verify(accountQueryService, times(1)).getAccountById(accountId);
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
-        verifyNoInteractions(verificationBodyQueryService, eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(verificationBodyQueryService, eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
 
@@ -291,7 +284,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(newVerificationBodyId);
         verifyNoMoreInteractions(verificationBodyQueryService);
-        verifyNoInteractions(eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
 
@@ -320,7 +313,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(newVerificationBodyId);
         verifyNoMoreInteractions(verificationBodyQueryService);
-        verifyNoInteractions(eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
 
@@ -349,7 +342,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(newVerificationBodyId);
         verifyNoMoreInteractions(verificationBodyQueryService);
-        verifyNoInteractions(eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
     
@@ -381,7 +374,7 @@ class AccountVerificationBodyAppointServiceTest {
         verify(approvedAccountQueryService, times(1)).isAccountApproved(account);
         verify(verificationBodyQueryService, times(1)).existsActiveVerificationBodyById(newVerificationBodyId);
         verify(verificationBodyQueryService, times(1)).isVerificationBodyAccreditedToEmissionTradingScheme(newVerificationBodyId, account.getEmissionTradingScheme());
-        verifyNoInteractions(eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(eventPublisher);
         verify(account, never()).setVerificationBodyId(anyLong());
     }
 }

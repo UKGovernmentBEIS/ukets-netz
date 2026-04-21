@@ -49,9 +49,6 @@ class AccountVerificationBodyUnappointServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private AccountVerificationBodyNotificationService accountVerificationBodyNotificationService;
-
     @Test
     void unappointAccountsAppointedToVerificationBodyForEmissionTradingSchemes() {
         Long accountId = 1L;
@@ -71,7 +68,6 @@ class AccountVerificationBodyUnappointServiceTest {
         
         verify(accountBaseRepository, times(1)).findAllByVerificationBodyAndEmissionTradingScheme(verificationBodyId, notAvailableAccreditationEmissionTradingSchemes);
         verify(accountVbSiteContactService, times(1)).removeVbSiteContactFromAccounts(accountsToBeUnappointed);
-        verify(accountVerificationBodyNotificationService, times(1)).notifyUsersForVerificationBodyUnappointment(accountsToBeUnappointed);
         verify(eventPublisher, times(1))
             .publishEvent(AccountsVerificationBodyUnappointedEvent.builder()
                 .accountIds(Set.of(accountId))
@@ -89,7 +85,7 @@ class AccountVerificationBodyUnappointServiceTest {
         //invoke
         service.unappointAccountsAppointedToVerificationBodyForEmissionTradingSchemes(verificationBodyId, notAvailableAccreditationEmissionTradingSchemes);
         
-        verifyNoInteractions(accountRepository, accountVbSiteContactService, accountVerificationBodyNotificationService);
+        verifyNoInteractions(accountRepository, accountVbSiteContactService);
         verify(account, never()).setVerificationBodyId(any());
     }
 
@@ -116,7 +112,6 @@ class AccountVerificationBodyUnappointServiceTest {
                 .build()
             );
         verify(account, times(1)).setVerificationBodyId(null);
-        verify(accountVerificationBodyNotificationService, times(1)).notifyUsersForVerificationBodyUnappointment(accountsToBeUnappointed);
     }
 
     @Test
@@ -135,7 +130,6 @@ class AccountVerificationBodyUnappointServiceTest {
         verify(accountRepository, times(1)).findAllByVerificationWithContactsBodyIn(verificationBodyIds);
         verify(accountRepository, never()).save(Mockito.any(Account.class));
         verify(accountVbSiteContactService, never()).removeVbSiteContactFromAccounts(anySet());
-        verifyNoInteractions(accountVerificationBodyNotificationService);
     }
 
     @Test
@@ -153,7 +147,6 @@ class AccountVerificationBodyUnappointServiceTest {
         // Assert
         verify(accountRepository).findById(accountId);
         verify(accountVbSiteContactService).removeVbSiteContactFromAccounts(accountsToBeUnappointed);
-        verify(accountVerificationBodyNotificationService, times(1)).notifyUsersForVerificationBodyUnappointment(accountsToBeUnappointed);
         verify(eventPublisher)
                 .publishEvent(AccountsVerificationBodyUnappointedEvent.builder()
                         .accountIds(Set.of(accountId))
@@ -175,6 +168,6 @@ class AccountVerificationBodyUnappointServiceTest {
         // Assert
         verify(accountRepository, times(1)).findById(accountId);
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, businessException.getErrorCode());
-        verifyNoInteractions(accountVbSiteContactService, eventPublisher, accountVerificationBodyNotificationService);
+        verifyNoInteractions(accountVbSiteContactService, eventPublisher);
     }
 }

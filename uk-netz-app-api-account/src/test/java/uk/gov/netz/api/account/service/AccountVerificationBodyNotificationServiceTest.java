@@ -38,8 +38,11 @@ class AccountVerificationBodyNotificationServiceTest {
     @Mock
     private OperatorAuthorityQueryService operatorAuthorityQueryService;
 
+    @Mock
+    private AccountQueryService accountQueryService;
+
     @Test
-    void notifyUsersForVerificationBodyAppointment() {
+    void createNewVerificationBodySystemMessage() {
         Long verificationBodyId = 1L;
         Long accountId = 25L;
         String accountName = "accountName";
@@ -52,11 +55,13 @@ class AccountVerificationBodyNotificationServiceTest {
 
         when(verifierAuthorityQueryService.findVerifierAdminsByVerificationBody(verificationBodyId))
             .thenReturn(List.of(verifierAdmin));
+        when(accountQueryService.getAccountById(accountId)).thenReturn(account);
 
         //invoke
-        service.notifyUsersForVerificationBodyAppointment(verificationBodyId, account);
+        service.createNewVerificationBodySystemMessage(verificationBodyId, accountId);
 
         verify(verifierAuthorityQueryService, times(1)).findVerifierAdminsByVerificationBody(verificationBodyId);
+        verify(accountQueryService).getAccountById(accountId);
         ArgumentCaptor<SystemNotificationInfo> messageCaptor = ArgumentCaptor.forClass(SystemNotificationInfo.class);
         verify(systemNotificationProcessAndSendService, times(1)).processAndSend(messageCaptor.capture());
         SystemNotificationInfo message = messageCaptor.getValue();
@@ -70,7 +75,7 @@ class AccountVerificationBodyNotificationServiceTest {
     }
 
     @Test
-    void notifyUsersForVerificationBodyUnappointment() {
+    void createVerificationBodyNoLongerAvailableSystemMessage() {
         Long accountId = 1L;
         String operatorAdmin = "opAdmin";
         List<String> operatorAdmins = List.of(operatorAdmin);
@@ -79,15 +84,17 @@ class AccountVerificationBodyNotificationServiceTest {
         Set<Account> accountsUnappointed = Set.of(account);
 
         when(operatorAuthorityQueryService.findActiveOperatorAdminUsersByAccount(accountId)).thenReturn(operatorAdmins);
+        when(accountQueryService.getAccountById(accountId)).thenReturn(account);
 
         //invoke
-        service.notifyUsersForVerificationBodyUnappointment(accountsUnappointed);
+        service.createVerificationBodyNoLongerAvailableSystemMessage(Set.of(accountId));
 
         verify(operatorAuthorityQueryService, times(1)).findActiveOperatorAdminUsersByAccount(accountId);
 
         ArgumentCaptor<SystemNotificationInfo> messageCaptor = ArgumentCaptor.forClass(
             SystemNotificationInfo.class);
         verify(systemNotificationProcessAndSendService, times(1)).processAndSend(messageCaptor.capture());
+        verify(accountQueryService).getAccountById(accountId);
         SystemNotificationInfo message = messageCaptor.getValue();
         assertThat(message.getTemplate()).isEqualTo(NotificationTemplateName.VERIFICATION_BODY_NO_LONGER_AVAILABLE);
         assertThat(message.getReceiver()).isEqualTo(operatorAdmin);

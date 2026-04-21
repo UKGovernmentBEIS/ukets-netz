@@ -20,25 +20,28 @@ public class AccountVerificationBodyNotificationService {
 	private final SystemNotificationProcessAndSendService systemNotificationProcessAndSendService;
     private final VerifierAuthorityQueryService verifierAuthorityQueryService;
     private final OperatorAuthorityQueryService operatorAuthorityQueryService;
+    private final AccountQueryService accountQueryService;
 
-    public void notifyUsersForVerificationBodyAppointment(Long verificationBodyId, Account account) {
+    public void createNewVerificationBodySystemMessage(Long verificationBodyId, Long accountId) {
+        Account account = accountQueryService.getAccountById(accountId);
         List<String> verifierAdmins = verifierAuthorityQueryService.findVerifierAdminsByVerificationBody(verificationBodyId);
         verifierAdmins
             .forEach(ver -> systemNotificationProcessAndSendService.processAndSend(
-            		createNewVerificationBodySystemMessage(account, ver)));
+            		buildNewVerificationBodySystemNotificationInfo(account, ver)));
     }
-    
-    public void notifyUsersForVerificationBodyUnappointment(Set<? extends Account> accountsUnappointed) {
-        accountsUnappointed
-            .forEach(acc -> {
+
+    public void createVerificationBodyNoLongerAvailableSystemMessage(Set<Long> accountIds) {
+        accountIds
+            .forEach(accountId -> {
+                Account acc = accountQueryService.getAccountById(accountId);
                 List<String> operatorAdmins = operatorAuthorityQueryService.findActiveOperatorAdminUsersByAccount(acc.getId());
                 operatorAdmins.forEach(op ->
                 systemNotificationProcessAndSendService.processAndSend(
-                		createVerificationBodyNoLongerAvailableSystemMessage(acc, op)));
+                		buildVerificationBodyNoLongerAvailableSystemMessageInfo(acc, op)));
             });
     }
-    
-    private SystemNotificationInfo createNewVerificationBodySystemMessage(Account account, String verifierAdmin) {
+
+    private SystemNotificationInfo buildNewVerificationBodySystemNotificationInfo(Account account, String verifierAdmin) {
         return SystemNotificationInfo.builder()
                 .template(NotificationTemplateName.NEW_VERIFICATION_BODY)
                 .parameters(Map.of(
@@ -49,7 +52,7 @@ public class AccountVerificationBodyNotificationService {
                 .build();
     }
     
-    private SystemNotificationInfo createVerificationBodyNoLongerAvailableSystemMessage(
+    private SystemNotificationInfo buildVerificationBodyNoLongerAvailableSystemMessageInfo(
             Account account, String operatorAdmin) {
         return SystemNotificationInfo.builder()
                 .template(NotificationTemplateName.VERIFICATION_BODY_NO_LONGER_AVAILABLE)
