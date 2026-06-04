@@ -18,6 +18,7 @@ public class VerificationBodyDTO {
     private Long id;
     private String name;
     private String accreditationReferenceNumber;
+    private String accreditationBodyName;
     private VerificationBodyStatus status;
     private AddressDTO address;
 

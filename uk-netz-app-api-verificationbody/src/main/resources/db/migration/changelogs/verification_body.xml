@@ -115,4 +115,18 @@
             </sql>
         </rollback>
     </changeSet>
+
+    <changeSet id="0_1_0_add_accreditation_body_name_column_in_verification_body_table" author="P44065">
+        <addColumn tableName="verification_body">
+            <column name="accreditation_body_name" type="varchar(255)" defaultValue="UKAS">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+        <rollback>
+            <sql>
+                alter table verification_body
+                drop column if exists accreditation_body_name;
+            </sql>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

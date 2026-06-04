@@ -27,6 +27,10 @@ public class VerificationBodyEditDTO {
     @Size(max = 25, message = "{verificationBody.accreditationReferenceNumber.typeMismatch}")
     private String accreditationReferenceNumber;
 
+    @NotBlank(message = "{verificationBody.accreditationBodyName.notEmpty}")
+    @Size(max = 255, message = "{verificationBody.accreditationBodyName.typeMismatch}")
+    private String accreditationBodyName;
+
     @NotNull(message = "{verificationBody.address.notEmpty}")
     @Valid
     private AddressDTO address;

@@ -67,6 +67,7 @@ class VerificationBodyUpdateServiceTest {
                 VerificationBody.builder()
                     .id(verificationBodyId)
                     .name("nameOld")
+                    .accreditationBodyName("accreditationBodyNameOld")
                     .accreditationReferenceNumber("accreditationRefNumOld")
                     .address(Address.builder().city("cityOld").country("countryOld").line1("lineOld").build())
                     .build();
@@ -88,6 +89,7 @@ class VerificationBodyUpdateServiceTest {
                             VerificationBodyEditDTO.builder()
                                 .name("nameNew")
                                 .accreditationReferenceNumber("accreditationRefNumNew")
+                                .accreditationBodyName("accreditationBodyNameNew")
                                 .address(AddressDTO.builder().city("cityNew").country("countryNew").line1("lineNew").build())
                                 .emissionTradingSchemes(schemes.stream().map(EmissionTradingScheme::getName).collect(Collectors.toSet()))
                                 .build()
@@ -105,6 +107,7 @@ class VerificationBodyUpdateServiceTest {
         assertThat(verificationBody.getAddress().getCity()).isEqualTo(verificationBodyUpdateDTO.getVerificationBody().getAddress().getCity());
         assertThat(verificationBody.getAddress().getCountry()).isEqualTo(verificationBodyUpdateDTO.getVerificationBody().getAddress().getCountry());
         assertThat(verificationBody.getAddress().getLine1()).isEqualTo(verificationBodyUpdateDTO.getVerificationBody().getAddress().getLine1());
+        assertThat(verificationBody.getAccreditationBodyName()).isEqualTo(verificationBodyUpdateDTO.getVerificationBody().getAccreditationBodyName());
         assertThat(verificationBody.getEmissionTradingSchemes()).containsExactlyInAnyOrder(emissionTradingScheme2.getName());
 
         verify(verificationBodyRepository, times(1)).findByIdEagerEmissionTradingSchemes(verificationBodyId);

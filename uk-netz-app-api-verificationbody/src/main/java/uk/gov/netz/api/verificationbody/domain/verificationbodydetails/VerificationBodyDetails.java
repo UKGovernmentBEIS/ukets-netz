@@ -17,6 +17,7 @@ public class VerificationBodyDetails {
 
     private String name;
     private String accreditationReferenceNumber;
+    private String accreditationBodyName;
     private AddressDTO address;
 
     @Builder.Default

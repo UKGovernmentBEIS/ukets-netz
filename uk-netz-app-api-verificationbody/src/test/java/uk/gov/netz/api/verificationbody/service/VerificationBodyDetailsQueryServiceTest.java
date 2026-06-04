@@ -38,6 +38,7 @@ class VerificationBodyDetailsQueryServiceTest {
                 .name("name")
                 .accreditationReferenceNumber("accrRefNum")
                 .status(VerificationBodyStatus.ACTIVE)
+                .accreditationBodyName("accreditationBodyName")
                 .address(AddressDTO.builder()
                         .line1("line1")
                         .city("city")
@@ -51,6 +52,7 @@ class VerificationBodyDetailsQueryServiceTest {
                 .name(verificationBodyDTO.getName())
                 .accreditationReferenceNumber(verificationBodyDTO.getAccreditationReferenceNumber())
                 .address(verificationBodyDTO.getAddress())
+                .accreditationBodyName(verificationBodyDTO.getAccreditationBodyName())
                 .emissionTradingSchemes(verificationBodyDTO.getEmissionTradingSchemes())
                 .build();
 

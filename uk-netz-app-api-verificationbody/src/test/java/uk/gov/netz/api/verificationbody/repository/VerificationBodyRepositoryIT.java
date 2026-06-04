@@ -181,6 +181,7 @@ class VerificationBodyRepositoryIT extends AbstractContainerBaseTest {
                 VerificationBody.builder()
                     .name(name)
                     .status(status)
+                    .accreditationBodyName("accreditationBodyName")
                     .address(Address.builder().city("city").country("GR").line1("line1").postcode("postcode").build())
                     .accreditationReferenceNumber(accreditationRefNum)
                     .emissionTradingSchemes(emissionTradingSchemes.stream().map(EmissionTradingScheme::getName).collect(Collectors.toSet()))

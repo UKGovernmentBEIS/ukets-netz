@@ -40,14 +40,23 @@ class VerificationBodyCreationServiceTest {
     void createVerificationBody() {
         String vbName = "vbName";
         String accreditationReferenceNumber = "accreditationReferenceNumber";
+        String accreditationBodyName = "accreditationBodyName";
         VerificationBodyEditDTO verificationBodyCreationInfoDTO = VerificationBodyEditDTO.builder()
             .name(vbName)
             .accreditationReferenceNumber(accreditationReferenceNumber)
+            .accreditationBodyName(accreditationBodyName)
             .emissionTradingSchemes(Set.of(TestEmissionTradingScheme.DUMMY_EMISSION_TRADING_SCHEME.getName()))
             .build();
-        VerificationBody verificationBody = VerificationBody.builder().name(vbName).build();
+        VerificationBody verificationBody = VerificationBody.builder()
+            .name(vbName)
+            .accreditationBodyName(accreditationBodyName)
+            .build();
         VerificationBodyInfoDTO verificationBodyInfoDTO = VerificationBodyInfoDTO.builder().name(vbName).status(PENDING).build();
-        VerificationBody savedVerificationBody = VerificationBody.builder().name(vbName).status(PENDING).build();
+        VerificationBody savedVerificationBody = VerificationBody.builder()
+            .name(vbName)
+            .accreditationBodyName(accreditationBodyName)
+            .status(PENDING)
+            .build();
 
         when(verificationBodyMapper.toVerificationBody(verificationBodyCreationInfoDTO)).thenReturn(verificationBody);
         when(verificationBodyRepository.save(verificationBody)).thenReturn(savedVerificationBody);

@@ -105,6 +105,10 @@ public class VerificationBody {
     @NotBlank
     private String accreditationReferenceNumber;
 
+    @Column(name = "accreditation_body_name")
+    @NotBlank
+    private String accreditationBodyName;
+
     @Column(name = "third_party_data_provider_id")
     private Long thirdPartyDataProviderId;
 

@@ -125,6 +125,9 @@ public class VerificationBodyUpdateService {
         //update accreditation reference number
         vb.setAccreditationReferenceNumber(vbUpdate.getAccreditationReferenceNumber());
 
+        //update accreditation body name
+        vb.setAccreditationBodyName(vbUpdate.getAccreditationBodyName());
+
         //update address fields
         vb.setAddress(addressMapper.toAddress(vbUpdate.getAddress()));
 
