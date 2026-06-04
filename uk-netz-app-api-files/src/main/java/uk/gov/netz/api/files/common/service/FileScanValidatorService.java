@@ -10,7 +10,7 @@ import uk.gov.netz.api.files.common.domain.dto.FileDTO;
 import java.io.ByteArrayInputStream;
 
 @Component
-@Order(300)
+@Order(400)
 @Validated
 @RequiredArgsConstructor
 public class FileScanValidatorService implements FileValidatorService {

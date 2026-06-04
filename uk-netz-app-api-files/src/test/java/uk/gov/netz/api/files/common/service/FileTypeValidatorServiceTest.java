@@ -8,11 +8,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.files.common.FileTypesProperties;
 import uk.gov.netz.api.files.common.domain.dto.FileDTO;
+import uk.gov.netz.api.files.common.service.filecontentvalidators.FileContentValidatorService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -34,9 +37,13 @@ class FileTypeValidatorServiceTest {
     @Mock
     private FileTypeCustomValidator fileTypeCustomValidator;
 
+    @Mock
+    private FileContentValidatorService fileContentValidatorService;
+
     @BeforeEach
     void setUp() {
-        service = new FileTypeValidatorService(fileTypesProperties, List.of(fileTypeCustomValidator));
+        service = new FileTypeValidatorService(fileTypesProperties, List.of(fileTypeCustomValidator), List.of(fileContentValidatorService));
+        ReflectionTestUtils.setField(service, "enabledValidators", new ArrayList<>());
     }
 
 

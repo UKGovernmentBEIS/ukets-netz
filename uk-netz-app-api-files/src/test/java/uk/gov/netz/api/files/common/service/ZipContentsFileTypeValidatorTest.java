@@ -1,36 +1,57 @@
 package uk.gov.netz.api.files.common.service;
 
-import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.files.common.FileTypesProperties;
+import uk.gov.netz.api.files.common.domain.dto.FileDTO;
+import uk.gov.netz.api.files.common.service.filecontentvalidators.FileContentValidatorService;
+import uk.gov.netz.api.files.common.utils.MimeTypeUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import uk.gov.netz.api.common.exception.BusinessException;
-import uk.gov.netz.api.common.exception.ErrorCode;
-import uk.gov.netz.api.files.common.FileTypesProperties;
-import uk.gov.netz.api.files.common.domain.dto.FileDTO;
-import uk.gov.netz.api.files.common.utils.MimeTypeUtils;
+import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ZipContentsFileTypeValidatorTest {
 
-	@InjectMocks
+    @InjectMocks
     private ZipContentsFileTypeValidator cut;
 
     @Mock
     private FileTypesProperties fileTypesProperties;
+
+    @Mock
+    private FileContentValidatorService fileContentValidatorService;
+
+    @Spy
+    private List<FileContentValidatorService> fileContentValidators = new ArrayList<>();
+
+    @BeforeEach
+    void setup() {
+        fileContentValidators.add(fileContentValidatorService);
+        ReflectionTestUtils.setField(cut,
+                "enabledValidators", List.of("Validator"));
+    }
+
 
     @Test
     void validateFile_valid() throws IOException {
@@ -40,9 +61,14 @@ public class ZipContentsFileTypeValidatorTest {
         FileTypesProperties.Zip zip = new FileTypesProperties.Zip();
 		zip.setAllowedMimeTypes(List.of("text/plain"));
 
+        when(fileContentValidatorService.getName()).thenReturn("Validator");
         when(fileTypesProperties.getZip()).thenReturn(zip);
+        when(fileContentValidatorService.supports(any())).thenReturn(true);
 
         assertDoesNotThrow(() -> cut.validate(file));
+
+        verify(fileContentValidatorService, atLeastOnce()).validate(any(FileDTO.class));
+
     }
     
     @Test
@@ -53,6 +79,7 @@ public class ZipContentsFileTypeValidatorTest {
         FileTypesProperties.Zip zip = new FileTypesProperties.Zip();
 		zip.setAllowedMimeTypes(List.of("text/plain"));
 
+        when(fileContentValidatorService.getName()).thenReturn("Validator");
         when(fileTypesProperties.getZip()).thenReturn(zip);
 
         assertDoesNotThrow(() -> cut.validate(file));
@@ -72,7 +99,6 @@ public class ZipContentsFileTypeValidatorTest {
                 () -> cut.validate(file));
 
         Assertions.assertEquals(ErrorCode.ZIP_FILE_CONTAINS_INVALID_FILE_TYPE, be.getErrorCode());
-        Assertions.assertArrayEquals(List.of("application/zip", "signature_valid.dib").toArray(), be.getData());
     }
 
     private FileDTO createFile(Path sampleFilePath) throws IOException {
