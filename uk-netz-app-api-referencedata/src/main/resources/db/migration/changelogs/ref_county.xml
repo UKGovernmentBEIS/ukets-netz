@@ -1,0 +1,138 @@
+<databaseChangeLog
+        logicalFilePath="changelog_ref_county.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_REF_COUNTY_CREATE_TABLE" author="P70383">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_county"/>
+            </not>
+        </preConditions>
+        <createTable tableName="ref_county" remarks="Represents reference data county details">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="ref_county_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)" remarks="The county name">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ref_county_name_uq" />
+            </column>
+        </createTable>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS ref_county CASCADE;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_INSERT_REF_COUNTY_VALUES" author="P70383">
+        <preConditions onFail="WARN">
+            <sqlCheck expectedResult="1">SELECT count(*) FROM information_schema.tables where table_name = 'ref_county';</sqlCheck>
+        </preConditions>
+
+        <sql>
+            INSERT INTO ref_county (id, name) VALUES (1,'Avon');
+            INSERT INTO ref_county (id, name) VALUES (2,'Bedfordshire');
+            INSERT INTO ref_county (id, name) VALUES (3,'Berkshire');
+            INSERT INTO ref_county (id, name) VALUES (4,'Buckinghamshire');
+            INSERT INTO ref_county (id, name) VALUES (5,'Cambridgeshire');
+            INSERT INTO ref_county (id, name) VALUES (6,'Cheshire');
+            INSERT INTO ref_county (id, name) VALUES (7,'Cleveland');
+            INSERT INTO ref_county (id, name) VALUES (8,'Cornwall');
+            INSERT INTO ref_county (id, name) VALUES (9,'Cumbria');
+            INSERT INTO ref_county (id, name) VALUES (10,'Derbyshire');
+            INSERT INTO ref_county (id, name) VALUES (11,'Devon');
+            INSERT INTO ref_county (id, name) VALUES (12,'Dorset');
+            INSERT INTO ref_county (id, name) VALUES (13,'Durham');
+            INSERT INTO ref_county (id, name) VALUES (14,'East Sussex');
+            INSERT INTO ref_county (id, name) VALUES (15,'Essex');
+            INSERT INTO ref_county (id, name) VALUES (16,'Gloucestershire');
+            INSERT INTO ref_county (id, name) VALUES (17,'Hampshire');
+            INSERT INTO ref_county (id, name) VALUES (18,'Herefordshire');
+            INSERT INTO ref_county (id, name) VALUES (19,'Hertfordshire');
+            INSERT INTO ref_county (id, name) VALUES (20,'Isle of Wight');
+            INSERT INTO ref_county (id, name) VALUES (21,'Kent');
+            INSERT INTO ref_county (id, name) VALUES (22,'Lancashire');
+            INSERT INTO ref_county (id, name) VALUES (23,'Leicestershire');
+            INSERT INTO ref_county (id, name) VALUES (24,'Lincolnshire');
+            INSERT INTO ref_county (id, name) VALUES (25,'London');
+            INSERT INTO ref_county (id, name) VALUES (26,'Merseyside');
+            INSERT INTO ref_county (id, name) VALUES (27,'Middlesex');
+            INSERT INTO ref_county (id, name) VALUES (28,'Norfolk');
+            INSERT INTO ref_county (id, name) VALUES (29,'Northamptonshire');
+            INSERT INTO ref_county (id, name) VALUES (30,'Northumberland');
+            INSERT INTO ref_county (id, name) VALUES (31,'North Humberside');
+            INSERT INTO ref_county (id, name) VALUES (32,'North Yorkshire');
+            INSERT INTO ref_county (id, name) VALUES (33,'Nottinghamshire');
+            INSERT INTO ref_county (id, name) VALUES (34,'Oxfordshire');
+            INSERT INTO ref_county (id, name) VALUES (35,'Rutland');
+            INSERT INTO ref_county (id, name) VALUES (36,'Shropshire');
+            INSERT INTO ref_county (id, name) VALUES (37,'Somerset');
+            INSERT INTO ref_county (id, name) VALUES (38,'South Humberside');
+            INSERT INTO ref_county (id, name) VALUES (39,'South Yorkshire');
+            INSERT INTO ref_county (id, name) VALUES (40,'Staffordshire');
+            INSERT INTO ref_county (id, name) VALUES (41,'Suffolk');
+            INSERT INTO ref_county (id, name) VALUES (42,'Surrey');
+            INSERT INTO ref_county (id, name) VALUES (43,'Tyne and Wear');
+            INSERT INTO ref_county (id, name) VALUES (44,'Warwickshire');
+            INSERT INTO ref_county (id, name) VALUES (45,'West Midlands');
+            INSERT INTO ref_county (id, name) VALUES (46,'West Sussex');
+            INSERT INTO ref_county (id, name) VALUES (47,'West Yorkshire');
+            INSERT INTO ref_county (id, name) VALUES (48,'Wiltshire');
+            INSERT INTO ref_county (id, name) VALUES (49,'Worcestershire');
+            INSERT INTO ref_county (id, name) VALUES (50,'Clwyd');
+            INSERT INTO ref_county (id, name) VALUES (51,'Dyfed');
+            INSERT INTO ref_county (id, name) VALUES (52,'Gwent');
+            INSERT INTO ref_county (id, name) VALUES (53,'Gwynedd');
+            INSERT INTO ref_county (id, name) VALUES (54,'Mid Glamorgan');
+            INSERT INTO ref_county (id, name) VALUES (55,'Powys');
+            INSERT INTO ref_county (id, name) VALUES (56,'South Glamorgan');
+            INSERT INTO ref_county (id, name) VALUES (57,'West Glamorgan');
+            INSERT INTO ref_county (id, name) VALUES (58,'Aberdeenshire');
+            INSERT INTO ref_county (id, name) VALUES (59,'Angus');
+            INSERT INTO ref_county (id, name) VALUES (60,'Argyll');
+            INSERT INTO ref_county (id, name) VALUES (61,'Ayrshire');
+            INSERT INTO ref_county (id, name) VALUES (62,'Banffshire');
+            INSERT INTO ref_county (id, name) VALUES (63,'Berwickshire');
+            INSERT INTO ref_county (id, name) VALUES (64,'Bute');
+            INSERT INTO ref_county (id, name) VALUES (65,'Caithness');
+            INSERT INTO ref_county (id, name) VALUES (66,'Clackmannanshire');
+            INSERT INTO ref_county (id, name) VALUES (67,'Dumfriesshire');
+            INSERT INTO ref_county (id, name) VALUES (68,'Dunbartonshire');
+            INSERT INTO ref_county (id, name) VALUES (69,'East Lothian');
+            INSERT INTO ref_county (id, name) VALUES (70,'Fife');
+            INSERT INTO ref_county (id, name) VALUES (71,'Inverness-shire');
+            INSERT INTO ref_county (id, name) VALUES (72,'Kincardineshire');
+            INSERT INTO ref_county (id, name) VALUES (73,'Kinross-shire');
+            INSERT INTO ref_county (id, name) VALUES (74,'Kirkcudbrightshire');
+            INSERT INTO ref_county (id, name) VALUES (75,'Lanarkshire');
+            INSERT INTO ref_county (id, name) VALUES (76,'Midlothian');
+            INSERT INTO ref_county (id, name) VALUES (77,'Moray');
+            INSERT INTO ref_county (id, name) VALUES (78,'Nairnshire');
+            INSERT INTO ref_county (id, name) VALUES (79,'Orkney');
+            INSERT INTO ref_county (id, name) VALUES (80,'Peeblesshire');
+            INSERT INTO ref_county (id, name) VALUES (81,'Perthshire');
+            INSERT INTO ref_county (id, name) VALUES (82,'Renfrewshire');
+            INSERT INTO ref_county (id, name) VALUES (83,'Ross-shire');
+            INSERT INTO ref_county (id, name) VALUES (84,'Roxburghshire');
+            INSERT INTO ref_county (id, name) VALUES (85,'Selkirkshire');
+            INSERT INTO ref_county (id, name) VALUES (86,'Shetland');
+            INSERT INTO ref_county (id, name) VALUES (87,'Stirlingshire');
+            INSERT INTO ref_county (id, name) VALUES (88,'Sutherland');
+            INSERT INTO ref_county (id, name) VALUES (89,'West Lothian');
+            INSERT INTO ref_county (id, name) VALUES (90,'Wigtownshire');
+            INSERT INTO ref_county (id, name) VALUES (91,'Antrim');
+            INSERT INTO ref_county (id, name) VALUES (92,'Armagh');
+            INSERT INTO ref_county (id, name) VALUES (93,'Down');
+            INSERT INTO ref_county (id, name) VALUES (94,'Fermanagh');
+            INSERT INTO ref_county (id, name) VALUES (95,'Londonderry');
+            INSERT INTO ref_county (id, name) VALUES (96,'Tyrone');
+        </sql>
+
+        <rollback>
+            <sql>
+                DELETE FROM ref_county;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
