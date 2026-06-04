@@ -5,16 +5,18 @@ import lombok.Getter;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import uk.gov.netz.api.restclient.RestClientEndPoint;
+import uk.gov.netz.api.user.core.domain.model.keycloak.KeycloakPasswordValidationResponse;
 
 /**
- * The Pwned passwords rest points enum.
+ * The Keycloak client rest points enum.
  */
 @Getter
 @AllArgsConstructor
-public enum RestEndPointEnum implements RestClientEndPoint {
+public enum KeycloakValidatePasswordRestEndPointEnum implements RestClientEndPoint {
 
-    /** Protect the value of the source password being searched for. */
-    PWNED_PASSWORDS("/range/{passwordHash}", HttpMethod.GET, new ParameterizedTypeReference<String>() {});
+    /** Return users registered in Keycloak. */
+    KEYCLOAK_VALIDATE_PASSWORD("/validate-password", HttpMethod.POST, new ParameterizedTypeReference<KeycloakPasswordValidationResponse>() {})
+    ;
 
     /** The url. */
     private final String path;

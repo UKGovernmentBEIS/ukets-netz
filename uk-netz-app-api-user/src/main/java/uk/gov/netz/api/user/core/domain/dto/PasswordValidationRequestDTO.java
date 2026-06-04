@@ -10,11 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InvitedUserCredentialsDTO {
+public class PasswordValidationRequestDTO {
 
-    @NotBlank(message = "{jwt.token.notEmpty}")
-    private String invitationToken;
-
-    @NotBlank(message = "{userAccount.password.notEmpty}")
+    @NotBlank
     private String password;
 }

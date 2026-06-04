@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-user</artifactId>
-    <version>1.8.0</version>
+    <version>1.9.0</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -25,10 +25,6 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.nulab-inc</groupId>
-            <artifactId>zxcvbn</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
