@@ -145,4 +145,10 @@ public interface AuthorityRepository extends JpaRepository<Authority, Long>, Aut
 
     @Transactional(readOnly = true)
     List<Authority> findByAccountIdIn(List<Long> accountIds);
+
+    @Transactional(readOnly = true)
+    List<Authority> findByCompetentAuthorityIsNotNull();
+
+    @Transactional(readOnly = true)
+    List<Authority> findByCodeIn(List<String> codes);
 }
