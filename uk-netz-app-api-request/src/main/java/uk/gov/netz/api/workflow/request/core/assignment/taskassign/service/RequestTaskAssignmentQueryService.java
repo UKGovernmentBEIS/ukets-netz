@@ -5,7 +5,6 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
-import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.resource.RequestTaskAuthorizationResourceService;
 import uk.gov.netz.api.authorization.rules.services.resource.ResourceCriteria;
 import uk.gov.netz.api.userinfoapi.UserInfo;
@@ -19,7 +18,6 @@ import uk.gov.netz.api.workflow.request.core.service.RequestTaskService;
 import uk.gov.netz.api.workflow.request.core.service.RequestTaskTypeService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

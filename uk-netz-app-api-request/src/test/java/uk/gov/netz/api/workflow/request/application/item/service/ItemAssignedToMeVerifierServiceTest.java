@@ -13,10 +13,12 @@ import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.workflow.request.application.authorization.VerifierAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierAbstractRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -40,11 +42,11 @@ class ItemAssignedToMeVerifierServiceTest {
     private ItemResponseService itemResponseService;
 
     @Mock
-    private ItemVerifierRepository itemRepository;
+    private ItemVerifierAbstractRepository itemRepository;
 
     @Mock
     private VerifierAuthorityResourceAdapter verifierAuthorityResourceAdapter;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
@@ -55,7 +57,7 @@ class ItemAssignedToMeVerifierServiceTest {
         final AppUser appUser = buildVerifierUser(userId, "vb1", vbId);
         Map<Long, Set<String>> scopedRequestTaskTypes =
                 Map.of(vbId, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         Item expectedItem = mock(Item.class);
@@ -68,12 +70,13 @@ class ItemAssignedToMeVerifierServiceTest {
             .getUserScopedRequestTaskTypes(appUser))
             .thenReturn(scopedRequestTaskTypes);
         doReturn(itemRequestResources).when(itemRequestResourcesService).getItemRequestResources(expectedItemPage);
-        doReturn(expectedItemPage).when(itemRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        doReturn(expectedItemPage).when(itemRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME,
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         doReturn(expectedItemDTOResponse).when(itemResponseService).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService
-                .getItemsAssignedToMe(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToMe(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertEquals(expectedItemDTOResponse, actualItemDTOResponse);
@@ -81,7 +84,8 @@ class ItemAssignedToMeVerifierServiceTest {
         verify(verifierAuthorityResourceAdapter, times(1))
                 .getUserScopedRequestTaskTypes(appUser);
         verify(itemRequestResourcesService, times(1)).getItemRequestResources(expectedItemPage);
-        verify(itemRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.ME, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        verify(itemRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.ME,
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         verify(itemResponseService, times(1)).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
     }
 
@@ -102,19 +106,21 @@ class ItemAssignedToMeVerifierServiceTest {
         doReturn(scopedRequestTaskTypes)
             .when(verifierAuthorityResourceAdapter).getUserScopedRequestTaskTypes(appUser);
         doReturn(itemRequestResources).when(itemRequestResourcesService).getItemRequestResources(expectedItemPage);
-        doReturn(expectedItemPage).when(itemRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        doReturn(expectedItemPage).when(itemRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME,
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         doReturn(expectedItemDTOResponse).when(itemResponseService).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToMe(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToMe(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertEquals(ItemDTOResponse.emptyItemDTOResponse(), actualItemDTOResponse);
 
         verify(verifierAuthorityResourceAdapter, times(1)).getUserScopedRequestTaskTypes(appUser);
         verify(itemRequestResourcesService, times(1)).getItemRequestResources(expectedItemPage);
-        verify(itemRepository, times(1))
-                .findItems(appUser.getUserId(), ItemAssignmentType.ME, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        verify(itemRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.ME,
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         verify(itemResponseService, times(1)).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
     }
 
@@ -131,5 +137,9 @@ class ItemAssignedToMeVerifierServiceTest {
                 .authorities(List.of(AppAuthority.builder().verificationBodyId(vbId).build()))
                 .roleType(RoleTypeConstants.VERIFIER)
                 .build();
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }

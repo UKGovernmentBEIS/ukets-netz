@@ -12,10 +12,12 @@ import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.workflow.request.application.authorization.VerifierAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierAbstractRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -36,21 +38,21 @@ class ItemUnassignedVerifierServiceTest {
     private ItemUnassignedVerifierService service;
 
     @Mock
-    private ItemVerifierRepository itemRepository;
+    private ItemVerifierAbstractRepository itemRepository;
 
     @Mock
     private ItemResponseService itemResponseService;
 
     @Mock
     private VerifierAuthorityResourceAdapter verifierAuthorityResourceService;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
     @Test
     void getUnassignedItems() {
         Map<Long, Set<String>> scopedRequestTaskTypes = Map.of(1L, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         AppUser appUser = AppUser.builder().userId("vb1Id").roleType(RoleTypeConstants.VERIFIER).build();
@@ -66,14 +68,16 @@ class ItemUnassignedVerifierServiceTest {
         // Mock
         when(verifierAuthorityResourceService.getUserScopedRequestTaskTypes(appUser))
                 .thenReturn(scopedRequestTaskTypes);
-        when(itemRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build()))
+        when(itemRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria()))
                 .thenReturn(expectedItemPage);
         when(itemRequestResourcesService.getItemRequestResources(expectedItemPage)).thenReturn(itemRequestResources);
         when(itemResponseService.toItemDTOResponse(expectedItemPage, itemRequestResources, appUser))
                 .thenReturn(expectedItemDTOResponse);
 
         // Invoke
-        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualResponse).isEqualTo(expectedItemDTOResponse);
@@ -93,7 +97,8 @@ class ItemUnassignedVerifierServiceTest {
                 .thenReturn(scopedRequestTaskTypes);
 
         // Invoke
-        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualResponse).isEqualTo(ItemDTOResponse.emptyItemDTOResponse());
@@ -106,7 +111,7 @@ class ItemUnassignedVerifierServiceTest {
     @Test
     void getUnassignedItems_ReturnsEmptyResponseWhenNoItemsFetched() {
         Map<Long, Set<String>> scopedRequestTaskTypes = Map.of(1L, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         AppUser appUser = AppUser.builder().userId("vb1Id").roleType(RoleTypeConstants.VERIFIER).build();
@@ -118,14 +123,16 @@ class ItemUnassignedVerifierServiceTest {
         // Mock
         when(verifierAuthorityResourceService.getUserScopedRequestTaskTypes(appUser))
                 .thenReturn(scopedRequestTaskTypes);
-        when(itemRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build()))
+        when(itemRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria()))
                 .thenReturn(itemPage);
         when(itemRequestResourcesService.getItemRequestResources(itemPage)).thenReturn(itemRequestResources);
         when(itemResponseService.toItemDTOResponse(itemPage, itemRequestResources, appUser))
                 .thenReturn(expectedItemDTOResponse);
 
         // Invoke
-        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualResponse).isEqualTo(expectedItemDTOResponse);
@@ -134,5 +141,9 @@ class ItemUnassignedVerifierServiceTest {
     @Test
     void getRoleType() {
         assertEquals(RoleTypeConstants.VERIFIER, service.getRoleType());
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }

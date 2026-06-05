@@ -13,10 +13,12 @@ import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.application.authorization.RegulatorAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemRegulatorRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemRegulatorAbstractRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -42,11 +44,11 @@ class ItemAssignedToOthersRegulatorServiceTest {
     private ItemResponseService itemResponseService;
 
     @Mock
-    private ItemRegulatorRepository itemRegulatorRepository;
-    
+    private ItemRegulatorAbstractRepository itemRegulatorRepository;
+
     @Mock
     private RegulatorAuthorityResourceAdapter regulatorAuthorityResourceAdapter;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
@@ -54,9 +56,9 @@ class ItemAssignedToOthersRegulatorServiceTest {
     void getItemsAssignedToOthers() {
         Map<CompetentAuthorityEnum, Set<String>> scopedRequestTaskTypes =
             Map.of(ENGLAND, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.CA, ENGLAND.name()));
-        
+
         AppUser appUser = buildRegulatorUser("reg1Id");
         Item expectedItem = mock(Item.class);
         ItemPage expectedItemPage = ItemPage.builder()
@@ -72,24 +74,25 @@ class ItemAssignedToOthersRegulatorServiceTest {
             .thenReturn(scopedRequestTaskTypes);
         doReturn(itemRequestResources).when(itemRequestResourcesService).getItemRequestResources(expectedItemPage);
         doReturn(expectedItemPage).when(itemRegulatorRepository).findItems(appUser.getUserId(), ItemAssignmentType.OTHERS,
-                scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+                scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         doReturn(expectedItemDTOResponse).when(itemResponseService).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
 
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertEquals(expectedItemDTOResponse, actualItemDTOResponse);
-        
+
         verify(regulatorAuthorityResourceAdapter, times(1))
             .getUserScopedRequestTaskTypes(appUser.getUserId());
     }
-    
+
     @Test
     void getItemsAssignedToOthers_empty_scopes() {
         Map<CompetentAuthorityEnum, Set<String>> scopedRequestTaskTypes = Map.of();
-        
+
         AppUser appUser = buildRegulatorUser("reg1Id");
 
         // Mock
@@ -97,11 +100,12 @@ class ItemAssignedToOthersRegulatorServiceTest {
             .thenReturn(scopedRequestTaskTypes);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualItemDTOResponse).isEqualTo(ItemDTOResponse.emptyItemDTOResponse());
-        
+
         verify(regulatorAuthorityResourceAdapter, times(1))
             .getUserScopedRequestTaskTypes(appUser.getUserId());
         verifyNoInteractions(itemRegulatorRepository);
@@ -119,5 +123,9 @@ class ItemAssignedToOthersRegulatorServiceTest {
                 .userId(userId)
                 .roleType(RoleTypeConstants.REGULATOR)
                 .build();
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }

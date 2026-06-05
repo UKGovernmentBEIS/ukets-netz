@@ -44,9 +44,11 @@ public class ItemRepoUtils {
                 ItemRepoUtils.constructMultipleOrWhereTemplate(orExpressions.size()), orExpressions);
     }
 
-    public BooleanExpression createSystemNotificationWhereClause(QRequest request, QRequestResource requestResource) {
+    public BooleanExpression createSystemNotificationWhereClause(QRequest request, QRequestTask requestTask,
+                                                                 QRequestResource requestResource, String userId) {
         return request.type.code.eq(RequestTypes.SYSTEM_MESSAGE_NOTIFICATION)
-            .and(requestResource.resourceType.eq(ResourceType.ACCOUNT));
+            .and(requestResource.resourceType.eq(ResourceType.ACCOUNT))
+            .and(requestTask.assignee.eq(userId));
     }
 
     private String constructMultipleOrWhereTemplate(int scopedRequestTaskTypesSize) {

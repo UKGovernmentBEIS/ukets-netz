@@ -3,7 +3,6 @@ package uk.gov.netz.api.workflow.request.application.verificationbodyappointed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.netz.api.account.domain.event.AccountVerificationBodyAppointedEvent;
 import uk.gov.netz.api.account.service.AccountVerificationBodyNotificationService;
 

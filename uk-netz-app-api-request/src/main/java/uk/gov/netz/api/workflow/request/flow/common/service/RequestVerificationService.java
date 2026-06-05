@@ -6,8 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.netz.api.verificationbody.domain.verificationreport.VerificationReport;
 import uk.gov.netz.api.verificationbody.service.VerificationBodyDetailsQueryService;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class RequestVerificationService {

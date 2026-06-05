@@ -17,7 +17,6 @@ import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskPayload;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskType;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTaskActionTypes;
-import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTaskPayloadTypes;
 import uk.gov.netz.api.workflow.request.core.service.RequestTaskService;
 import uk.gov.netz.api.workflow.request.flow.common.domain.RequestTaskActionEmptyPayload;
 import uk.gov.netz.api.workflow.request.flow.payment.domain.PaymentMakeRequestTaskPayload;

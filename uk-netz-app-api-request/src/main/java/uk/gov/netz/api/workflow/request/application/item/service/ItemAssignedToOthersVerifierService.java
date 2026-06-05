@@ -9,8 +9,9 @@ import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.workflow.request.application.authorization.VerifierAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierAbstractRepository;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,13 +20,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ItemAssignedToOthersVerifierService implements ItemAssignedToOthersService {
 
-    private final ItemVerifierRepository itemVerifierRepository;
+    private final ItemVerifierAbstractRepository itemVerifierRepository;
     private final ItemResponseService itemResponseService;
     private final VerifierAuthorityResourceAdapter verifierAuthorityResourceAdapter;
     private final ItemRequestResourcesService itemRequestResourcesService;
 
     @Override
-    public ItemDTOResponse getItemsAssignedToOthers(AppUser appUser, PagingRequest paging) {
+    public ItemDTOResponse getItemsAssignedToOthers(AppUser appUser,
+                                                    PagingRequest paging,
+                                                    ItemSearchCriteriaDTO searchCriteria) {
         Map<Long, Set<String>> scopedRequestTaskTypes =
                 verifierAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser);
 
@@ -37,7 +40,8 @@ public class ItemAssignedToOthersVerifierService implements ItemAssignedToOthers
                 appUser.getUserId(),
                 ItemAssignmentType.OTHERS,
                 scopedRequestTaskTypes,
-                paging);
+                paging,
+                searchCriteria);
         
         Map<String, Map<String, String>> itemRequestResources = 
         		itemRequestResourcesService.getItemRequestResources(itemPage);

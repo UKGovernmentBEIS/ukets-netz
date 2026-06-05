@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
-import uk.gov.netz.api.workflow.request.core.domain.RequestActionPayload;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskPayload;
 import uk.gov.netz.api.workflow.request.flow.rfi.domain.RequestTaskPayloadRfiAttachable;
 

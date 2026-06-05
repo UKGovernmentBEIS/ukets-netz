@@ -6,28 +6,35 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 import uk.gov.netz.api.common.domain.PagingRequest;
-import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
 import uk.gov.netz.api.workflow.request.application.item.domain.QRequestTaskVisit;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.core.domain.QRequest;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestResource;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestTask;
+import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTypes;
 
 import java.util.Map;
 import java.util.Set;
 
 @Repository
-public class ItemRegulatorRepository {
+public abstract class ItemVerifierAbstractRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ItemPage findItems(String userId, ItemAssignmentType assignmentType, Map<CompetentAuthorityEnum, Set<String>> scopedCARequestTaskTypes,
-                              PagingRequest paging) {
+    protected abstract void buildSearchTermJoin(JPAQuery<Item> jpaQuery);
+    protected abstract BooleanExpression buildSearchTermWhereClause(String searchTerm);
+
+    public ItemPage findItems(String userId, ItemAssignmentType assignmentType,
+                              Map<Long, Set<String>> scopedAccountRequestTaskTypes,
+                              PagingRequest paging,
+                              ItemSearchCriteriaDTO searchCriteria) {
         QRequest request = QRequest.request;
         QRequestTask requestTask = QRequestTask.requestTask;
         QRequestTaskVisit requestTaskVisit = QRequestTaskVisit.requestTaskVisit;
@@ -47,12 +54,18 @@ public class ItemRegulatorRepository {
                 .innerJoin(requestTask)
                 .on(request.id.eq(requestTask.request.id))
                 .leftJoin(requestTaskVisit)
-                .on(requestTask.id.eq(requestTaskVisit.taskId).and(requestTaskVisit.userId.eq(userId)))
-                .where(constructWherePredicate(userId, assignmentType, request, requestTask, requestResource,
-                        scopedCARequestTaskTypes))
-                .orderBy(requestTask.startDate.desc())
+                .on(requestTask.id.eq(requestTaskVisit.taskId).and(requestTaskVisit.userId.eq(userId)));
+
+        if (!StringUtils.isBlank(searchCriteria.getSearchTerm())) {
+            buildSearchTermJoin(jpaQuery);
+        }
+
+        jpaQuery.where(constructWherePredicate(userId, assignmentType, request, requestTask, requestResource,
+                    scopedAccountRequestTaskTypes, searchCriteria.getRequestType(), searchCriteria.getSearchTerm()))
+                .orderBy(searchCriteria.getOrderBy().getOrderSpecifier())
                 .offset((long)paging.getPageNumber() * paging.getPageSize())
                 .limit(paging.getPageSize());
+
 
         return ItemPage.builder()
                 .items(jpaQuery.fetch())
@@ -62,16 +75,31 @@ public class ItemRegulatorRepository {
 
     private Predicate constructWherePredicate(String userId, ItemAssignmentType assignmentType,
                                               QRequest request, QRequestTask requestTask, QRequestResource requestResource,
-                                              Map<CompetentAuthorityEnum, Set<String>> scopedCARequestTaskTypes) {
-        final BooleanExpression caRequestTaskScopeWhereClause = ItemRepoUtils
-                .constructCARequestTaskScopeWhereClause(scopedCARequestTaskTypes, requestTask, requestResource);
+                                              Map<Long, Set<String>> scopedAccountRequestTaskTypes,
+                                              String requestType,
+                                              String searchTerm) {
+        BooleanExpression whereClause = ItemRepoUtils.constructAccountRequestTaskScopeWhereClause(
+            scopedAccountRequestTaskTypes, requestTask, requestResource);
 
-        return switch (assignmentType) {
-            case ME -> requestTask.assignee.eq(userId).and(caRequestTaskScopeWhereClause
-                .or(ItemRepoUtils.createSystemNotificationWhereClause(request, requestResource)));
-            case OTHERS -> requestTask.assignee.ne(userId).and(caRequestTaskScopeWhereClause);
-            case UNASSIGNED -> requestTask.assignee.isNull().and(caRequestTaskScopeWhereClause);
+        whereClause = switch (assignmentType) {
+            case ME -> whereClause.and(requestTask.assignee.eq(userId));
+            case OTHERS -> whereClause.and(requestTask.assignee.ne(userId));
+            case UNASSIGNED -> whereClause.and(requestTask.assignee.isNull());
         };
+
+        if (!StringUtils.isBlank(requestType)) {
+            whereClause = whereClause.and(request.type.code.eq(requestType));
+        }
+
+        if (!StringUtils.isBlank(searchTerm)) {
+            whereClause = whereClause.and(buildSearchTermWhereClause(searchTerm));
+        }
+
+        if(ItemAssignmentType.ME == assignmentType && StringUtils.isBlank(requestType)) {
+            whereClause = whereClause.or(ItemRepoUtils.createSystemNotificationWhereClause(request, requestTask, requestResource, userId));
+        }
+
+        return whereClause;
     }
 
 }

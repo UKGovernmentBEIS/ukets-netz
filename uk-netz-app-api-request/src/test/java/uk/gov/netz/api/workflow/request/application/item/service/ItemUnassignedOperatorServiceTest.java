@@ -13,10 +13,12 @@ import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.workflow.request.application.authorization.OperatorAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemOperatorRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemOperatorAbstractRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,14 +39,14 @@ class ItemUnassignedOperatorServiceTest {
     private ItemUnassignedOperatorService service;
 
     @Mock
-    private ItemOperatorRepository itemOperatorRepository;
+    private ItemOperatorAbstractRepository itemOperatorRepository;
 
     @Mock
     private ItemResponseService itemResponseService;
 
     @Mock
     private OperatorAuthorityResourceAdapter operatorAuthorityResourceAdapter;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
@@ -57,7 +59,7 @@ class ItemUnassignedOperatorServiceTest {
             .roleType(RoleTypeConstants.OPERATOR)
             .build();
         Map<Long, Set<String>> scopedRequestTaskTypes = Map.of(accountId, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         Item expectedItem = mock(Item.class);
@@ -74,22 +76,22 @@ class ItemUnassignedOperatorServiceTest {
 
 
         when(operatorAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser)).thenReturn(scopedRequestTaskTypes);
-        when(itemOperatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, pagingRequest))
-        		.thenReturn(expectedItemPage);
+        when(itemOperatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED,
+            scopedRequestTaskTypes, pagingRequest, getItemSearchCriteria())).thenReturn(expectedItemPage);
         when(itemRequestResourcesService.getItemRequestResources(expectedItemPage)).thenReturn(itemRequestResources);
         when(itemResponseService.toItemDTOResponse(expectedItemPage, itemRequestResources, appUser))
         		.thenReturn(expectedItemDTOResponse);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = service.getUnassignedItems(appUser, pagingRequest);
+        ItemDTOResponse actualItemDTOResponse = service.getUnassignedItems(appUser, pagingRequest, getItemSearchCriteria());
 
         // Assert
         assertEquals(expectedItemDTOResponse, actualItemDTOResponse);
 
         verify(operatorAuthorityResourceAdapter, times(1)).getUserScopedRequestTaskTypes(appUser);
         verify(itemRequestResourcesService, times(1)).getItemRequestResources(expectedItemPage);
-        verify(itemOperatorRepository, times(1))
-            .findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, pagingRequest);
+        verify(itemOperatorRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED,
+            scopedRequestTaskTypes, pagingRequest, getItemSearchCriteria());
         verify(itemResponseService, times(1))
             .toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
     }
@@ -108,7 +110,7 @@ class ItemUnassignedOperatorServiceTest {
         when(operatorAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser)).thenReturn(Map.of());
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = service.getUnassignedItems(appUser, pagingRequest);
+        ItemDTOResponse actualItemDTOResponse = service.getUnassignedItems(appUser, pagingRequest, getItemSearchCriteria());
 
         // Assert
         assertEquals(emptyItemDTOResponse, actualItemDTOResponse);
@@ -127,7 +129,7 @@ class ItemUnassignedOperatorServiceTest {
             .roleType(RoleTypeConstants.OPERATOR)
             .build();
         Map<Long, Set<String>> scopedRequestTaskTypes = Map.of(accountId, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         ItemPage expectedItemPage = ItemPage.builder()
@@ -138,21 +140,21 @@ class ItemUnassignedOperatorServiceTest {
 
 
         when(operatorAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser)).thenReturn(scopedRequestTaskTypes);
-        when(itemOperatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, pagingRequest))
-        		.thenReturn(expectedItemPage);
+        when(itemOperatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED,
+            scopedRequestTaskTypes, pagingRequest, getItemSearchCriteria())).thenReturn(expectedItemPage);
         when(itemRequestResourcesService.getItemRequestResources(expectedItemPage)).thenReturn(itemRequestResources);
         when(itemResponseService.toItemDTOResponse(expectedItemPage, itemRequestResources, appUser)).thenReturn(emptyItemDTOResponse);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = service.getUnassignedItems(appUser, pagingRequest);
+        ItemDTOResponse actualItemDTOResponse = service.getUnassignedItems(appUser, pagingRequest, getItemSearchCriteria());
 
         // Assert
         assertEquals(emptyItemDTOResponse, actualItemDTOResponse);
 
         verify(operatorAuthorityResourceAdapter, times(1)).getUserScopedRequestTaskTypes(appUser);
         verify(itemRequestResourcesService, times(1)).getItemRequestResources(expectedItemPage);
-        verify(itemOperatorRepository, times(1))
-            .findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, pagingRequest);
+        verify(itemOperatorRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED,
+            scopedRequestTaskTypes, pagingRequest, getItemSearchCriteria());
         verify(itemResponseService, times(1))
             .toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
     }
@@ -160,5 +162,9 @@ class ItemUnassignedOperatorServiceTest {
     @Test
     void getRoleType() {
         assertEquals(RoleTypeConstants.OPERATOR, service.getRoleType());
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }

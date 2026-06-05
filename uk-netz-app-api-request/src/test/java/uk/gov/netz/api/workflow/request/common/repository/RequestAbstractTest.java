@@ -107,20 +107,25 @@ public abstract class RequestAbstractTest extends AbstractContainerBaseTest {
 
 	protected RequestTask createRequestTask(String assignee, Request request, RequestTaskType taskType,
                                           String processTaskId, LocalDateTime startDate) {
-        RequestTask requestTask = RequestTask.builder()
-                .request(request)
-                .processTaskId(processTaskId)
-                .type(taskType)
-                .assignee(assignee)
-                .startDate(LocalDateTime.now())
-                .dueDate(LocalDate.now().plusMonths(1L))
-                .build();
-
-        entityManager.persist(requestTask);
-        requestTask.setStartDate(startDate);
-
-        return requestTask;
+        return createRequestTask(assignee, request, taskType, processTaskId, startDate, LocalDate.now().plusMonths(1L));
     }
+
+	protected RequestTask createRequestTask(String assignee, Request request, RequestTaskType taskType,
+	                                        String processTaskId, LocalDateTime startDate, LocalDate dueDate) {
+		RequestTask requestTask = RequestTask.builder()
+			.request(request)
+			.processTaskId(processTaskId)
+			.type(taskType)
+			.assignee(assignee)
+			.startDate(LocalDateTime.now())
+			.dueDate(dueDate)
+			.build();
+
+		entityManager.persist(requestTask);
+		requestTask.setStartDate(startDate);
+
+		return requestTask;
+	}
 	
 	protected RequestAction createRequestAction(Request request, String type, String submitterId, String submitter, LocalDateTime creationDate) {
 		RequestAction requestAction = RequestAction.builder()

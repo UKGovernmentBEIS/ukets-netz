@@ -13,10 +13,12 @@ import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.workflow.request.application.authorization.OperatorAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemOperatorRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemOperatorAbstractRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -39,11 +41,11 @@ class ItemAssignedToMeOperatorServiceTest {
     private ItemResponseService itemResponseService;
 
     @Mock
-    private ItemOperatorRepository itemOperatorRepository;
+    private ItemOperatorAbstractRepository itemOperatorRepository;
 
     @Mock
     private OperatorAuthorityResourceAdapter operatorAuthorityResourceAdapter;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
@@ -52,7 +54,7 @@ class ItemAssignedToMeOperatorServiceTest {
         final Long accountId = 1L;
         AppUser appUser = buildOperatorUser("oper1Id", "oper1", "oper1", accountId);
         Map<Long, Set<String>> scopedRequestTaskTypes = Map.of(accountId, Set.of());
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         Item expectedItem = mock(Item.class);
@@ -70,13 +72,13 @@ class ItemAssignedToMeOperatorServiceTest {
         doReturn(scopedRequestTaskTypes)
             .when(operatorAuthorityResourceAdapter).getUserScopedRequestTaskTypes(appUser);
         doReturn(expectedItemPage).when(itemOperatorRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME,
-            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         doReturn(itemRequestResources).when(itemRequestResourcesService).getItemRequestResources(expectedItemPage);
         doReturn(expectedItemDTOResponse).when(itemResponseService).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService
-                .getItemsAssignedToMe(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToMe(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertEquals(expectedItemDTOResponse, actualItemDTOResponse);
@@ -84,7 +86,7 @@ class ItemAssignedToMeOperatorServiceTest {
         verify(operatorAuthorityResourceAdapter, times(1)).getUserScopedRequestTaskTypes(appUser);
         verify(itemRequestResourcesService, times(1)).getItemRequestResources(expectedItemPage);
         verify(itemOperatorRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.ME,
-            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         verify(itemResponseService, times(1)).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
     }
 
@@ -105,20 +107,21 @@ class ItemAssignedToMeOperatorServiceTest {
         doReturn(scopedRequestTaskTypesAsString)
             .when(operatorAuthorityResourceAdapter).getUserScopedRequestTaskTypes(appUser);
         doReturn(itemRequestResources).when(itemRequestResourcesService).getItemRequestResources(expectedItemPage);
-        doReturn(expectedItemPage).when(itemOperatorRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME, scopedRequestTaskTypesAsString, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        doReturn(expectedItemPage).when(itemOperatorRepository).findItems(appUser.getUserId(), ItemAssignmentType.ME,
+            scopedRequestTaskTypesAsString, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         doReturn(expectedItemDTOResponse).when(itemResponseService).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService
-            .getItemsAssignedToMe(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToMe(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertEquals(ItemDTOResponse.emptyItemDTOResponse(), actualItemDTOResponse);
 
         verify(operatorAuthorityResourceAdapter, times(1)).getUserScopedRequestTaskTypes(appUser);
         verify(itemRequestResourcesService, times(1)).getItemRequestResources(expectedItemPage);
-        verify(itemOperatorRepository, times(1))
-                .findItems(appUser.getUserId(), ItemAssignmentType.ME, scopedRequestTaskTypesAsString, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        verify(itemOperatorRepository, times(1)).findItems(appUser.getUserId(), ItemAssignmentType.ME,
+            scopedRequestTaskTypesAsString, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         verify(itemResponseService, times(1)).toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
     }
 
@@ -139,5 +142,9 @@ class ItemAssignedToMeOperatorServiceTest {
                 .authorities(List.of(appAuthority))
                 .roleType(RoleTypeConstants.OPERATOR)
                 .build();
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }

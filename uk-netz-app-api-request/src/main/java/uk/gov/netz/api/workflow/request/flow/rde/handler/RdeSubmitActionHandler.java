@@ -12,7 +12,6 @@ import uk.gov.netz.api.userinfoapi.UserInfoApi;
 import uk.gov.netz.api.userinfoapi.UserInfoDTO;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
-import uk.gov.netz.api.workflow.request.core.domain.RequestTaskActionPayload;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskPayload;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestActionTypes;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTaskActionTypes;

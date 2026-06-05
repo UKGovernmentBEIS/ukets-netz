@@ -12,10 +12,12 @@ import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.workflow.request.application.authorization.VerifierAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemVerifierAbstractRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -40,18 +42,18 @@ class ItemAssignedToOthersVerifierServiceTest {
     private ItemResponseService itemResponseService;
 
     @Mock
-    private ItemVerifierRepository itemRepository;
+    private ItemVerifierAbstractRepository itemRepository;
 
     @Mock
     private VerifierAuthorityResourceAdapter verifierAuthorityResourceAdapter;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
     @Test
     void getItemsAssignedToOthers() {
         Map<Long, Set<String>> scopedRequestTaskTypes = Map.of(1L, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.ACCOUNT, "accountId"));
 
         AppUser appUser = AppUser.builder().userId("vb1Id").roleType(RoleTypeConstants.VERIFIER).build();
@@ -68,12 +70,13 @@ class ItemAssignedToOthersVerifierServiceTest {
         when(verifierAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser)).thenReturn(scopedRequestTaskTypes);
         doReturn(itemRequestResources).when(itemRequestResourcesService).getItemRequestResources(expectedItemPage);
         doReturn(expectedItemPage).when(itemRepository).findItems(appUser.getUserId(), ItemAssignmentType.OTHERS,
-                scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
         doReturn(expectedItemDTOResponse).when(itemResponseService)
         		.toItemDTOResponse(expectedItemPage, itemRequestResources, appUser);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertEquals(expectedItemDTOResponse, actualItemDTOResponse);
@@ -91,7 +94,8 @@ class ItemAssignedToOthersVerifierServiceTest {
                 .thenReturn(scopedRequestTaskTypes);
 
         // Invoke
-        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualItemDTOResponse = itemService.getItemsAssignedToOthers(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualItemDTOResponse).isEqualTo(ItemDTOResponse.emptyItemDTOResponse());
@@ -106,5 +110,9 @@ class ItemAssignedToOthersVerifierServiceTest {
     @Test
     void getRoleType() {
         assertEquals(RoleTypeConstants.VERIFIER, itemService.getRoleType());
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }

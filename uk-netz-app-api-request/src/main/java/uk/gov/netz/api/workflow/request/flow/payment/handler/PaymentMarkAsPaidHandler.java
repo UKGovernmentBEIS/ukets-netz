@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.workflow.request.WorkflowService;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
-import uk.gov.netz.api.workflow.request.core.domain.RequestTaskActionPayload;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskPayload;
 import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTaskActionTypes;
 import uk.gov.netz.api.workflow.request.core.service.RequestTaskService;

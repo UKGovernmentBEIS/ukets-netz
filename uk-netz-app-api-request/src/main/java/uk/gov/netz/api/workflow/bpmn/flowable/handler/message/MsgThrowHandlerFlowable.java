@@ -1,8 +1,12 @@
 package uk.gov.netz.api.workflow.bpmn.flowable.handler.message;
 
+import java.util.Objects;
+
 import org.flowable.common.engine.impl.el.FixedValue;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.delegate.JavaDelegate;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -11,6 +15,7 @@ import uk.gov.netz.api.workflow.bpmn.flowable.FlowableWorkflowService;
 import uk.gov.netz.api.workflow.request.flow.common.constants.BpmnProcessConstants;
 
 @Service
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class MsgThrowHandlerFlowable implements JavaDelegate {
 	
@@ -21,6 +26,8 @@ public class MsgThrowHandlerFlowable implements JavaDelegate {
 
 	@Override
 	public void execute(DelegateExecution execution) {
+		Objects.requireNonNull(messageName, "messageName field was not injected by BPMN");
+		
 		final String messageNameStr = (String) messageName.getValue(execution);
 		final String requestId = (String) execution.getVariable(BpmnProcessConstants.REQUEST_ID);
 		

@@ -13,10 +13,12 @@ import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.workflow.request.application.authorization.RegulatorAuthorityResourceAdapter;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemAssignmentType;
+import uk.gov.netz.api.workflow.request.application.item.domain.ItemOrderBy;
 import uk.gov.netz.api.workflow.request.application.item.domain.ItemPage;
+import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCriteriaDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTO;
 import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemDTOResponse;
-import uk.gov.netz.api.workflow.request.application.item.repository.ItemRegulatorRepository;
+import uk.gov.netz.api.workflow.request.application.item.repository.ItemRegulatorAbstractRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,16 +39,16 @@ class ItemUnassignedRegulatorServiceTest {
 
     @InjectMocks
     private ItemUnassignedRegulatorService service;
-    
+
     @Mock
-    private ItemRegulatorRepository itemRegulatorRepository;
+    private ItemRegulatorAbstractRepository itemRegulatorRepository;
 
     @Mock
     private ItemResponseService itemResponseService;
-    
+
     @Mock
     private RegulatorAuthorityResourceAdapter regulatorAuthorityResourceAdapter;
-    
+
     @Mock
     private ItemRequestResourcesService itemRequestResourcesService;
 
@@ -54,9 +56,9 @@ class ItemUnassignedRegulatorServiceTest {
     void getUnassignedItems() {
         Map<CompetentAuthorityEnum, Set<String>> scopedRequestTaskTypes =
             Map.of(ENGLAND, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.CA, ENGLAND.name()));
-        
+
         AppUser appUser = buildRegulatorUser("reg1");
         Item expectedItem = mock(Item.class);
         ItemPage expectedItemPage = ItemPage.builder()
@@ -70,26 +72,28 @@ class ItemUnassignedRegulatorServiceTest {
         // Mock
         when(regulatorAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser.getUserId()))
             .thenReturn(scopedRequestTaskTypes);
-        when(itemRegulatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build()))
+        when(itemRegulatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria()))
                 .thenReturn(expectedItemPage);
         when(itemRequestResourcesService.getItemRequestResources(expectedItemPage)).thenReturn(itemRequestResources);
         when(itemResponseService.toItemDTOResponse(expectedItemPage, itemRequestResources, appUser))
                 .thenReturn(expectedItemDTOResponse);
 
         // Invoke
-        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualResponse).isEqualTo(expectedItemDTOResponse);
-        
+
         verify(regulatorAuthorityResourceAdapter, times(1))
             .getUserScopedRequestTaskTypes(appUser.getUserId());
     }
-    
+
     @Test
     void getUnassignedItems_empty_scopes() {
         Map<CompetentAuthorityEnum, Set<String>> scopedRequestTaskTypes = Map.of();
-        
+
         AppUser appUser = buildRegulatorUser("reg1");
 
         // Mock
@@ -97,11 +101,12 @@ class ItemUnassignedRegulatorServiceTest {
             .thenReturn(scopedRequestTaskTypes);
 
         // Invoke
-        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualResponse).isEqualTo(ItemDTOResponse.emptyItemDTOResponse());
-        
+
         verify(regulatorAuthorityResourceAdapter, times(1))
             .getUserScopedRequestTaskTypes(appUser.getUserId());
         verifyNoInteractions(itemRegulatorRepository, itemResponseService, itemRequestResourcesService);
@@ -111,9 +116,9 @@ class ItemUnassignedRegulatorServiceTest {
     void getUnassignedItems_ReturnsEmptyResponseWhenNoItemsFetched() {
         Map<CompetentAuthorityEnum, Set<String>> scopedRequestTaskTypes =
             Map.of(ENGLAND, Set.of("requestTaskType1"));
-        Map<String, Map<String, String>> itemRequestResources = 
+        Map<String, Map<String, String>> itemRequestResources =
         		Map.of("requestId", Map.of(ResourceType.CA, ENGLAND.name()));
-        
+
         AppUser appUser = buildRegulatorUser("reg1");
         ItemPage itemPage = ItemPage.builder()
                 .items(Collections.emptyList())
@@ -124,13 +129,15 @@ class ItemUnassignedRegulatorServiceTest {
         when(regulatorAuthorityResourceAdapter.getUserScopedRequestTaskTypes(appUser.getUserId()))
             .thenReturn(scopedRequestTaskTypes);
         when(itemRequestResourcesService.getItemRequestResources(itemPage)).thenReturn(itemRequestResources);
-        when(itemRegulatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED, scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build()))
+        when(itemRegulatorRepository.findItems(appUser.getUserId(), ItemAssignmentType.UNASSIGNED,
+            scopedRequestTaskTypes, PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria()))
                 .thenReturn(itemPage);
         when(itemResponseService.toItemDTOResponse(itemPage, itemRequestResources, appUser))
                 .thenReturn(expectedItemDTOResponse);
 
         // Invoke
-        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser, PagingRequest.builder().pageNumber(0).pageSize(10).build());
+        ItemDTOResponse actualResponse = service.getUnassignedItems(appUser,
+            PagingRequest.builder().pageNumber(0).pageSize(10).build(), getItemSearchCriteria());
 
         // Assert
         assertThat(actualResponse).isEqualTo(expectedItemDTOResponse);
@@ -146,5 +153,9 @@ class ItemUnassignedRegulatorServiceTest {
                 .userId(userId)
                 .roleType(RoleTypeConstants.REGULATOR)
                 .build();
+    }
+
+    private ItemSearchCriteriaDTO getItemSearchCriteria() {
+        return ItemSearchCriteriaDTO.builder().orderBy(ItemOrderBy.NEWEST_FIRST).requestType("requestType").searchTerm("searchTerm").build();
     }
 }
