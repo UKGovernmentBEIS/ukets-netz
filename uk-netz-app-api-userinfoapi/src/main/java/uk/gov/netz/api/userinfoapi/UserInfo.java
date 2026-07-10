@@ -1,0 +1,23 @@
+package uk.gov.netz.api.userinfoapi;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserInfo {
+
+    private String id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private boolean enabled;
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+}
