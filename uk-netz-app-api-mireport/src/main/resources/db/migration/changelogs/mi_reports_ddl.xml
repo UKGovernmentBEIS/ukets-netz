@@ -112,5 +112,66 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="0_1_0_create_mi_report_user_defined_category_definitions" author="mitzelose@unisystems.gr">
+        <createSequence sequenceName="mi_report_user_defined_category_seq" cycle="false"
+                        incrementBy="1" minValue="0" maxValue="999999999999999999" startValue="1"/>
+        <createTable tableName="mi_report_user_defined_category">
+            <column name="id" type="bigint" remarks="The id of the category definition">
+                <constraints primaryKey="true" primaryKeyName="mi_report_user_defined_category_pk" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)" remarks="The category name">
+                <constraints nullable="false" unique="true" uniqueConstraintName="mi_report_user_defined_category_uc"/>
+            </column>
+            <column name="enabled" type="boolean" defaultValueBoolean="true" remarks="Whether the category is enabled">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <dropTable tableName="mi_report_user_defined_category" cascadeConstraints="true"/>
+            <dropSequence sequenceName="mi_report_user_defined_category_seq"/>
+        </rollback>
+    </changeSet>
 
+    <changeSet id="0_1_0_create_mi_report_user_defined_category_mapping" author="mitzelose@unisystems.gr">
+        <createTable tableName="mi_report_user_defined_category_mapping">
+            <column name="mi_report_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="mi_report_user_defined_category_mapping" columnNames="mi_report_id, category_id"
+                       constraintName="pk_mi_rep_user_def_category_map"/>
+        <addForeignKeyConstraint baseTableName="mi_report_user_defined_category_mapping" baseColumnNames="mi_report_id"
+                                 referencedTableName="mi_report_user_defined" referencedColumnNames="id"
+                                 constraintName="fk_mi_rep_user_def_cat_map_report" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="mi_report_user_defined_category_mapping" baseColumnNames="category_id"
+                                 referencedTableName="mi_report_user_defined_category" referencedColumnNames="id"
+                                 constraintName="fk_mi_rep_user_def_cat_map_def"/>
+        <rollback>
+            <dropTable tableName="mi_report_user_defined_category_mapping" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="0_1_0_add_active_column_mi_report_user_defined" author="mitzelose@unisystems.gr">
+        <addColumn tableName="mi_report_user_defined">
+            <column name="active" type="boolean" defaultValueBoolean="true"
+                    remarks="Soft-delete flag (true = active)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="mi_report_user_defined" columnName="active"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="0_1_0_scope_unique_to_active_mi_report_user_defined_table" author="mitzelose@unisystems.gr">
+        <dropUniqueConstraint tableName="mi_report_user_defined" constraintName="mi_report_user_defined_uc"/>
+        <dropUniqueConstraint tableName="mi_report_user_defined" constraintName="mi_report_user_defined_report_name_key"/>
+        <sql>CREATE UNIQUE INDEX mi_report_user_defined_uc ON mi_report_user_defined (report_name, competent_authority) WHERE active = true;</sql>
+        <rollback>
+            <dropIndex tableName="mi_report_user_defined" indexName="mi_report_user_defined_uc"/>
+            <addUniqueConstraint tableName="mi_report_user_defined" columnNames="report_name, competent_authority"
+                                 constraintName="mi_report_user_defined_uc"/>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

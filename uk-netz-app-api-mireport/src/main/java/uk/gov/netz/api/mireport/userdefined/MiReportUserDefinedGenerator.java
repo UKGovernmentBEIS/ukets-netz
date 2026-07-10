@@ -89,6 +89,41 @@ class MiReportUserDefinedGenerator {
         }
     }
 
+    public void validateQuery(EntityManager entityManager, String sqlQuery) {
+        if (entityManager == null || sqlQuery == null || sqlQuery.trim().isEmpty()) {
+            throw new BusinessException(CUSTOM_REPORT_ERROR);
+        }
+
+        try {
+            Session session = entityManager.unwrap(Session.class);
+            session.doWork(connection -> {
+                boolean originalAutoCommit = connection.getAutoCommit();
+                boolean originalReadOnly = connection.isReadOnly();
+                try {
+                    connection.setAutoCommit(false);
+                    connection.setReadOnly(true);
+                    try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
+                        ps.setMaxRows(1);
+                        ps.setFetchSize(1);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            rs.next();
+                        }
+                    }
+                } finally {
+                    try {
+                        connection.rollback();
+                    } finally {
+                        connection.setAutoCommit(originalAutoCommit);
+                        connection.setReadOnly(originalReadOnly);
+                    }
+                }
+            });
+        } catch (Exception ex) {
+            log.error("Custom report query validation failed", ex);
+            throw new BusinessException(CUSTOM_REPORT_ERROR);
+        }
+    }
+
     private List<String> collectUserIdsFromRow(Map<String, Object> row) {
         List<String> ids = new ArrayList<>();
         Arrays.stream(CustomQueryUserAttributes.values())

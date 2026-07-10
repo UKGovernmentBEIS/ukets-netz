@@ -1,19 +1,32 @@
 package uk.gov.netz.api.mireport.userdefined;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import uk.gov.netz.api.common.config.MapperConfig;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
+import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryEntity;
+import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryMapper;
 
-@Mapper(componentModel = "spring", config = MapperConfig.class)
+import java.util.Set;
+
+@Mapper(componentModel = "spring", config = MapperConfig.class, uses = MiReportUserDefinedCategoryMapper.class)
 public interface MiReportUserDefinedMapper {
 
-	MiReportUserDefinedEntity toMiReportUserDefinedEntity(MiReportUserDefinedDTO miReportUserDefinedDTO,
+    @Mapping(target = "categories", source = "categoryEntities")
+    MiReportUserDefinedEntity toMiReportUserDefinedEntity(MiReportUserDefinedDTO miReportUserDefinedDTO,
+          Set<MiReportUserDefinedCategoryEntity> categoryEntities,
 			CompetentAuthorityEnum competentAuthority, String createdBy);
 
     MiReportUserDefinedDTO toMiReportUserDefinedDTO(MiReportUserDefinedEntity miReportUserDefinedEntity);
 
-    void updateMiReportUserDefinedEntity(@MappingTarget MiReportUserDefinedEntity entity, MiReportUserDefinedDTO dto);
+    @Mapping(target = "categories", source = "categoryEntities")
+    void updateMiReportUserDefinedEntity(
+            @MappingTarget MiReportUserDefinedEntity entity,
+            MiReportUserDefinedDTO dto,
+            Set<MiReportUserDefinedCategoryEntity> categoryEntities);
 
     MiReportUserDefinedInfoDTO toMiReportUserDefinedInfoDTO(MiReportUserDefinedEntity entity);
+
+
 }

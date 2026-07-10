@@ -1,22 +1,21 @@
 package uk.gov.netz.api.mireport.userdefined;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import jakarta.persistence.EntityManager;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.mireport.core.MiReportEntityManagerResolver;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MiReportUserDefinedGeneratorDelegatorTest {
@@ -50,4 +49,17 @@ class MiReportUserDefinedGeneratorDelegatorTest {
     	verify(miReportEntityManagerResolver, times(1)).resolveByCA(competentAuthority);
     	verify(miReportUserDefinedGenerator, times(1)).generateMiReport(em, sqlQuery);
     }
+
+	@Test
+	void validateQuery() {
+		String sqlQuery = "select * from facility_audit";
+
+		EntityManager em = Mockito.mock(EntityManager.class);
+		when(miReportEntityManagerResolver.resolveAny()).thenReturn(em);
+
+		cut.validateQuery(sqlQuery);
+
+		verify(miReportEntityManagerResolver, times(1)).resolveAny();
+		verify(miReportUserDefinedGenerator, times(1)).validateQuery(em, sqlQuery);
+	}
 }

@@ -1,15 +1,15 @@
 package uk.gov.netz.api.mireport.core;
 
-import java.util.EnumMap;
-import java.util.Map;
-
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-
-import jakarta.persistence.EntityManager;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
+
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class MiReportEntityManagerResolver implements InitializingBean {
@@ -53,5 +53,12 @@ public class MiReportEntityManagerResolver implements InitializingBean {
 	public EntityManager resolveByCA(CompetentAuthorityEnum ca) {
 		return caToEntityManagerMap.get(ca);
 	}
+
+    public EntityManager resolveAny() {
+        return caToEntityManagerMap.values().stream()
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No report EntityManager configured"));
+    }
 
 }

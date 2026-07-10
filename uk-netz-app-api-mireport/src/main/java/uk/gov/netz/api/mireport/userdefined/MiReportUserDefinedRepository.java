@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,29 @@ import java.util.Optional;
 
 @Repository
 public interface MiReportUserDefinedRepository extends JpaRepository<MiReportUserDefinedEntity, Long> {
+
+	@Transactional(readOnly = true)
+	@Query(value = """
+			select distinct r from MiReportUserDefinedEntity r
+			left join r.categories c
+			where r.competentAuthority = :competentAuthority
+			  and (:categoryId is null or c.id = :categoryId)
+			  and (:term is null
+				   or lower(r.reportName) like :term escape '\\'
+				   or lower(r.description) like :term escape '\\')""",
+			countQuery = """
+			select count(distinct r) from MiReportUserDefinedEntity r
+			left join r.categories c
+			where r.competentAuthority = :competentAuthority
+			  and (:categoryId is null or c.id = :categoryId)
+			  and (:term is null
+				   or lower(r.reportName) like :term escape '\\'
+				   or lower(r.description) like :term escape '\\')""")
+	Page<MiReportUserDefinedEntity> findAllByCompetentAuthorityAndFilters(
+			@Param("competentAuthority") CompetentAuthorityEnum competentAuthority,
+			@Param("categoryId") Long categoryId,
+			@Param("term") String term,
+			Pageable pageable);
 
 	@Transactional(readOnly = true)
 	Page<MiReportUserDefinedEntity> findAllByCompetentAuthority(CompetentAuthorityEnum competentAuthority, Pageable pageable);

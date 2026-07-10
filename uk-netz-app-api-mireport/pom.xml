@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-mireport</artifactId>
-    <version>1.9.0</version>
+    <version>1.11.0</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>uk.gov.netz</groupId>
         <artifactId>uk-netz-app-api-parent</artifactId>
-        <version>1.7.0</version>
+        <version>1.12.0</version>
     </parent>
 
     <properties>
@@ -44,22 +44,22 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-common</artifactId>
-            <version>1.18.0</version>
+            <version>1.20.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-userinfoapi</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-competentauthority</artifactId>
-            <version>1.3.0</version>
+            <version>1.4.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-authorization</artifactId>
-            <version>1.13.0</version>
+            <version>1.16.0</version>
         </dependency>
         <dependency>
             <groupId>com.querydsl</groupId>
@@ -109,7 +109,7 @@
             <artifactId>uk-netz-app-api-common</artifactId>
             <classifier>tests</classifier>
             <type>test-jar</type>
-            <version>1.18.0</version>
+            <version>1.20.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
