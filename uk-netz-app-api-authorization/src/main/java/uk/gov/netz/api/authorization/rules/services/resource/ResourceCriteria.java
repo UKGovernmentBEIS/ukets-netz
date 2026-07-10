@@ -5,12 +5,14 @@ import java.util.Map;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
 @Data
 @SuperBuilder
+@NoArgsConstructor
 public class ResourceCriteria {
     
 	@Builder.Default

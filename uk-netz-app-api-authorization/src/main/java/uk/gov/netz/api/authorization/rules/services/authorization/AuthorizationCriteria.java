@@ -6,12 +6,14 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @SuperBuilder
 public class AuthorizationCriteria {
 	
