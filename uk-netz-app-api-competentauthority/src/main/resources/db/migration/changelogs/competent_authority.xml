@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="changelog_competent_authority.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_initialize_competent_authority" author="P70453">
+        <sql>
+            truncate table competent_authority cascade;
+        </sql>
+        <rollback>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_populate_competent_authority_entries" author="P70453">
+        <sql>
+            insert into competent_authority(id, name, email) values ('ENGLAND', 'Environment Agency', 'ethelp@environment-agency.gov.uk');
+            insert into competent_authority(id, name, email) values ('NORTHERN_IRELAND', 'Northern Ireland Environment Agency', 'emissions.trading@daera-ni.gov.uk');
+            insert into competent_authority(id, name, email) values ('OPRED', 'Secretary of State for Energy Security &amp; Net Zero', 'opred@energysecurity.gov.uk');
+            insert into competent_authority(id, name, email) values ('SCOTLAND', 'Scottish Environment Protection Agency', 'emission.trading@sepa.org.uk');
+            insert into competent_authority(id, name, email) values ('WALES', 'Natural Resources Wales', 'GHGHelp@naturalresourceswales.gov.uk');
+        </sql>
+        <rollback>
+            <sql>
+                delete from competent_authority;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
