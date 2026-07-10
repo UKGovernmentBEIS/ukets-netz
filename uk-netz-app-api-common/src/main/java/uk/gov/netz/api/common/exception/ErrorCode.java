@@ -137,8 +137,8 @@ public enum ErrorCode implements NetzErrorCode {
     /** Mi Reports error codes */
     MI_REPORT_TYPE_NOT_SUPPORTED("MIREPORT1000", HttpStatus.CONFLICT, "The provided MI Report Type is not supported"),
     MI_REPORT_NAME_EXISTS_FOR_CA("MIREPORT1001", HttpStatus.CONFLICT, "The provided MI Report name already exists"),
+    MI_DEACTIVATED_REPORT_NAME_EXISTS_FOR_CA("MIREPORT1002", HttpStatus.CONFLICT, "The provided MI Report name already exists for a deactivated report"),
 
-    /** Payment error codes */
     CUSTOM_REPORT_ERROR("REPORT1001", HttpStatus.BAD_REQUEST, "Custom query could not be executed"),
 
     /** Companies House API error codes */
