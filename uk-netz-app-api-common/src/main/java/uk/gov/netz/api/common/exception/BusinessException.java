@@ -2,8 +2,6 @@ package uk.gov.netz.api.common.exception;
 
 import lombok.Getter;
 
-import java.util.List;
-
 /**
  * Business logic Exception.
  */
@@ -25,7 +23,7 @@ public class BusinessException extends RuntimeException {
      * @param errorCode {@link NetzErrorCode}.
      */
     public BusinessException(NetzErrorCode errorCode) {
-        this(errorCode, List.of());
+        this(errorCode, new Object[0]);
     }
 
     /**
