@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+		logicalFilePath="changelog_document_template_ddl.xml"
+		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+	<changeSet id="0_1_0_document_template_create_sequence" author="P35066">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<sequenceExists sequenceName="document_template_seq"/>
+			</not>
+		</preConditions>
+		<createSequence sequenceName="document_template_seq" minValue="0" maxValue="999999999999999999"
+						incrementBy="1" startValue="1" cycle="false"/>
+		<rollback>
+			<sql>
+				drop sequence if exists document_template_seq;
+			</sql>
+		</rollback>
+	</changeSet>
+
+	<changeSet id="0_1_0_document_template_create_table" author="P35066">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="document_template"/>
+			</not>
+		</preConditions>
+
+		<createTable tableName="document_template">
+			<column name="id" type="bigint" remarks="Primary key">
+				<constraints primaryKey="true" primaryKeyName="document_template_pk" nullable="false"/>
+			</column>
+			<column name="type" type="varchar(255)" remarks="The type of the document template">
+				<constraints nullable="false" />
+			</column>
+			<column name="name" type="varchar(255)" remarks="The display name of the document template">
+				<constraints nullable="false" />
+			</column>
+			<column name="competent_authority" type="varchar(255)" remarks="The competent authority related to the document template">
+				<constraints nullable="false" />
+			</column>
+			<column name="workflow" type="varchar(255)" remarks="The workflow related to the document template">
+				<constraints nullable="false" />
+			</column>
+			<column name="file_document_template_id" type="bigint" remarks="The id of the related file document">
+				<constraints nullable="false" />
+			</column>
+			<column name="notification_template_id" type="bigint" remarks="The id of the related notification template if exists">
+				<constraints nullable="true" />
+			</column>
+			<column name="last_updated_date" type="timestamp" remarks="The date that the document template was modified">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+
+		<addUniqueConstraint tableName="document_template" columnNames="type, competent_authority" constraintName="document_template_uc"/>
+		<addUniqueConstraint tableName="document_template" columnNames="file_document_template_id" constraintName="file_document_id_uc"/>
+
+		<sql>
+			CREATE INDEX trgm_gin_idx_document_template_name ON document_template USING gin (name gin_trgm_ops);
+			CREATE INDEX trgm_gin_idx_document_template_workflow ON document_template USING gin (workflow gin_trgm_ops);
+		</sql>
+
+		<rollback>
+			<sql>
+				DROP TABLE IF EXISTS document_template;
+			</sql>
+		</rollback>
+	</changeSet>
+
+	<changeSet id="0_1_0_document_template_add_process_convert_columns" author="P70383">
+		<addColumn tableName="document_template">
+			<column name="process_required" type="boolean" defaultValueBoolean="true" remarks="The flag that the document template should be processed">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<addColumn tableName="document_template">
+			<column name="convert_required" type="boolean" defaultValueBoolean="true" remarks="The flag that the document template should be converted">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<rollback>
+			<dropColumn tableName="document_template" columnName="process_required"/>
+			<dropColumn tableName="document_template" columnName="convert_required"/>
+		</rollback>
+	</changeSet>
+
+	<changeSet id="0_1_0_UPDATE_DOCUMENT_TEMPLATE_add_column_role_type" author="vvitzilaios">
+		<addColumn tableName="document_template">
+			<column name="role_type" type="varchar(255)" remarks="The role type associated with the document template">
+				<constraints nullable="true"/>
+			</column>
+		</addColumn>
+
+		<rollback>
+			<dropColumn tableName="document_template" columnName="role_type"/>
+		</rollback>
+	</changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,191 @@
+package uk.gov.netz.api.documenttemplate.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.netz.api.common.exception.BusinessException;
+import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
+import uk.gov.netz.api.documenttemplate.domain.DocumentTemplate;
+import uk.gov.netz.api.documenttemplate.domain.dto.DocumentTemplateDTO;
+import uk.gov.netz.api.documenttemplate.domain.dto.DocumentTemplateInfoDTO;
+import uk.gov.netz.api.documenttemplate.domain.DocumentTemplateType;
+import uk.gov.netz.api.documenttemplate.repository.DocumentTemplateRepository;
+import uk.gov.netz.api.documenttemplate.transform.DocumentTemplateMapper;
+import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
+import uk.gov.netz.api.files.documents.service.FileDocumentTemplateService;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith({MockitoExtension.class})
+class DocumentTemplateQueryServiceTest {
+
+    @InjectMocks
+    private DocumentTemplateQueryService service;
+
+    @Mock
+    private DocumentTemplateRepository documentTemplateRepository;
+
+    @Mock
+    private FileDocumentTemplateService fileDocumentTemplateService;
+    
+    private static DocumentTemplateMapper documentTemplateMapper = Mappers.getMapper(DocumentTemplateMapper.class);
+
+    @BeforeEach
+    void init() {
+        ReflectionTestUtils.setField(service, "documentTemplateMapper", documentTemplateMapper);
+    }
+    
+    @Test
+    void getDocumentTemplateById() {
+        Long documentTemplateId = 1L;
+        String documentTemplateName = "Document template name";
+        String workflow = "workflow";
+        DocumentTemplate expectedDocumentTemplate = DocumentTemplate.builder()
+                .id(documentTemplateId)
+                .type(DocumentTemplateType.IN_RFI)
+                .name(documentTemplateName)
+                .workflow(workflow)
+                .build();
+        
+        when(documentTemplateRepository.findById(documentTemplateId)).thenReturn(Optional.of(expectedDocumentTemplate));
+        
+        DocumentTemplate actualDocumentTemplate = service.getDocumentTemplateById(documentTemplateId);
+        
+        assertThat(actualDocumentTemplate).isEqualTo(expectedDocumentTemplate);
+        verify(documentTemplateRepository, times(1)).findById(documentTemplateId);
+    }
+    
+    @Test
+    void getDocumentTemplateById_not_found() {
+        Long documentTemplateId = 1L;
+        
+        when(documentTemplateRepository.findById(documentTemplateId)).thenReturn(Optional.empty());
+        
+        BusinessException be = assertThrows(BusinessException.class,
+                () -> service.getDocumentTemplateById(documentTemplateId));
+
+        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+        
+        verify(documentTemplateRepository, times(1)).findById(documentTemplateId);
+    }
+
+    @Test
+    void getDocumentTemplateDTOById() {
+        Long id = 1L;
+        Long fileDocumentTemplateId = 2L;
+        String documentTemplateName = "Document template name";
+        String workflow = "workflow";
+        DocumentTemplate documentTemplate = DocumentTemplate.builder()
+                .id(id)
+                .type(DocumentTemplateType.IN_RFI)
+                .name(documentTemplateName)
+                .workflow(workflow)
+                .fileDocumentTemplateId(fileDocumentTemplateId)
+                .build();
+        
+        String fileUuid = UUID.randomUUID().toString();
+        String filename = "filename";
+
+        FileInfoDTO fileDocumentDTO = FileInfoDTO.builder().uuid(fileUuid).name(filename).build();
+        
+        DocumentTemplateDTO expectedDocumentTemplateDTO = DocumentTemplateDTO.builder()
+            .id(id)
+            .name(documentTemplateName)
+            .workflow(workflow)
+            .fileUuid(fileUuid)
+            .filename(filename)
+            .build();
+
+        when(documentTemplateRepository.findById(id)).thenReturn(Optional.of(documentTemplate));
+        when(fileDocumentTemplateService.getFileInfoDocumentTemplateById(fileDocumentTemplateId)).thenReturn(fileDocumentDTO);
+
+        DocumentTemplateDTO result = service.getDocumentTemplateDTOById(id);
+        assertThat(result).isEqualTo(expectedDocumentTemplateDTO);
+
+        verify(documentTemplateRepository, times(1)).findById(id);
+        verify(fileDocumentTemplateService, times(1)).getFileInfoDocumentTemplateById(fileDocumentTemplateId);
+    }
+
+    @Test
+    void getDocumentTemplateDTOById_template_not_found() {
+        Long documentTemplateId = 1L;
+
+        when(documentTemplateRepository.findById(documentTemplateId)).thenReturn(Optional.empty());
+
+        BusinessException be = assertThrows(BusinessException.class, () ->
+            service.getDocumentTemplateById(documentTemplateId));
+
+        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+
+        verify(documentTemplateRepository, times(1)).findById(documentTemplateId);
+        verifyNoInteractions(fileDocumentTemplateService);
+    }
+
+    @Test
+    void getDocumentTemplateCaById() {
+        Long documentTemplateId = 1L;
+        CompetentAuthorityEnum competentAuthority = CompetentAuthorityEnum.WALES;
+        DocumentTemplate documentTemplate = DocumentTemplate.builder()
+            .id(documentTemplateId)
+            .type(DocumentTemplateType.IN_RFI)
+            .competentAuthority(competentAuthority)
+            .build();
+
+        when(documentTemplateRepository.findById(documentTemplateId)).thenReturn(Optional.of(documentTemplate));
+
+        assertEquals(competentAuthority, service.getDocumentTemplateCaById(documentTemplateId));
+        verify(documentTemplateRepository, times(1)).findById(documentTemplateId);
+    }
+
+    @Test
+    void getDocumentTemplateCaById_not_found() {
+        Long documentTemplateId = 1L;
+
+        when(documentTemplateRepository.findById(documentTemplateId)).thenReturn(Optional.empty());
+
+        BusinessException be = assertThrows(BusinessException.class, () -> service.getDocumentTemplateDTOById(documentTemplateId));
+
+        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+        verify(documentTemplateRepository, times(1)).findById(documentTemplateId);
+    }
+    
+    @Test
+    void getAllByNotificationTemplateId() {
+    	Long notificationTemplateId = 1L;
+    	LocalDateTime lastUpdatedDate = LocalDateTime.now();
+    	
+    	DocumentTemplate documentTemplate = DocumentTemplate.builder()
+                 .id(1L)
+                 .name("name1")
+                 .workflow("workflow1")
+                 .lastUpdatedDate(lastUpdatedDate)
+                 .build();
+    	
+		when(documentTemplateRepository.findAllByNotificationTemplateId(notificationTemplateId))
+				.thenReturn(Set.of(documentTemplate));
+		
+		Set<DocumentTemplateInfoDTO> result = service.getAllByNotificationTemplateId(notificationTemplateId);
+		
+		assertThat(result).containsExactly(new DocumentTemplateInfoDTO(1L, "name1", null, "workflow1", lastUpdatedDate));
+		
+		verify(documentTemplateRepository, times(1)).findAllByNotificationTemplateId(notificationTemplateId);
+    }
+    
+}
