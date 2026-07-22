@@ -40,15 +40,21 @@ public class FileAttachmentService {
     private final List<FileValidatorService> fileValidators;
     private static final FileAttachmentMapper fileAttachmentMapper = Mappers.getMapper(FileAttachmentMapper.class);
     private static final FileMapper fileMapper = Mappers.getMapper(FileMapper.class);
+    
+    @Transactional
+    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status, 
+    		String createdBy) {
+    	return createFileAttachment(fileDTO, status, UUID.randomUUID().toString(), createdBy);
+    }
 
     @Transactional
-    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status,
-                                       String createdBy) throws IOException {
+    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status, String fileUuid,
+                                       String createdBy) {
 
         fileValidators.forEach(validator -> validator.validate(fileDTO));
 
         FileAttachment attachment = fileAttachmentMapper.toFileAttachment(fileDTO);
-        attachment.setUuid(UUID.randomUUID().toString());
+        attachment.setUuid(fileUuid);
         attachment.setStatus(status);
         attachment.setCreatedBy(createdBy);
 

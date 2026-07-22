@@ -10,11 +10,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.netz.api.common.AbstractContainerBaseTest;
 import uk.gov.netz.api.files.common.domain.FileStatus;
-import uk.gov.netz.api.files.common.domain.FileTest;
+import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
 import uk.gov.netz.api.files.notes.domain.FileNote;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +32,21 @@ public class FileNoteRepositoryIT extends AbstractContainerBaseTest {
 
     @Autowired
     private EntityManager entityManager;
+    
+    @Test
+    void getFileNamesByUuid() {
+    	String uuid1 = UUID.randomUUID().toString();
+        String uuid2 = UUID.randomUUID().toString();
+        String fileName1 = "file1";
+        String fileName2 = "file2";
+        createFile(fileName1, uuid1, FileStatus.PENDING);
+        createFile(fileName2, uuid2, FileStatus.PENDING);
+        flushAndClear();
+        
+        List<FileInfoDTO> result = fileNoteRepository.getFileNamesByUuid(Set.of(uuid1, uuid2));
+        assertThat(result).extracting(FileInfoDTO::getUuid).containsExactlyInAnyOrder(uuid1, uuid2);
+        assertThat(result).extracting(FileInfoDTO::getName).containsExactlyInAnyOrder(fileName1, fileName2);
+    }
 
     @Test
     void deleteFilesByStatusAndLastUpdatedDateBefore() {
@@ -51,7 +68,7 @@ public class FileNoteRepositoryIT extends AbstractContainerBaseTest {
     }
 
     private void createFile(String name, String uuid, FileStatus status) {
-        final FileTest file = FileTest.builder()
+        final FileNote file = FileNote.builder()
                 .fileName(name)
                 .uuid(uuid)
                 .fileSize(1L)

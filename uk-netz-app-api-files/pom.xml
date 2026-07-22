@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-files</artifactId>
-    <version>1.11.0</version>
+    <version>1.12.0</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-common</artifactId>
-            <version>1.20.0</version>
+            <version>1.21.0</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.netz</groupId>
@@ -61,6 +61,22 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
+        </dependency>
+
+        <!-- AWS S3 SDK -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Test dependencies -->
@@ -104,7 +120,7 @@
             <artifactId>uk-netz-app-api-common</artifactId>
             <classifier>tests</classifier>
             <type>test-jar</type>
-            <version>1.20.0</version>
+            <version>1.21.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

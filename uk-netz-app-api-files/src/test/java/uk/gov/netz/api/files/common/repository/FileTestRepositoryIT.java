@@ -11,10 +11,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.netz.api.common.AbstractContainerBaseTest;
 import uk.gov.netz.api.files.common.domain.FileStatus;
 import uk.gov.netz.api.files.common.domain.FileTest;
-import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -54,36 +52,6 @@ class FileTestRepositoryIT extends AbstractContainerBaseTest {
         final boolean actual = fileTestRepository.existsByUuid(UUID.randomUUID().toString());
 
         assertFalse(actual);
-    }
-
-    @Test
-    void getFileNamesByUuid() {
-        String uuid1 = UUID.randomUUID().toString();
-        String uuid2 = UUID.randomUUID().toString();
-        String fileName1 = "file1";
-        String fileName2 = "file2";
-        createFile(fileName1, uuid1, FileStatus.PENDING);
-        createFile(fileName2, uuid2, FileStatus.SUBMITTED);
-
-        final List<FileInfoDTO> actual = fileTestRepository.getFileInfoByUuids(Set.of(uuid1, uuid2));
-
-        assertThat(actual).extracting(FileInfoDTO::getName).containsExactlyInAnyOrder(fileName1, fileName2);
-        assertThat(actual).extracting(FileInfoDTO::getUuid).containsExactlyInAnyOrder(uuid1, uuid2);
-    }
-
-    @Test
-    void getFileNamesByUuid_one_result() {
-        String uuid1 = UUID.randomUUID().toString();
-        String uuid2 = UUID.randomUUID().toString();
-        String fileName1 = "file1";
-        String fileName2 = "file2";
-        createFile(fileName1, uuid1, FileStatus.PENDING);
-        createFile(fileName2, uuid2, FileStatus.SUBMITTED);
-
-        final List<FileInfoDTO> actual = fileTestRepository.getFileInfoByUuids(Set.of(uuid1, UUID.randomUUID().toString()));
-
-        assertThat(actual).extracting(FileInfoDTO::getName).containsExactlyInAnyOrder(fileName1);
-        assertThat(actual).extracting(FileInfoDTO::getUuid).containsExactlyInAnyOrder(uuid1);
     }
 
     @Test

@@ -1,6 +1,9 @@
-package uk.gov.netz.api.files.documents.service;
+package uk.gov.netz.api.files.documents.service.storage;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.UUID;
+
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,43 +12,59 @@ import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.files.common.domain.FileStatus;
 import uk.gov.netz.api.files.common.domain.dto.FileDTO;
 import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
+import uk.gov.netz.api.files.common.transform.FileMapper;
 import uk.gov.netz.api.files.common.utils.MimeTypeUtils;
 import uk.gov.netz.api.files.documents.domain.FileDocument;
 import uk.gov.netz.api.files.documents.repository.FileDocumentRepository;
 import uk.gov.netz.api.files.documents.transform.FileDocumentMapper;
-
-import java.util.UUID;
+import uk.gov.netz.api.token.FileToken;
+import uk.gov.netz.api.token.UserFileTokenService;
 
 @Service
 @RequiredArgsConstructor
-public class FileDocumentService {
+public class FileDocumentStorageService {
 
     private final FileDocumentRepository fileDocumentRepository;
+    private final UserFileTokenService userFileTokenService;
+    private static final FileMapper fileMapper = Mappers.getMapper(FileMapper.class);
     private static final FileDocumentMapper fileDocumentMapper = Mappers.getMapper(FileDocumentMapper.class);
     
-    @Transactional(readOnly = true)
-    public FileDTO getFileDTO(String uuid) {
-        return fileDocumentMapper.toFileDTO(fileDocumentRepository.findByUuid(uuid)
+	public FileDTO getFileDTO(String uuid) {
+    	return fileDocumentMapper.toFileDTO(fileDocumentRepository.findByUuid(uuid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, uuid)));
+	}
+    
+    @Transactional(readOnly = true)
+	public FileInfoDTO getFileInfoDTO(String uuid) {
+    	return fileDocumentMapper.toFileInfoDTO(fileDocumentRepository.findByUuid(uuid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, uuid)));
+	}
+    
+    public FileToken generateGetFileDocumentToken(String uuid) {
+        if (!fileDocumentRepository.existsByUuid(uuid)) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, uuid);
+        }
+
+		return userFileTokenService.generateGetFileToken(uuid);
     }
     
     @Transactional(readOnly = true)
-    public FileInfoDTO getFileInfoDTO(String uuid) {
-        return fileDocumentMapper.toFileInfoDTO(fileDocumentRepository.findByUuid(uuid)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, uuid)));
+    public FileDTO getFileDTOByToken(String getFileToken) {
+        String fileUuid = userFileTokenService.resolveGetFileUuid(getFileToken);
+        return fileDocumentRepository.findByUuid(fileUuid)
+                .map(fileMapper::toFileDTO)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
     }
     
-    @Transactional
     public FileInfoDTO createFileDocumentWithUuid(byte[] fileContent, String fileName, String uuid) {
        return createFileDocument(fileContent, fileName, uuid);
     }
     
-    @Transactional
     public FileInfoDTO createFileDocument(byte[] fileContent, String fileName) {
         return createFileDocument(fileContent, fileName, UUID.randomUUID().toString());
     }
     
-    private FileInfoDTO createFileDocument(byte[] fileContent, String fileName, String uuid) {
+	private FileInfoDTO createFileDocument(byte[] fileContent, String fileName, String uuid) {
         FileDocument fileDocument = FileDocument.builder()
                 .fileName(fileName)
                 .fileContent(fileContent)
@@ -61,4 +80,6 @@ public class FileDocumentService {
                 .uuid(fileDocument.getUuid())
                 .build();
     }
+
+
 }

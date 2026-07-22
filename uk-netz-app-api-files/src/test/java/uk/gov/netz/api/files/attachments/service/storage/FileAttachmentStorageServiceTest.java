@@ -1,4 +1,4 @@
-package uk.gov.netz.api.files.attachments.service;
+package uk.gov.netz.api.files.attachments.service.storage;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,11 +8,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.files.attachments.domain.FileAttachment;
+import uk.gov.netz.api.files.attachments.repository.FileAttachmentRepository;
 import uk.gov.netz.api.files.common.domain.dto.FileDTO;
 import uk.gov.netz.api.token.FileToken;
 import uk.gov.netz.api.token.UserFileTokenService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,13 +24,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FileAttachmentTokenServiceTest {
+class FileAttachmentStorageServiceTest {
     
     @InjectMocks
-    private FileAttachmentTokenService service;
+    private FileAttachmentStorageService service;
     
     @Mock
-    private FileAttachmentService fileAttachmentService;
+    private FileAttachmentRepository fileAttachmentRepository;
     
     @Mock
     private UserFileTokenService userFileTokenService;
@@ -40,27 +42,27 @@ class FileAttachmentTokenServiceTest {
                 .token("roken")
                 .tokenExpirationMinutes(1l)
                 .build();
-        when(fileAttachmentService.fileAttachmentExist(attachmentUuid)).thenReturn(true);
+        when(fileAttachmentRepository.existsByUuid(attachmentUuid)).thenReturn(true);
         when(userFileTokenService.generateGetFileToken(attachmentUuid))
             .thenReturn(fileToken);
         
         FileToken result = service.generateGetFileAttachmentToken(attachmentUuid);
         assertThat(result).isEqualTo(fileToken);
-        verify(fileAttachmentService, times(1)).fileAttachmentExist(attachmentUuid);
+        verify(fileAttachmentRepository, times(1)).existsByUuid(attachmentUuid);
         verify(userFileTokenService, times(1)).generateGetFileToken(attachmentUuid);
     }
     
     @Test
     void generateGetFileAttachmentToken_attachment_not_found() {
         String attachmentUuid = "attachmentUuid";
-        when(fileAttachmentService.fileAttachmentExist(attachmentUuid)).thenReturn(false);
+        when(fileAttachmentRepository.existsByUuid(attachmentUuid)).thenReturn(false);
         
         BusinessException be = assertThrows(BusinessException.class, () -> {
             service.generateGetFileAttachmentToken(attachmentUuid);
         });
         assertThat(be.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
         
-        verify(fileAttachmentService, times(1)).fileAttachmentExist(attachmentUuid);
+        verify(fileAttachmentRepository, times(1)).existsByUuid(attachmentUuid);
         verifyNoInteractions(userFileTokenService);
     }
     
@@ -75,16 +77,10 @@ class FileAttachmentTokenServiceTest {
                 .fileType("type")
                 .build();
         
-        FileDTO fileDTO = FileDTO.builder().fileName(fileAttachment.getFileName())
-                .fileContent(fileAttachment.getFileContent())
-                .fileSize(fileAttachment.getFileSize())
-                .fileType(fileAttachment.getFileType())
-                .build();
-        
         when(userFileTokenService.resolveGetFileUuid(getFileAttachmentToken))
             .thenReturn(fileAttachmentUuid);
-        when(fileAttachmentService.getFileDTO(fileAttachmentUuid))
-            .thenReturn(fileDTO);
+        when(fileAttachmentRepository.findByUuid(fileAttachmentUuid))
+            .thenReturn(Optional.of(fileAttachment));
         
         FileDTO result = service.getFileDTOByToken(getFileAttachmentToken);
         assertThat(result.getFileContent()).isEqualTo(fileAttachment.getFileContent());
@@ -93,7 +89,7 @@ class FileAttachmentTokenServiceTest {
         assertThat(result.getFileType()).isEqualTo(fileAttachment.getFileType());
         
         verify(userFileTokenService, times(1)).resolveGetFileUuid(getFileAttachmentToken);
-        verify(fileAttachmentService, times(1)).getFileDTO(fileAttachmentUuid);
+        verify(fileAttachmentRepository, times(1)).findByUuid(fileAttachmentUuid);
     }
     
 }
