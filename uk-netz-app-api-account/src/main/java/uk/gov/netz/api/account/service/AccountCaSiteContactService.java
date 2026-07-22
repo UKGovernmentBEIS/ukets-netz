@@ -9,11 +9,13 @@ import uk.gov.netz.api.account.domain.dto.AccountContactDTO;
 import uk.gov.netz.api.account.domain.dto.AccountContactInfoDTO;
 import uk.gov.netz.api.account.domain.dto.AccountContactInfoResponse;
 import uk.gov.netz.api.account.domain.AccountContactType;
+import uk.gov.netz.api.account.domain.dto.SiteContactSearchCriteriaDTO;
 import uk.gov.netz.api.account.repository.AccountRepository;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.Scope;
 import uk.gov.netz.api.authorization.rules.services.resource.CompAuthAuthorizationResourceService;
 import uk.gov.netz.api.authorization.rules.services.resource.RegulatorAuthorityResourceService;
+import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -39,9 +41,11 @@ public class AccountCaSiteContactService implements AccountCaSiteContactProvider
         return accountContactQueryService.findContactByAccountAndContactType(accountId, AccountContactType.CA_SITE);
     }
 
-    public AccountContactInfoResponse getAccountsAndCaSiteContacts(AppUser user, Integer page, Integer pageSize) {
-        Page<AccountContactInfoDTO> contacts =
-                approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(user.getCompetentAuthority(), page, pageSize);
+    public AccountContactInfoResponse getAccountsAndCaSiteContacts(AppUser user, PagingRequest paging,
+                                                                   SiteContactSearchCriteriaDTO searchCriteria) {
+        Page<AccountContactInfoDTO> contacts = approvedAccountQueryService
+            .getApprovedAccountsAndCaSiteContactsByCa(user.getCompetentAuthority(),
+                paging, searchCriteria);
 
         // Check if user has the permission of editing account contacts assignees
         boolean isEditable = compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER);

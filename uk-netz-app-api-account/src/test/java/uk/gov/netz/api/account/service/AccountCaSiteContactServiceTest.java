@@ -12,6 +12,7 @@ import uk.gov.netz.api.account.domain.AccountContactType;
 import uk.gov.netz.api.account.domain.dto.AccountContactDTO;
 import uk.gov.netz.api.account.domain.dto.AccountContactInfoDTO;
 import uk.gov.netz.api.account.domain.dto.AccountContactInfoResponse;
+import uk.gov.netz.api.account.domain.dto.SiteContactSearchCriteriaDTO;
 import uk.gov.netz.api.account.repository.AccountRepository;
 import uk.gov.netz.api.authorization.core.domain.AppAuthority;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
@@ -19,6 +20,7 @@ import uk.gov.netz.api.authorization.rules.domain.Scope;
 import uk.gov.netz.api.authorization.rules.services.resource.CompAuthAuthorizationResourceService;
 import uk.gov.netz.api.authorization.rules.services.resource.RegulatorAuthorityResourceService;
 import uk.gov.netz.api.common.constants.RoleTypeConstants;
+import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -62,24 +64,28 @@ class AccountCaSiteContactServiceTest {
         List<AccountContactInfoDTO> contacts = List.of(AccountContactInfoDTO.builder()
             .accountId(1L).accountName("name").userId("userId").build());
         Page<AccountContactInfoDTO> pagedAccounts = new PageImpl<>(contacts);
+        int pageNumber = 0;
+        int pageSize = 1;
+        PagingRequest paging = PagingRequest.builder().pageNumber(pageNumber).pageSize(pageSize).build();
+        SiteContactSearchCriteriaDTO searchCriteriaDTO = mock(SiteContactSearchCriteriaDTO.class);
 
         AccountContactInfoResponse expected = AccountContactInfoResponse.builder()
             .contacts(contacts).editable(true).totalItems(1L).build();
 
         when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER))
             .thenReturn(true);
-        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1))
+        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, paging, searchCriteriaDTO))
             .thenReturn(pagedAccounts);
 
         // Invoke
-        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, 0, 1);
+        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, paging, searchCriteriaDTO);
 
         // Assert
         assertEquals(expected, actual);
-        verify(compAuthAuthorizationResourceService, times(1))
+        verify(compAuthAuthorizationResourceService, times(pageSize))
             .hasUserScopeToCompAuth(user, Scope.EDIT_USER);
-        verify(approvedAccountQueryService, times(1))
-            .getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1);
+        verify(approvedAccountQueryService, times(pageSize))
+            .getApprovedAccountsAndCaSiteContactsByCa(ca, paging, searchCriteriaDTO);
     }
 
     @Test
@@ -90,24 +96,28 @@ class AccountCaSiteContactServiceTest {
         List<AccountContactInfoDTO> contacts = List.of(AccountContactInfoDTO.builder()
             .accountId(1L).accountName("name").userId("userId").build());
         Page<AccountContactInfoDTO> pagedAccounts = new PageImpl<>(contacts);
+        int pageNumber = 0;
+        int pageSize = 1;
+        PagingRequest paging = PagingRequest.builder().pageNumber(pageNumber).pageSize(pageSize).build();
+        SiteContactSearchCriteriaDTO searchCriteriaDTO = mock(SiteContactSearchCriteriaDTO.class);
 
         AccountContactInfoResponse expected = AccountContactInfoResponse.builder()
             .contacts(contacts).editable(false).totalItems(1L).build();
 
         when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER))
             .thenReturn(false);
-        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1))
+        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, paging, searchCriteriaDTO))
             .thenReturn(pagedAccounts);
 
         // Invoke
-        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, 0, 1);
+        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, paging, searchCriteriaDTO);
 
         // Assert
         assertEquals(expected, actual);
         verify(compAuthAuthorizationResourceService, times(1))
             .hasUserScopeToCompAuth(user, Scope.EDIT_USER);
         verify(approvedAccountQueryService, times(1))
-            .getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1);
+            .getApprovedAccountsAndCaSiteContactsByCa(ca, paging, searchCriteriaDTO);
     }
 
 
@@ -117,23 +127,27 @@ class AccountCaSiteContactServiceTest {
         final AppUser user = AppUser.builder().roleType(RoleTypeConstants.REGULATOR)
             .authorities(List.of(AppAuthority.builder().competentAuthority(ca).build())).build();
         Page<AccountContactInfoDTO> pagedAccounts = new PageImpl<>(List.of());
+        int pageNumber = 0;
+        int pageSize = 1;
+        PagingRequest paging = PagingRequest.builder().pageNumber(pageNumber).pageSize(pageSize).build();
+        SiteContactSearchCriteriaDTO searchCriteriaDTO = mock(SiteContactSearchCriteriaDTO.class);
 
         AccountContactInfoResponse expected = AccountContactInfoResponse.builder()
             .contacts(List.of()).editable(true).totalItems(0L).build();
 
         when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(user, Scope.EDIT_USER)).thenReturn(true);
-        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1))
+        when(approvedAccountQueryService.getApprovedAccountsAndCaSiteContactsByCa(ca, paging, searchCriteriaDTO))
             .thenReturn(pagedAccounts);
 
         // Invoke
-        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, 0, 1);
+        AccountContactInfoResponse actual = service.getAccountsAndCaSiteContacts(user, paging, searchCriteriaDTO);
 
         // Assert
         assertEquals(expected, actual);
         verify(compAuthAuthorizationResourceService, times(1))
             .hasUserScopeToCompAuth(user, Scope.EDIT_USER);
         verify(approvedAccountQueryService, times(1))
-            .getApprovedAccountsAndCaSiteContactsByCa(ca, 0, 1);
+            .getApprovedAccountsAndCaSiteContactsByCa(ca, paging, searchCriteriaDTO);
     }
 
     @Test

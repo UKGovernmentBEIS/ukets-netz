@@ -8,5 +8,12 @@ import uk.gov.netz.api.common.config.MapperConfig;
 
 @Mapper(componentModel = "spring", config = MapperConfig.class)
 public interface AccountSearchResultMapper {
-    AccountSearchResultInfoDTO toAccountInfoDTO(Account account);
+
+    default AccountSearchResultInfoDTO toAccountInfoDTO(Account account) {
+        return new AccountSearchResultInfoDTO(
+                account.getId(),
+                account.getName(),
+                account.getBusinessId(),
+                account.getStatus());
+    }
 }

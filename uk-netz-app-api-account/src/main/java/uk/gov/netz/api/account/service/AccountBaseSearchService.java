@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
 import uk.gov.netz.api.account.domain.Account;
 import uk.gov.netz.api.account.domain.dto.AccountSearchCriteria;
+import uk.gov.netz.api.account.domain.dto.AccountSearchResultInfoDTO;
 import uk.gov.netz.api.account.domain.dto.AccountSearchResults;
 import uk.gov.netz.api.account.transform.AccountSearchResultMapper;
 
@@ -38,11 +39,11 @@ public abstract class AccountBaseSearchService<T extends Account> {
                 );
     }
     
-    protected AccountSearchResults buildAccountSearchResults(Page<T> pageResults) {
+    protected AccountSearchResults<AccountSearchResultInfoDTO> buildAccountSearchResults(Page<T> pageResults) {
     	if(pageResults.isEmpty()) {
     		return AccountSearchResults.emptyAccountSearchResults();
     	} else {
-    		return AccountSearchResults.builder()
+    		return AccountSearchResults.<AccountSearchResultInfoDTO>builder()
                     .accounts(pageResults.toList().stream()
                     		.map(accountSearchResultMapper::toAccountInfoDTO)
                             .collect(Collectors.toList()))

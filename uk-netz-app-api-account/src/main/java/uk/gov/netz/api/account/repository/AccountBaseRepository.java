@@ -28,10 +28,11 @@ public interface AccountBaseRepository<T extends Account> extends JpaRepository<
         + "join #{#entityName} child_acc on acc.id = child_acc.id "
         + "left join acc.contacts contacts on KEY(contacts) = :contactType "
         + "where acc.competentAuthority = :ca "
+        + "and (:businessId is null or acc.businessId = :businessId) "
         + "and child_acc.status not in (:statuses) "
         + "order by acc.name")
-    Page<AccountContactInfoDTO> findAccountContactsByCaAndContactTypeAndStatusNotIn(
-        Pageable pageable, CompetentAuthorityEnum ca, String contactType, Set<? extends AccountStatus> statuses);
+    Page<AccountContactInfoDTO> findAccountContactsByCaAndContactTypeAndStatusNotInAndBusinessId(
+        Pageable pageable, CompetentAuthorityEnum ca, String contactType, Set<? extends AccountStatus> statuses, String businessId);
 
     @Transactional(readOnly = true)
     @Query("select acc.id "

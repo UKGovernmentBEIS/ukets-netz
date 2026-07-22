@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>uk-netz-app-api-account</artifactId>
-    <version>1.10.0</version>
+    <version>1.12.0</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>uk.gov.netz</groupId>
         <artifactId>uk-netz-app-api-parent</artifactId>
-        <version>1.8.0</version>
+        <version>1.12.0</version>
     </parent>
 
     <properties>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>uk.gov.netz</groupId>
             <artifactId>uk-netz-app-api-common</artifactId>
-            <version>1.16.0</version>
+            <version>1.21.0</version>
         </dependency>
 		<dependency>
             <groupId>uk.gov.netz</groupId>
@@ -91,6 +91,11 @@
             <artifactId>querydsl-apt</artifactId>
             <classifier>jakarta</classifier>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-jpa</artifactId>
+            <classifier>jakarta</classifier>
         </dependency>
         
         <!-- Test dependencies -->

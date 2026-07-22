@@ -6,7 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import uk.gov.netz.api.account.domain.Account;
 import uk.gov.netz.api.account.domain.AccountContactType;
 import uk.gov.netz.api.account.domain.dto.AccountContactInfoDTO;
+import uk.gov.netz.api.account.domain.dto.SiteContactSearchCriteriaDTO;
 import uk.gov.netz.api.account.repository.AccountBaseRepository;
+import uk.gov.netz.api.common.domain.PagingRequest;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
 import java.util.List;
@@ -25,9 +27,12 @@ public abstract class ApprovedAccountQueryAbstractService<T extends Account>
 
 	@Override
 	public Page<AccountContactInfoDTO> getApprovedAccountsAndCaSiteContactsByCa(
-			CompetentAuthorityEnum competentAuthority, Integer page, Integer pageSize) {
-		return accountBaseRepository.findAccountContactsByCaAndContactTypeAndStatusNotIn(PageRequest.of(page, pageSize),
-				competentAuthority, AccountContactType.CA_SITE, getStatusesConsideredNotApproved());
+        CompetentAuthorityEnum competentAuthority, PagingRequest paging, SiteContactSearchCriteriaDTO searchCriteria) {
+		PageRequest pageable = PageRequest.of(paging.getPageNumber(), paging.getPageSize());
+
+		return accountBaseRepository.findAccountContactsByCaAndContactTypeAndStatusNotInAndBusinessId(pageable,
+			competentAuthority, AccountContactType.CA_SITE, getStatusesConsideredNotApproved(),
+			searchCriteria.getBusinessId());
 	}
 	
 	@Override
