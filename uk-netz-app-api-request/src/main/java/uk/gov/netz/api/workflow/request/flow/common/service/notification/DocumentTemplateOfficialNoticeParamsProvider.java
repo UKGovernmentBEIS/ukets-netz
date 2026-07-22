@@ -8,19 +8,24 @@ import uk.gov.netz.api.workflow.request.core.domain.Request;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class DocumentTemplateOfficialNoticeParamsProvider {
     
     private final DocumentTemplateCommonParamsProvider documentTemplateCommonParamsProvider;
-    private final List<DocumentTemplateWorkflowParamsProvider> workflowParamsProviders;
+    
+    private final List<DocumentTemplateSyncWorkflowParamsProvider> workflowParamsProviders;
+    private final List<DocumentTemplateAsyncWorkflowParamsProvider> asyncWorkflowParamsProviders;
     
     public TemplateParams constructTemplateParams(DocumentTemplateParamsSourceData templateSourceParams) {
         final Request request = templateSourceParams.getRequest();
         final String signatory = templateSourceParams.getSignatory();
         
-        final TemplateParams templateParams = documentTemplateCommonParamsProvider.constructCommonTemplateParams(request, signatory);
+		final TemplateParams templateParams = documentTemplateCommonParamsProvider
+				.constructCommonTemplateParams(request, signatory, templateSourceParams.getAccountData());
         
         // Email params
         List<String> ccRecipientsEmailsFinal = new ArrayList<>(templateSourceParams.getCcRecipientsEmails());
@@ -35,13 +40,28 @@ public class DocumentTemplateOfficialNoticeParamsProvider {
         templateParams.getParams().put("toRecipient", templateSourceParams.getToRecipientEmail());
         templateParams.getParams().put("ccRecipients", ccRecipientsEmailsFinal);
         
-        // Workflow params
-        workflowParamsProviders.stream()
-            .filter(provider -> provider.getContextActionType() == templateSourceParams.getContextActionType())
-            .findFirst()
-            .ifPresent(workflowParamsProvider -> templateParams.getParams()
-                .putAll(workflowParamsProvider.constructParams(templateSourceParams.getRequest().getPayload())));
+        templateParams.getParams().putAll(resolveParams(templateSourceParams));
         
         return templateParams;
     }
+    
+    private Map<String, Object> resolveParams(DocumentTemplateParamsSourceData templateSourceParams){
+    	final String contextActionType = templateSourceParams.getContextActionType();
+    	
+    	//sync
+    	Optional<DocumentTemplateSyncWorkflowParamsProvider> syncProviderOpt = workflowParamsProviders.stream()
+                .filter(provider -> provider.getContextActionType().equals(contextActionType))
+                .findFirst();
+    	if (syncProviderOpt.isPresent()) {
+            return syncProviderOpt.get().constructParams(templateSourceParams.getRequest().getPayload());
+        }
+    	
+    	// async
+    	return asyncWorkflowParamsProviders.stream()
+                .filter(asyncProvider -> asyncProvider.getContextActionType().equals(contextActionType))
+                .findFirst()
+                .map(asyncProvider -> asyncProvider.constructParams(templateSourceParams.getRequestTask()))
+                .orElse(Map.of());
+    }
+    
 }

@@ -2,7 +2,7 @@ package uk.gov.netz.api.workflow.request.flow.rfi.service;
 
 import org.springframework.stereotype.Component;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateGenerationContextActionType;
-import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateWorkflowParamsProvider;
+import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateSyncWorkflowParamsProvider;
 import uk.gov.netz.api.workflow.request.flow.rfi.domain.RequestPayloadRfiable;
 
 import java.time.ZoneId;
@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Map;
 
 @Component
-public class RfiSubmitDocumentTemplateWorkflowParamsProvider implements DocumentTemplateWorkflowParamsProvider<RequestPayloadRfiable> {
+public class RfiSubmitDocumentTemplateWorkflowParamsProvider implements DocumentTemplateSyncWorkflowParamsProvider<RequestPayloadRfiable> {
 
     @Override
     public String getContextActionType() {

@@ -1,25 +1,29 @@
 package uk.gov.netz.api.workflow.request.core.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import uk.gov.netz.api.account.domain.enumeration.AccountStatus;
 import uk.gov.netz.api.account.service.AccountQueryService;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.services.resource.AccountRequestAuthorizationResourceService;
+import uk.gov.netz.api.workflow.request.core.domain.RequestCreateActionPayload;
 import uk.gov.netz.api.workflow.request.flow.common.domain.dto.RequestCreateValidationResult;
+import uk.gov.netz.api.workflow.request.flow.common.service.RequestCreateAccountRelatedNoPayloadValidator;
+import uk.gov.netz.api.workflow.request.flow.common.service.RequestCreateAccountRelatedWithPayloadValidator;
 import uk.gov.netz.api.workflow.request.flow.common.service.RequestCreateByAccountValidator;
+import uk.gov.netz.api.workflow.request.flow.common.service.RequestCreateValidatorService;
+
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AvailableRequestAccountHandlerTest {
@@ -60,7 +64,7 @@ class AvailableRequestAccountHandlerTest {
         when(accountRequestAuthorizationResourceService.findRequestCreateActionsByAccountId(user, accountId))
         	.thenReturn(Set.of("code1"));
         when(requestCreateValidatorA.getRequestType()).thenReturn("code1");
-        when(requestCreateValidatorA.validateAction(accountId)).thenReturn(result);
+        when(requestCreateValidatorA.checkAvailability(accountId)).thenReturn(result);
         
         // Invoke
         final Map<String, RequestCreateValidationResult> availableWorkflows =
@@ -70,16 +74,52 @@ class AvailableRequestAccountHandlerTest {
         verify(accountRequestAuthorizationResourceService, times(1))
         		.findRequestCreateActionsByAccountId(user, accountId);
         verify(requestCreateValidatorA, times(1)).getRequestType();
-        verify(requestCreateValidatorA, times(1)).validateAction(accountId);
+        verify(requestCreateValidatorA, times(1)).checkAvailability(accountId);
 
         assertThat(availableWorkflows).containsExactly(Map.entry("code1", result));
     }
     
-    private static class TestRequestCreateValidatorA implements RequestCreateByAccountValidator {
+    private static class TestRequestCreateValidatorA extends RequestCreateAccountRelatedNoPayloadValidator {
+
+        public TestRequestCreateValidatorA(RequestCreateValidatorService requestCreateValidatorService) {
+            super(requestCreateValidatorService);
+        }
 
         @Override
-        public RequestCreateValidationResult validateAction(Long accountId) {
+        public String getRequestType() {
             return null;
+        }
+
+        @Override
+        public Set<AccountStatus> getApplicableAccountStatuses() {
+            return Set.of();
+        }
+
+        @Override
+        public Set<String> getMutuallyExclusiveRequests() {
+            return Set.of();
+        }
+    }
+
+    private static class TestRequestCreateValidatorB extends RequestCreateAccountRelatedWithPayloadValidator<TestRequestCreateActionPayload> {
+
+        public TestRequestCreateValidatorB(RequestCreateValidatorService requestCreateValidatorService) {
+            super(requestCreateValidatorService);
+        }
+
+        @Override
+        public RequestCreateValidationResult validateCreation(Long accountId, TestRequestCreateActionPayload payload) {
+            return null;
+        }
+
+        @Override
+        public Set<AccountStatus> getApplicableAccountStatuses() {
+            return Set.of();
+        }
+
+        @Override
+        public Set<String> getMutuallyExclusiveRequests() {
+            return Set.of();
         }
 
         @Override
@@ -88,16 +128,7 @@ class AvailableRequestAccountHandlerTest {
         }
     }
 
-    private static class TestRequestCreateValidatorB implements RequestCreateByAccountValidator {
-
-        @Override
-        public RequestCreateValidationResult validateAction(Long accountId) {
-            return null;
-        }
-
-        @Override
-        public String getRequestType() {
-            return null;
-        }
+    private static class TestRequestCreateActionPayload extends RequestCreateActionPayload {
+        private String test;
     }
 }

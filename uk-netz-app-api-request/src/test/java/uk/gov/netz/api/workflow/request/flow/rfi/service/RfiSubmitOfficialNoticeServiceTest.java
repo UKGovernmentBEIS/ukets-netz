@@ -15,6 +15,8 @@ import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
 import uk.gov.netz.api.userinfoapi.UserInfoDTO;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
+import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateAccountData;
+import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateAccountDataCollectFromAccountService;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateGenerationContextActionType;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateOfficialNoticeParamsProvider;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateParamsSourceData;
@@ -42,10 +44,14 @@ class RfiSubmitOfficialNoticeServiceTest {
     @Mock
     private OfficialNoticeSendService officialNoticeSendService;
     
+    @Mock
+    private DocumentTemplateAccountDataCollectFromAccountService templateAccountDataCollectFromAccountService;
+    
     @Test
     void generateOfficialNotice() {
+    	Long accountId = 5L;
         Request request = Request.builder().build();
-        addResourcesToRequest(1L, CompetentAuthorityEnum.ENGLAND, request);
+        addResourcesToRequest(accountId, CompetentAuthorityEnum.ENGLAND, request);
         String signatory = "Signatory";
         
         UserInfoDTO accountPrimaryContact = UserInfoDTO.builder()
@@ -53,7 +59,8 @@ class RfiSubmitOfficialNoticeServiceTest {
                 .build();
         
         List<String> ccRecipientsEmails = List.of("cc1@email", "cc2@email");
-        
+        DocumentTemplateAccountData documentTemplateAccountData = new DocumentTemplateAccountData() {
+		};
         DocumentTemplateParamsSourceData templateSourceParams = DocumentTemplateParamsSourceData.builder()
                 .request(request)
                 .contextActionType(DocumentTemplateGenerationContextActionType.RFI_SUBMIT)
@@ -61,18 +68,21 @@ class RfiSubmitOfficialNoticeServiceTest {
                 .signatory(signatory)
                 .toRecipientEmail(accountPrimaryContact.getEmail())
                 .ccRecipientsEmails(ccRecipientsEmails)
+                .accountData(documentTemplateAccountData)
                 .build();
         TemplateParams templateParams = TemplateParams.builder().build();
         
         
         when(documentTemplateOfficialNoticeParamsProvider.constructTemplateParams(templateSourceParams))
             .thenReturn(templateParams);
+        when(templateAccountDataCollectFromAccountService.collect(accountId)).thenReturn(documentTemplateAccountData);
         
         //invoke
         service.generateOfficialNotice(request, signatory, accountPrimaryContact, ccRecipientsEmails);
         
         verify(documentTemplateOfficialNoticeParamsProvider, times(1)).constructTemplateParams(templateSourceParams);
         verify(fileDocumentGenerateServiceDelegator, times(1)).generateAndSaveFileDocument(DocumentTemplateType.IN_RFI, templateParams, "Request for Further Information.pdf");
+        verify(templateAccountDataCollectFromAccountService).collect(accountId);
     }
     
     @Test

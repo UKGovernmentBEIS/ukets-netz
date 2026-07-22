@@ -62,6 +62,11 @@ public class RequestService {
 
         request.setStatus(status);
     }
+    
+    @Transactional
+    public void saveRequest(Request request) {
+    	requestRepository.save(request);
+    }
 
     @Transactional
     public void terminateRequest(String requestId, String processInstanceId, boolean shouldBeDeleted) {

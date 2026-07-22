@@ -1,18 +1,17 @@
 package uk.gov.netz.api.workflow.request.core.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.resource.AccountRequestAuthorizationResourceService;
 import uk.gov.netz.api.workflow.request.flow.common.domain.dto.RequestCreateValidationResult;
 import uk.gov.netz.api.workflow.request.flow.common.service.RequestCreateByAccountValidator;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +47,7 @@ public class AvailableRequestAccountHandler implements AvailableRequestResourceT
         return requestCreateByAccountValidators.stream()
                 .filter(validator -> validator.getRequestType().equals(type))
                 .findFirst()
-                .map(validator -> validator.validateAction(accountId))
+                .map(validator -> validator.checkAvailability(accountId))
                 .orElse(RequestCreateValidationResult.builder().valid(true).build());
     }
 

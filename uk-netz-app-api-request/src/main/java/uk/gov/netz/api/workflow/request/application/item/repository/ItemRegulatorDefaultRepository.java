@@ -2,14 +2,14 @@ package uk.gov.netz.api.workflow.request.application.item.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import uk.gov.netz.api.account.domain.QAccount;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.workflow.request.application.item.domain.Item;
 import uk.gov.netz.api.workflow.request.core.domain.QRequest;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestResource;
 
-@Service
+@Repository
 public class ItemRegulatorDefaultRepository extends ItemRegulatorAbstractRepository {
 
     @Override

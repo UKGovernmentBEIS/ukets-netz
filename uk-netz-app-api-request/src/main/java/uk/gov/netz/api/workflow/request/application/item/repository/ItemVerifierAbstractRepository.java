@@ -1,8 +1,6 @@
 package uk.gov.netz.api.workflow.request.application.item.repository;
 
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -17,19 +15,14 @@ import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCr
 import uk.gov.netz.api.workflow.request.core.domain.QRequest;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestResource;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestTask;
-import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTypes;
 
 import java.util.Map;
 import java.util.Set;
 
-@Repository
-public abstract class ItemVerifierAbstractRepository {
+public abstract class ItemVerifierAbstractRepository extends ItemAbstractRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
-
-    protected abstract void buildSearchTermJoin(JPAQuery<Item> jpaQuery);
-    protected abstract BooleanExpression buildSearchTermWhereClause(String searchTerm);
 
     public ItemPage findItems(String userId, ItemAssignmentType assignmentType,
                               Map<Long, Set<String>> scopedAccountRequestTaskTypes,
@@ -61,7 +54,7 @@ public abstract class ItemVerifierAbstractRepository {
         }
 
         jpaQuery.where(constructWherePredicate(userId, assignmentType, request, requestTask, requestResource,
-                    scopedAccountRequestTaskTypes, searchCriteria.getRequestType(), searchCriteria.getSearchTerm()))
+                    scopedAccountRequestTaskTypes, searchCriteria))
                 .orderBy(searchCriteria.getOrderBy().getOrderSpecifier())
                 .offset((long)paging.getPageNumber() * paging.getPageSize())
                 .limit(paging.getPageSize());
@@ -71,35 +64,6 @@ public abstract class ItemVerifierAbstractRepository {
                 .items(jpaQuery.fetch())
                 .totalItems(jpaQuery.fetchCount())
                 .build();
-    }
-
-    private Predicate constructWherePredicate(String userId, ItemAssignmentType assignmentType,
-                                              QRequest request, QRequestTask requestTask, QRequestResource requestResource,
-                                              Map<Long, Set<String>> scopedAccountRequestTaskTypes,
-                                              String requestType,
-                                              String searchTerm) {
-        BooleanExpression whereClause = ItemRepoUtils.constructAccountRequestTaskScopeWhereClause(
-            scopedAccountRequestTaskTypes, requestTask, requestResource);
-
-        whereClause = switch (assignmentType) {
-            case ME -> whereClause.and(requestTask.assignee.eq(userId));
-            case OTHERS -> whereClause.and(requestTask.assignee.ne(userId));
-            case UNASSIGNED -> whereClause.and(requestTask.assignee.isNull());
-        };
-
-        if (!StringUtils.isBlank(requestType)) {
-            whereClause = whereClause.and(request.type.code.eq(requestType));
-        }
-
-        if (!StringUtils.isBlank(searchTerm)) {
-            whereClause = whereClause.and(buildSearchTermWhereClause(searchTerm));
-        }
-
-        if(ItemAssignmentType.ME == assignmentType && StringUtils.isBlank(requestType)) {
-            whereClause = whereClause.or(ItemRepoUtils.createSystemNotificationWhereClause(request, requestTask, requestResource, userId));
-        }
-
-        return whereClause;
     }
 
 }

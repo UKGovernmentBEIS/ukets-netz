@@ -10,6 +10,7 @@ import uk.gov.netz.api.documenttemplate.service.FileDocumentGenerateServiceDeleg
 import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
 import uk.gov.netz.api.userinfoapi.UserInfoDTO;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
+import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateAccountDataCollectFromAccountService;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateGenerationContextActionType;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateOfficialNoticeParamsProvider;
 import uk.gov.netz.api.workflow.request.flow.common.service.notification.DocumentTemplateParamsSourceData;
@@ -22,6 +23,7 @@ import java.util.List;
 public class RdeSubmitOfficialNoticeService {
 
     private final DocumentTemplateOfficialNoticeParamsProvider documentTemplateOfficialNoticeParamsProvider;
+    private final DocumentTemplateAccountDataCollectFromAccountService<?> documentTemplateAccountDataCollectFromAccountService;
     private final FileDocumentGenerateServiceDelegator fileDocumentGenerateServiceDelegator;
     private final OfficialNoticeSendService officialNoticeSendService;
     
@@ -35,6 +37,7 @@ public class RdeSubmitOfficialNoticeService {
                 .accountPrimaryContact(accountPrimaryContact)
                 .toRecipientEmail(accountPrimaryContact.getEmail())
                 .ccRecipientsEmails(ccRecipientsEmails)
+                .accountData(documentTemplateAccountDataCollectFromAccountService.collect(request.getAccountId()))
                 .build()
                 );
 

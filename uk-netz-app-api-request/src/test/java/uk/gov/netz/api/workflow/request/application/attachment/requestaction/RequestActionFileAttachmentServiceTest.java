@@ -6,11 +6,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.netz.api.common.exception.BusinessException;
-import uk.gov.netz.api.files.attachments.service.FileAttachmentTokenService;
+import uk.gov.netz.api.files.attachments.service.storage.FileAttachmentStorageService;
+import uk.gov.netz.api.token.FileToken;
 import uk.gov.netz.api.workflow.request.TestRequestActionPayload;
 import uk.gov.netz.api.workflow.request.core.domain.RequestAction;
 import uk.gov.netz.api.workflow.request.core.repository.RequestActionRepository;
+import uk.gov.netz.api.workflow.request.flow.rfi.domain.RfiSubmittedRequestActionPayload;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,16 +26,41 @@ import static org.mockito.Mockito.when;
 import static uk.gov.netz.api.common.exception.ErrorCode.RESOURCE_NOT_FOUND;
 
 @ExtendWith(MockitoExtension.class)
-class RequestActionAttachmentServiceTest {
+class RequestActionFileAttachmentServiceTest {
 
     @InjectMocks
-    private RequestActionAttachmentService requestActionAttachmentService;
+    private RequestActionFileAttachmentService cut;
 
     @Mock
     private RequestActionRepository requestActionRepository;
 
     @Mock
-    private FileAttachmentTokenService fileAttachmentTokenService;
+    private FileAttachmentStorageService fileAttachmentStorageService;
+    
+    @Test
+    void generateGetFileAttachmentToken(){
+    	Long requestActionId = 1L;
+        UUID attachmentUuid = UUID.randomUUID();
+        RfiSubmittedRequestActionPayload payload = RfiSubmittedRequestActionPayload
+            .builder()
+            .rfiAttachments(Map.of(
+            		attachmentUuid, "test1"
+            		))
+            .build();
+        RequestAction requestAction = RequestAction.builder().id(requestActionId).payload(payload).build();
+
+        when(requestActionRepository.findById(requestActionId)).thenReturn(Optional.of(requestAction));
+        
+        FileToken expectedResult = FileToken.builder().build();
+        
+        when(fileAttachmentStorageService.generateGetFileAttachmentToken(attachmentUuid.toString())).thenReturn(expectedResult);
+
+        FileToken result = cut.generateGetFileAttachmentToken(requestActionId, attachmentUuid);
+        assertThat(result).isEqualTo(expectedResult);
+
+        verify(requestActionRepository, times(1)).findById(requestActionId);
+        verify(fileAttachmentStorageService, times(1)).generateGetFileAttachmentToken(attachmentUuid.toString());
+    }
 
     @Test
     void generateGetFileAttachmentToken_request_action_not_exists(){
@@ -42,12 +70,12 @@ class RequestActionAttachmentServiceTest {
         when(requestActionRepository.findById(requestActionId)).thenReturn(Optional.empty());
 
         BusinessException businessException = assertThrows(BusinessException.class, () ->
-            requestActionAttachmentService.generateGetFileAttachmentToken(requestActionId, attachmentUuid));
+        cut.generateGetFileAttachmentToken(requestActionId, attachmentUuid));
 
         assertThat(businessException.getErrorCode()).isEqualTo(RESOURCE_NOT_FOUND);
 
         verify(requestActionRepository, times(1)).findById(requestActionId);
-        verifyNoInteractions(fileAttachmentTokenService);
+        verifyNoInteractions(fileAttachmentStorageService);
     }
 
     @Test
@@ -63,11 +91,11 @@ class RequestActionAttachmentServiceTest {
         when(requestActionRepository.findById(requestActionId)).thenReturn(Optional.of(requestAction));
 
         BusinessException businessException = assertThrows(BusinessException.class, () ->
-            requestActionAttachmentService.generateGetFileAttachmentToken(requestActionId, attachmentUuid));
+        cut.generateGetFileAttachmentToken(requestActionId, attachmentUuid));
 
         assertThat(businessException.getErrorCode()).isEqualTo(RESOURCE_NOT_FOUND);
 
         verify(requestActionRepository, times(1)).findById(requestActionId);
-        verifyNoInteractions(fileAttachmentTokenService);
+        verifyNoInteractions(fileAttachmentStorageService);
     }
 }

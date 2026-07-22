@@ -14,7 +14,7 @@ import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityService;
 import uk.gov.netz.api.files.common.domain.dto.FileDTO;
 import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
-import uk.gov.netz.api.files.documents.service.FileDocumentService;
+import uk.gov.netz.api.files.documents.service.storage.FileDocumentStorageService;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailData;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailNotificationTemplateData;
 import uk.gov.netz.api.notificationapi.mail.service.NotificationEmailService;
@@ -52,7 +52,7 @@ class OfficialNoticeSendServiceTest {
     private NotificationEmailService<EmailNotificationTemplateData> notificationEmailService;
     
     @Mock
-    private FileDocumentService fileDocumentService;
+    private FileDocumentStorageService fileDocumentStorageService;
 
 	@Mock
 	private CompetentAuthorityService competentAuthorityService;
@@ -86,7 +86,7 @@ class OfficialNoticeSendServiceTest {
 				.thenReturn(Optional.of(accountPrimaryContact));
 		when(requestAccountContactQueryService.getRequestAccountServiceContact(request))
 				.thenReturn(Optional.of(accountPrimaryContact));
-		when(fileDocumentService.getFileDTO(officialDocFileInfoDTO.getUuid()))
+		when(fileDocumentStorageService.getFileDTO(officialDocFileInfoDTO.getUuid()))
 				.thenReturn(officialDocFileDTO);
 		when(competentAuthorityService.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND))
 				.thenReturn(competentAuthority);
@@ -95,7 +95,7 @@ class OfficialNoticeSendServiceTest {
 
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountPrimaryContact(request);
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountServiceContact(request);
-		verify(fileDocumentService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
+		verify(fileDocumentStorageService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
 		verify(competentAuthorityService, times(1))
 				.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND);
 
@@ -152,7 +152,7 @@ class OfficialNoticeSendServiceTest {
 				.thenReturn(Optional.of(accountPrimaryContact));
 		when(requestAccountContactQueryService.getRequestAccountServiceContact(request))
 				.thenReturn(Optional.of(accountPrimaryContact));
-		when(fileDocumentService.getFileDTO(officialDocFileInfoDTO.getUuid()))
+		when(fileDocumentStorageService.getFileDTO(officialDocFileInfoDTO.getUuid()))
 				.thenReturn(officialDocFileDTO);
 		when(competentAuthorityService.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND))
 				.thenReturn(competentAuthority);
@@ -161,7 +161,7 @@ class OfficialNoticeSendServiceTest {
 
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountPrimaryContact(request);
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountServiceContact(request);
-		verify(fileDocumentService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
+		verify(fileDocumentStorageService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
 		verify(competentAuthorityService, times(1))
 				.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND);
 
@@ -222,7 +222,7 @@ class OfficialNoticeSendServiceTest {
 				.thenReturn(Optional.of(accountPrimaryContact));
 		when(requestAccountContactQueryService.getRequestAccountServiceContact(request))
 				.thenReturn(Optional.of(accountServiceContact));
-		when(fileDocumentService.getFileDTO(officialDocFileInfoDTO.getUuid()))
+		when(fileDocumentStorageService.getFileDTO(officialDocFileInfoDTO.getUuid()))
 				.thenReturn(officialDocFileDTO);
 		when(competentAuthorityService.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND))
 				.thenReturn(competentAuthority);
@@ -231,7 +231,7 @@ class OfficialNoticeSendServiceTest {
 
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountPrimaryContact(request);
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountServiceContact(request);
-		verify(fileDocumentService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
+		verify(fileDocumentStorageService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
 		verify(competentAuthorityService, times(1))
 				.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND);
 
@@ -294,7 +294,7 @@ class OfficialNoticeSendServiceTest {
 				.thenReturn(Optional.of(accountPrimaryContact));
 		when(requestAccountContactQueryService.getRequestAccountServiceContact(request))
 				.thenReturn(Optional.of(accountPrimaryContact));
-		when(fileDocumentService.getFileDTO(officialDocFileInfoDTO.getUuid()))
+		when(fileDocumentStorageService.getFileDTO(officialDocFileInfoDTO.getUuid()))
 				.thenReturn(officialDocFileDTO);
 		when(competentAuthorityService.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND))
 				.thenReturn(competentAuthority);
@@ -303,7 +303,7 @@ class OfficialNoticeSendServiceTest {
 
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountPrimaryContact(request);
 		verify(requestAccountContactQueryService, times(2)).getRequestAccountServiceContact(request);
-		verify(fileDocumentService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
+		verify(fileDocumentStorageService, times(1)).getFileDTO(officialDocFileInfoDTO.getUuid());
 		verify(competentAuthorityService, times(1))
 				.getCompetentAuthorityDTO(CompetentAuthorityEnum.ENGLAND);
 

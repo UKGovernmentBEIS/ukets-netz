@@ -24,7 +24,8 @@ import java.time.ZoneId;
 import java.util.Date;
 
 @RequiredArgsConstructor
-public abstract class DocumentTemplateCommonParamsAbstractProvider implements DocumentTemplateCommonParamsProvider {
+public abstract class DocumentTemplateCommonParamsAbstractProvider<T extends DocumentTemplateAccountData>
+		implements DocumentTemplateCommonParamsProvider<T> {
     private final RegulatorUserAuthService regulatorUserAuthService;
     private final UserAuthService userAuthService;
     private final CompetentAuthorityProperties competentAuthorityProperties;
@@ -33,15 +34,15 @@ public abstract class DocumentTemplateCommonParamsAbstractProvider implements Do
 
     public abstract String getPermitReferenceId(Long accountId);
 
-    public abstract AccountTemplateParams getAccountTemplateParams(Long accountId);
+    public abstract AccountTemplateParams getAccountTemplateParams(Request request, T accountTemplateData);
 
-    public TemplateParams constructCommonTemplateParams(final Request request,
-                                                        final String signatory) {
+	public TemplateParams constructCommonTemplateParams(final Request request, final String signatory,
+			T accountTemplateData) {
         final Long accountId = request.getAccountId();
         final String permitReferenceId = getPermitReferenceId(accountId);
 
         // account params
-        final AccountTemplateParams accountTemplateParams = getAccountTemplateParams(accountId);
+        final AccountTemplateParams accountTemplateParams = getAccountTemplateParams(request, accountTemplateData);
 
         // CA params
         final CompetentAuthorityEnum competentAuthority = accountTemplateParams.getCompetentAuthority();

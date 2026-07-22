@@ -1,5 +1,11 @@
 package uk.gov.netz.api.workflow.request.core.repository;
 
+import static uk.gov.netz.api.workflow.request.core.domain.RequestTask.NAMED_ENTITY_GRAPH_REQUEST_TASK_REQUEST;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,13 +16,11 @@ import uk.gov.netz.api.workflow.request.core.domain.RequestTask;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskType;
 import uk.gov.netz.api.workflow.request.core.domain.RequestType;
 
-import java.util.List;
-import java.util.Set;
-
-import static uk.gov.netz.api.workflow.request.core.domain.RequestTask.NAMED_ENTITY_GRAPH_REQUEST_TASK_REQUEST;
-
 @Repository
 public interface RequestTaskRepository extends JpaRepository<RequestTask, Long> {
+	
+	@Query(value = "SELECT * FROM request_task WHERE id = :id FOR NO KEY UPDATE", nativeQuery = true)
+    Optional<RequestTask> findByIdForUpdate(Long id);
 
     @Transactional(readOnly = true)
     RequestTask findByProcessTaskId(String processTaskId);

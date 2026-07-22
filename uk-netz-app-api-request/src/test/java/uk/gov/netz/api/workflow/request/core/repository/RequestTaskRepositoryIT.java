@@ -18,6 +18,7 @@ import uk.gov.netz.api.workflow.request.core.domain.RequestType;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -248,5 +249,20 @@ class RequestTaskRepositoryIT extends RequestAbstractTest {
     	//assert
     	assertThat(accountIdsFound).hasSize(2).containsExactlyInAnyOrder(accountId1, accountId2);
 	}
+    
+    @Test
+    void findByIdForUpdate() {
+        RequestType requestType = createRequestType("DUMMY_REQUEST_TYPE", "descr1", "processdef1", "REPORTING", false, true, false, false, ResourceType.ACCOUNT);
+        RequestTaskType requestTaskType = createRequestTaskType("DUMMY_REQUEST_TYPE_APPLICATION_REVIEW", requestType, false, "key1", false, false);
+        Request request = createRequest(null, CompetentAuthorityEnum.ENGLAND, null, requestType, "procInstId1", "IN_PROGRESS", LocalDateTime.now());
+        RequestTask requestTask = createRequestTask("assignee", request, requestTaskType, "t1", LocalDateTime.now());
+
+        flushAndClear();
+
+        Optional<RequestTask> result = repository.findByIdForUpdate(requestTask.getId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(requestTask.getId());
+    }
     
 }

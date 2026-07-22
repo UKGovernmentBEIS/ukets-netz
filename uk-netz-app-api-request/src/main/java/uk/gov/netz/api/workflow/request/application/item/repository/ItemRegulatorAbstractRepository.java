@@ -18,12 +18,10 @@ import uk.gov.netz.api.workflow.request.application.item.domain.dto.ItemSearchCr
 import uk.gov.netz.api.workflow.request.core.domain.QRequest;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestResource;
 import uk.gov.netz.api.workflow.request.core.domain.QRequestTask;
-import uk.gov.netz.api.workflow.request.core.domain.constants.RequestTypes;
 
 import java.util.Map;
 import java.util.Set;
 
-@Repository
 public abstract class ItemRegulatorAbstractRepository {
 
     @PersistenceContext
@@ -63,7 +61,7 @@ public abstract class ItemRegulatorAbstractRepository {
         }
 
         jpaQuery.where(constructWherePredicate(userId, assignmentType, request, requestTask, requestResource,
-                    scopedCARequestTaskTypes, searchCriteria.getRequestType(), searchCriteria.getSearchTerm()))
+                    scopedCARequestTaskTypes, searchCriteria))
                 .orderBy(searchCriteria.getOrderBy().getOrderSpecifier())
                 .offset((long)paging.getPageNumber() * paging.getPageSize())
                 .limit(paging.getPageSize());
@@ -78,8 +76,10 @@ public abstract class ItemRegulatorAbstractRepository {
     private Predicate constructWherePredicate(String userId, ItemAssignmentType assignmentType,
                                               QRequest request, QRequestTask requestTask, QRequestResource requestResource,
                                               Map<CompetentAuthorityEnum, Set<String>> scopedCARequestTaskTypes,
-                                              String requestType,
-                                              String searchTerm) {
+                                              ItemSearchCriteriaDTO searchCriteria) {
+        String requestType = searchCriteria.getRequestType();
+        String searchTerm = searchCriteria.getSearchTerm();
+
         BooleanExpression whereClause = ItemRepoUtils
             .constructCARequestTaskScopeWhereClause(scopedCARequestTaskTypes, requestTask, requestResource);
 
@@ -97,7 +97,7 @@ public abstract class ItemRegulatorAbstractRepository {
             whereClause = whereClause.and(buildSearchTermWhereClause(searchTerm));
         }
 
-        if(ItemAssignmentType.ME == assignmentType && StringUtils.isBlank(requestType)) {
+        if(ItemAssignmentType.ME == assignmentType && searchCriteria.hasNoFilters()) {
             whereClause = whereClause.or(ItemRepoUtils.createSystemNotificationWhereClause(request, requestTask, requestResource, userId));
         }
 

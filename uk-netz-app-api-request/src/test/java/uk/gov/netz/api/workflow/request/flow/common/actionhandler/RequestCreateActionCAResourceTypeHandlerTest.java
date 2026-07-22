@@ -177,7 +177,7 @@ class RequestCreateActionCAResourceTypeHandlerTest {
             public RequestCreateValidationResult validateAction(CompetentAuthorityEnum competentAuthority, TestRequestCreateActionPayload payload) {
                 return RequestCreateValidationResult.builder()
                         .valid(true)
-                        .isAvailable(false)
+                        .available(false)
                         .build();
             }
         };
@@ -198,7 +198,7 @@ class RequestCreateActionCAResourceTypeHandlerTest {
         assertEquals(ErrorCode.REQUEST_CREATE_ACTION_NOT_ALLOWED, businessException.getErrorCode());
         assertTrue(Arrays.asList(businessException.getData()).contains(RequestCreateValidationResult.builder()
                 .valid(true)
-                .isAvailable(false)
+                .available(false)
                 .build()));
         verify(competentAuthorityService, times(1)).exclusiveLockCompetentAuthority(CompetentAuthorityEnum.ENGLAND);
     }

@@ -20,6 +20,7 @@ public class OfficialNoticeGeneratorService {
     private final RequestAccountContactQueryService requestAccountContactQueryService;
     private final DecisionNotificationUsersService decisionNotificationUsersService;
     private final DocumentTemplateOfficialNoticeParamsProvider documentTemplateOfficialNoticeParamsProvider;
+    private final DocumentTemplateAccountDataCollectFromAccountService<?> documentTemplateAccountDataCollectFromAccountService;
     private final FileDocumentGenerateServiceDelegator fileDocumentGenerateServiceDelegator;
 
     public FileInfoDTO generate(Request request, 
@@ -38,6 +39,7 @@ public class OfficialNoticeGeneratorService {
                 .accountPrimaryContact(accountPrimaryContact)
                 .toRecipientEmail(accountPrimaryContact.getEmail())
                 .ccRecipientsEmails(decisionNotificationUsersService.findUserEmails(decisionNotification))
+                .accountData(documentTemplateAccountDataCollectFromAccountService.collect(request.getAccountId()))
                 .build()
         );
 

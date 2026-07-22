@@ -6,8 +6,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.netz.api.common.exception.BusinessException;
-import uk.gov.netz.api.files.documents.service.FileDocumentTokenService;
+import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
+import uk.gov.netz.api.files.documents.service.storage.FileDocumentStorageService;
+import uk.gov.netz.api.token.FileToken;
+import uk.gov.netz.api.workflow.request.core.domain.RequestAction;
 import uk.gov.netz.api.workflow.request.core.repository.RequestActionRepository;
+import uk.gov.netz.api.workflow.request.flow.rfi.domain.RfiSubmittedRequestActionPayload;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -30,7 +34,30 @@ class RequestActionFileDocumentServiceTest {
     private RequestActionRepository requestActionRepository;
 
     @Mock
-    private FileDocumentTokenService fileDocumentTokenService;
+    private FileDocumentStorageService fileDocumentStorageService;
+    
+    @Test
+    void generateGetFileDocumentToken(){
+    	Long requestActionId = 1L;
+        UUID documentUuid = UUID.randomUUID();
+        RfiSubmittedRequestActionPayload payload = RfiSubmittedRequestActionPayload
+            .builder()
+            .officialDocument(FileInfoDTO.builder().uuid(documentUuid.toString()).name("name").build())
+            .build();
+        RequestAction requestAction = RequestAction.builder().id(requestActionId).payload(payload).build();
+
+        when(requestActionRepository.findById(requestActionId)).thenReturn(Optional.of(requestAction));
+        
+        FileToken expectedResult = FileToken.builder().build();
+        
+        when(fileDocumentStorageService.generateGetFileDocumentToken(documentUuid.toString())).thenReturn(expectedResult);
+
+        FileToken result = service.generateGetFileDocumentToken(requestActionId, documentUuid);
+        assertThat(result).isEqualTo(expectedResult);
+
+        verify(requestActionRepository, times(1)).findById(requestActionId);
+        verify(fileDocumentStorageService, times(1)).generateGetFileDocumentToken(documentUuid.toString());
+    }
 
 
     @Test
@@ -46,6 +73,6 @@ class RequestActionFileDocumentServiceTest {
         assertThat(businessException.getErrorCode()).isEqualTo(RESOURCE_NOT_FOUND);
 
         verify(requestActionRepository, times(1)).findById(requestActionId);
-        verifyNoInteractions(fileDocumentTokenService);
+        verifyNoInteractions(fileDocumentStorageService);
     }
 }

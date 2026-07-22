@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import jakarta.persistence.EntityManager;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.common.constants.RoleTypeConstants;
@@ -15,6 +17,7 @@ import uk.gov.netz.api.workflow.request.core.repository.RequestTaskRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +36,9 @@ class RequestTaskServiceTest {
 
     @Mock
     private AuthorizationRulesQueryService authorizationRulesQueryService;
+    
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void findTasksByRequestIdAndRoleType() {
@@ -140,5 +146,18 @@ class RequestTaskServiceTest {
         verify(authorizationRulesQueryService, times(1)).
             findResourceSubTypesByResourceTypeAndRoleType(ResourceType.REQUEST_TASK, RoleTypeConstants.REGULATOR);
         verify(requestTaskRepository, times(1)).findByRequestId(requestId);
+    }
+    
+    @Test
+    void findTaskByIdForUpdate_whenFound_returnsTaskAndRefreshes() {
+        Long id = 1L;
+        RequestTask requestTask = RequestTask.builder().id(id).build();
+        when(requestTaskRepository.findByIdForUpdate(id)).thenReturn(Optional.of(requestTask));
+
+        RequestTask result = requestTaskService.findTaskByIdForUpdate(id);
+
+        assertThat(result).isEqualTo(requestTask);
+        verify(requestTaskRepository).findByIdForUpdate(id);
+        verify(entityManager).refresh(requestTask);
     }
 }

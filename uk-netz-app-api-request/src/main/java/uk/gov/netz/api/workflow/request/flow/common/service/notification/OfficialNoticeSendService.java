@@ -7,7 +7,7 @@ import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityDTO;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityService;
 import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
-import uk.gov.netz.api.files.documents.service.FileDocumentService;
+import uk.gov.netz.api.files.documents.service.storage.FileDocumentStorageService;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailData;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailNotificationTemplateData;
 import uk.gov.netz.api.notificationapi.mail.service.NotificationEmailService;
@@ -32,7 +32,7 @@ public class OfficialNoticeSendService {
 
     private final RequestAccountContactQueryService requestAccountContactQueryService;
     private final NotificationEmailService<EmailNotificationTemplateData> notificationEmailService;
-    private final FileDocumentService fileDocumentService;
+    private final FileDocumentStorageService fileDocumentStorageService;
     private final CompetentAuthorityService competentAuthorityService;
 
     public void sendOfficialNotice(List<FileInfoDTO> attachments, Request request) {
@@ -43,7 +43,8 @@ public class OfficialNoticeSendService {
                                    List<String> ccRecipientsEmails) {
         this.sendOfficialNotice(attachments, request, ccRecipientsEmails, Collections.emptyList());
     }
-
+    
+    //TODO refactor
     public void sendOfficialNotice(List<FileInfoDTO> attachments, Request request,
                                    List<String> ccRecipientsEmails, List<String> bccRecipientsEmails) {
         final UserInfoDTO accountPrimaryContact = requestAccountContactQueryService.getRequestAccountPrimaryContact(request)
@@ -88,7 +89,7 @@ public class OfficialNoticeSendService {
                         .attachments(attachments.stream().collect(
                                         Collectors.toMap(
                                                 FileInfoDTO::getName,
-                                                att -> fileDocumentService.getFileDTO(att.getUuid()).getFileContent())
+										att -> fileDocumentStorageService.getFileDTO(att.getUuid()).getFileContent())
                                 )
                         )
                         .build(),

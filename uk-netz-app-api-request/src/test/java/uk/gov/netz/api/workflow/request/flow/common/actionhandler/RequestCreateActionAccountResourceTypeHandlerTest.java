@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.netz.api.account.domain.enumeration.AccountStatus;
 import uk.gov.netz.api.account.service.AccountQueryService;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.common.exception.BusinessException;
@@ -16,6 +17,7 @@ import uk.gov.netz.api.workflow.request.flow.common.service.RequestCreateByReque
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -42,16 +44,32 @@ class RequestCreateActionAccountResourceTypeHandlerTest {
         requestCreateByAccountValidator = new RequestCreateByAccountValidator() {
 
             @Override
+            public RequestCreateValidationResult checkAvailability(Long accountId) {
+                return RequestCreateValidationResult.builder()
+                    .valid(true)
+                    .build();
+            }
+
+            @Override
+            public RequestCreateValidationResult validateCreation(Long accountId, RequestCreateActionPayload payload) {
+                return null;
+            }
+
+            @Override
+            public Set<AccountStatus> getApplicableAccountStatuses() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getMutuallyExclusiveRequests() {
+                return Set.of();
+            }
+
+            @Override
             public String getRequestType() {
                 return "requestType1";
             }
 
-            @Override
-            public RequestCreateValidationResult validateAction(Long accountId) {
-                return RequestCreateValidationResult.builder()
-                        .valid(true)
-                        .build();
-            }
         };
 
         requestAccountCreateActionHandler = new RequestAccountCreateActionHandler<>() {
@@ -91,15 +109,30 @@ class RequestCreateActionAccountResourceTypeHandlerTest {
         requestCreateByAccountValidator = new RequestCreateByAccountValidator() {
 
             @Override
-            public String getRequestType() {
-                return "requestType2";
+            public RequestCreateValidationResult checkAvailability(Long accountId) {
+                return RequestCreateValidationResult.builder()
+                    .valid(true)
+                    .build();
             }
 
             @Override
-            public RequestCreateValidationResult validateAction(Long accountId) {
-                return RequestCreateValidationResult.builder()
-                        .valid(true)
-                        .build();
+            public RequestCreateValidationResult validateCreation(Long accountId, RequestCreateActionPayload payload) {
+                return null;
+            }
+
+            @Override
+            public Set<AccountStatus> getApplicableAccountStatuses() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getMutuallyExclusiveRequests() {
+                return Set.of();
+            }
+
+            @Override
+            public String getRequestType() {
+                return "requestType2";
             }
         };
 
@@ -139,15 +172,30 @@ class RequestCreateActionAccountResourceTypeHandlerTest {
         requestCreateByAccountValidator = new RequestCreateByAccountValidator() {
 
             @Override
-            public String getRequestType() {
-                return "requestType1";
+            public RequestCreateValidationResult checkAvailability(Long accountId) {
+                return null;
             }
 
             @Override
-            public RequestCreateValidationResult validateAction(Long accountId) {
+            public RequestCreateValidationResult validateCreation(Long accountId, RequestCreateActionPayload payload) {
                 return RequestCreateValidationResult.builder()
-                        .valid(false)
-                        .build();
+                    .valid(false)
+                    .build();
+            }
+
+            @Override
+            public Set<AccountStatus> getApplicableAccountStatuses() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getMutuallyExclusiveRequests() {
+                return Set.of();
+            }
+
+            @Override
+            public String getRequestType() {
+                return "requestType1";
             }
         };
 
@@ -177,16 +225,31 @@ class RequestCreateActionAccountResourceTypeHandlerTest {
         requestCreateByAccountValidator = new RequestCreateByAccountValidator() {
 
             @Override
-            public String getRequestType() {
-                return "requestType1";
+            public RequestCreateValidationResult checkAvailability(Long accountId) {
+                return null;
             }
 
             @Override
-            public RequestCreateValidationResult validateAction(Long accountId) {
+            public RequestCreateValidationResult validateCreation(Long accountId, RequestCreateActionPayload payload) {
                 return RequestCreateValidationResult.builder()
                         .valid(true)
-                        .isAvailable(false)
+                        .available(false)
                         .build();
+            }
+
+            @Override
+            public Set<AccountStatus> getApplicableAccountStatuses() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getMutuallyExclusiveRequests() {
+                return Set.of();
+            }
+
+            @Override
+            public String getRequestType() {
+                return "requestType1";
             }
         };
 
@@ -207,7 +270,7 @@ class RequestCreateActionAccountResourceTypeHandlerTest {
         assertEquals(ErrorCode.REQUEST_CREATE_ACTION_NOT_ALLOWED, businessException.getErrorCode());
         assertTrue(Arrays.asList(businessException.getData()).contains(RequestCreateValidationResult.builder()
                 .valid(true)
-                .isAvailable(false)
+                .available(false)
                 .build()));
         verify(accountQueryService, times(1)).exclusiveLockAccount(1L);
     }
@@ -217,15 +280,30 @@ class RequestCreateActionAccountResourceTypeHandlerTest {
         requestCreateByAccountValidator = new RequestCreateByAccountValidator() {
 
             @Override
-            public String getRequestType() {
-                return "requestType1";
+            public RequestCreateValidationResult checkAvailability(Long accountId) {
+                return RequestCreateValidationResult.builder()
+                    .valid(true)
+                    .build();
             }
 
             @Override
-            public RequestCreateValidationResult validateAction(Long accountId) {
-                return RequestCreateValidationResult.builder()
-                        .valid(true)
-                        .build();
+            public RequestCreateValidationResult validateCreation(Long accountId, RequestCreateActionPayload payload) {
+                return null;
+            }
+
+            @Override
+            public Set<AccountStatus> getApplicableAccountStatuses() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getMutuallyExclusiveRequests() {
+                return Set.of();
+            }
+
+            @Override
+            public String getRequestType() {
+                return "requestType1";
             }
         };
 

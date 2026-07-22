@@ -3,6 +3,8 @@ package uk.gov.netz.api.workflow.request.core.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
 import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.authorization.rules.services.AuthorizationRulesQueryService;
 import uk.gov.netz.api.common.exception.BusinessException;
@@ -22,10 +24,19 @@ public class RequestTaskService {
 
     private final RequestTaskRepository requestTaskRepository;
     private final AuthorizationRulesQueryService authorizationRulesQueryService;
+    private final EntityManager entityManager;
 
     public RequestTask findTaskById(Long id) {
         return requestTaskRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+    
+    public RequestTask findTaskByIdForUpdate(Long id) {
+        RequestTask requestTask = requestTaskRepository.findByIdForUpdate(id)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+		entityManager.refresh(requestTask); // bypass the first-level cache entirely and forces a reload from DB to
+											// avoid stale cache @Version conflict during flush
+        return requestTask;
     }
     
     public RequestTask findByTypeAndRequestId(String requestTaskType, String requestId) {

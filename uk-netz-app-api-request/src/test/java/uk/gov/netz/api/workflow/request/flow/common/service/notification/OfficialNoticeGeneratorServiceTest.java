@@ -6,12 +6,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import uk.gov.netz.api.authorization.rules.domain.ResourceType;
 import uk.gov.netz.api.documenttemplate.domain.DocumentTemplateType;
 import uk.gov.netz.api.documenttemplate.domain.templateparams.TemplateParams;
 import uk.gov.netz.api.documenttemplate.service.FileDocumentGenerateServiceDelegator;
 import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
 import uk.gov.netz.api.userinfoapi.UserInfoDTO;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
+import uk.gov.netz.api.workflow.request.core.domain.RequestResource;
 import uk.gov.netz.api.workflow.request.flow.common.domain.DecisionNotification;
 import uk.gov.netz.api.workflow.request.flow.common.service.DecisionNotificationUsersService;
 import uk.gov.netz.api.workflow.request.flow.common.service.RequestAccountContactQueryService;
@@ -43,10 +45,21 @@ class OfficialNoticeGeneratorServiceTest {
 
     @Mock
     private FileDocumentGenerateServiceDelegator fileDocumentGenerateServiceDelegator;
+    
+    @Mock
+    private DocumentTemplateAccountDataCollectFromAccountService templateAccountDataCollectFromAccountService;
 
     @Test
     void generate() {
-        Request request = Request.builder().build();
+    	Long accountId = 5L;
+        Request request = Request.builder()
+        		.requestResources(
+                        List.of(RequestResource
+                            .builder()
+                            .resourceId(String.valueOf(accountId))
+                            .resourceType(ResourceType.ACCOUNT)
+                            .build()))
+        		.build();
         String documentTemplateContextActionType =
             DocumentTemplateGenerationContextActionType.RDE_SUBMIT;
         String documentTemplateType = DocumentTemplateType.IN_RDE;
@@ -57,6 +70,8 @@ class OfficialNoticeGeneratorServiceTest {
         List<String> decisionNotificationUserEmails = List.of("operator@netz.uk");
         String filename = "rde.pdf";
         UserInfoDTO accountPrimaryContactInfo = UserInfoDTO.builder().email("user@netz.uk").build();
+        DocumentTemplateAccountData documentTemplateAccountData = new DocumentTemplateAccountData() {
+		};
         DocumentTemplateParamsSourceData documentTemplateSourceParams =
             DocumentTemplateParamsSourceData.builder()
                 .contextActionType(documentTemplateContextActionType)
@@ -65,18 +80,21 @@ class OfficialNoticeGeneratorServiceTest {
                 .accountPrimaryContact(accountPrimaryContactInfo)
                 .toRecipientEmail(accountPrimaryContactInfo.getEmail())
                 .ccRecipientsEmails(decisionNotificationUserEmails)
+                .accountData(documentTemplateAccountData)
                 .build();
         TemplateParams templateParams = TemplateParams.builder().build();
         FileInfoDTO officialNotice = FileInfoDTO.builder()
             .name("offDoc.pdf")
             .uuid(UUID.randomUUID().toString())
             .build();
+        
 
         when(requestAccountContactQueryService.getRequestAccountPrimaryContact(request))
             .thenReturn(Optional.of(accountPrimaryContactInfo));
         when(decisionNotificationUsersService.findUserEmails(decisionNotification)).thenReturn(decisionNotificationUserEmails);
         when(documentTemplateOfficialNoticeParamsProvider.constructTemplateParams(documentTemplateSourceParams))
             .thenReturn(templateParams);
+        when(templateAccountDataCollectFromAccountService.collect(accountId)).thenReturn(documentTemplateAccountData);
         when(fileDocumentGenerateServiceDelegator.generateAndSaveFileDocument(documentTemplateType, templateParams, filename))
             .thenReturn(officialNotice);
 
@@ -89,6 +107,7 @@ class OfficialNoticeGeneratorServiceTest {
         verify(documentTemplateOfficialNoticeParamsProvider, times(1)).constructTemplateParams(documentTemplateSourceParams);
         verify(fileDocumentGenerateServiceDelegator, times(1))
             .generateAndSaveFileDocument(documentTemplateType, templateParams, filename);
+        verify(templateAccountDataCollectFromAccountService).collect(accountId);
 
         assertEquals(officialNotice, generatedOfficialNotice);
     }
