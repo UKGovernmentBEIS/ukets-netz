@@ -32,6 +32,7 @@ class DocumentTemplateUpdateServiceTest {
         Long documentTemplateId = 1L;
         FileDTO file = FileDTO.builder()
                 .fileName("name")
+                .createdBy("user")
                 .build();
         
         Long existingFileDocumentTemplateId = 2L;
@@ -46,14 +47,14 @@ class DocumentTemplateUpdateServiceTest {
         Long fileDocumentTemplateId = 5L;
         
         when(documentTemplateQueryService.getDocumentTemplateById(documentTemplateId)).thenReturn(documentTemplate);
-        when(fileDocumentTemplateService.createFileDocumentTemplate(file, "user")).thenReturn(fileDocumentTemplateId);
+        when(fileDocumentTemplateService.createFileDocumentTemplate(file)).thenReturn(fileDocumentTemplateId);
 
-        service.updateDocumentTemplateFile(documentTemplateId, file, "user");
+        service.updateDocumentTemplateFile(documentTemplateId, file);
 
         assertThat(documentTemplate.getFileDocumentTemplateId()).isEqualTo(fileDocumentTemplateId);
         verify(documentTemplateQueryService, times(1)).getDocumentTemplateById(documentTemplateId);
         verify(fileDocumentTemplateService, times(1)).deleteFileDocumentTemplateById(existingFileDocumentTemplateId);
-        verify(fileDocumentTemplateService, times(1)).createFileDocumentTemplate(file, "user");
+        verify(fileDocumentTemplateService, times(1)).createFileDocumentTemplate(file);
     }
 
 }

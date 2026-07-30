@@ -15,10 +15,10 @@ public class DocumentTemplateUpdateService {
     private final FileDocumentTemplateService fileDocumentTemplateService;
 
     @Transactional
-    public void updateDocumentTemplateFile(Long documentTemplateId, FileDTO file, String authUserId) {
+    public void updateDocumentTemplateFile(Long documentTemplateId, FileDTO file) {
         final DocumentTemplate documentTemplate = documentTemplateQueryService.getDocumentTemplateById(documentTemplateId);
         fileDocumentTemplateService.deleteFileDocumentTemplateById(documentTemplate.getFileDocumentTemplateId());
-        Long fileDocumentTemplateId = fileDocumentTemplateService.createFileDocumentTemplate(file, authUserId);
+        Long fileDocumentTemplateId = fileDocumentTemplateService.createFileDocumentTemplate(file);
         documentTemplate.setFileDocumentTemplateId(fileDocumentTemplateId);        
     }
 }
