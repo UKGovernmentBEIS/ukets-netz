@@ -1,5 +1,6 @@
 package uk.gov.netz.api.files.common.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -23,5 +24,7 @@ public class FileDTO {
     private byte[] fileContent;
     
     private long fileSize; // bytes
-    
+
+    @NotBlank
+    private String createdBy;
 }

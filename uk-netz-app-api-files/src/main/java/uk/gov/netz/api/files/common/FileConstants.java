@@ -7,6 +7,6 @@ public class FileConstants {
     
     public static final int MIN_FILE_SIZE = 0;
     public static final int MAX_FILE_SIZE = 20971520; //20 Mbytes
-
-    
+    public static final int MAX_SYSTEM_GENERATED_FILE_SIZE = 52428800; //50 Mbytes
+    public static final String SYSTEM_USER = "system";
 }

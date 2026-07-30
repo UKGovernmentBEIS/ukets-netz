@@ -106,6 +106,7 @@ class FileNoteServiceTest {
             .fileSize(contentBytes.length)
             .fileType("application/pdf")
             .fileContent(contentBytes)
+            .createdBy("user")
             .build();
         final FileStatus status = FileStatus.PENDING;
 
@@ -114,12 +115,13 @@ class FileNoteServiceTest {
             .fileSize(contentBytes.length)
             .fileType("application/pdf")
             .fileContent(contentBytes)
+            .createdBy("user")
             .build();
         final Long accountId = 1L;
         
         when(fileNoteMapper.toFileNote(fileDTO)).thenReturn(fileNote);
         
-        final FileUuidDTO fileUuidDTO = fileNoteService.uploadAccountFile("user", fileDTO, accountId);
+        final FileUuidDTO fileUuidDTO = fileNoteService.uploadAccountFile(fileDTO, accountId);
 
         assertThat(fileUuidDTO).isNotNull();
         
@@ -147,6 +149,7 @@ class FileNoteServiceTest {
             .fileSize(contentBytes.length)
             .fileType("application/pdf")
             .fileContent(contentBytes)
+            .createdBy("user")
             .build();
         final FileStatus status = FileStatus.PENDING;
 
@@ -155,12 +158,13 @@ class FileNoteServiceTest {
             .fileSize(contentBytes.length)
             .fileType("application/pdf")
             .fileContent(contentBytes)
+            .createdBy("user")
             .build();
         final String requestId = "requestId";
 
         when(fileNoteMapper.toFileNote(fileDTO)).thenReturn(fileNote);
 
-        final FileUuidDTO fileUuidDTO = fileNoteService.uploadRequestFile("user", fileDTO, requestId);
+        final FileUuidDTO fileUuidDTO = fileNoteService.uploadRequestFile(fileDTO, requestId);
 
         assertThat(fileUuidDTO).isNotNull();
 

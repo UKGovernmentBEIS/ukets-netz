@@ -21,7 +21,12 @@ public class FileSizeValidatorService implements FileValidatorService {
         if (fileSize <= FileConstants.MIN_FILE_SIZE) {
             throw new BusinessException(ErrorCode.MIN_FILE_SIZE_ERROR, fileSize);
         }
-        if (fileSize >= FileConstants.MAX_FILE_SIZE) {
+
+        long maxAllowedSize = FileConstants.SYSTEM_USER.equals(fileDTO.getCreatedBy())
+                ? FileConstants.MAX_SYSTEM_GENERATED_FILE_SIZE
+                : FileConstants.MAX_FILE_SIZE;
+
+        if (fileSize >= maxAllowedSize) {
             throw new BusinessException(ErrorCode.MAX_FILE_SIZE_ERROR, fileSize);
         }
     }

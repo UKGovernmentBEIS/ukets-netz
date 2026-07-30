@@ -46,6 +46,7 @@ class FileDocumentTemplateMapperTest {
         assertThat(result.getFileContent()).isEqualTo(content);
         assertThat(result.getFileType()).isEqualTo("docx");
         assertThat(result.getFileSize()).isEqualTo(content.length);
+        assertThat(result.getCreatedBy()).isEqualTo("user");
     }
 
     @Test
@@ -80,9 +81,10 @@ class FileDocumentTemplateMapperTest {
             .fileSize(10)
             .fileType("application/pdf")
             .fileContent(content)
+            .createdBy(userId)
             .build();
 
-        FileDocumentTemplate fileDocumentTemplate = mapper.toFileDocumentTemplate(fileDTO, fileStatus, userId);
+        FileDocumentTemplate fileDocumentTemplate = mapper.toFileDocumentTemplate(fileDTO, fileStatus);
 
         assertNotNull(fileDocumentTemplate);
         assertNotNull(fileDocumentTemplate.getUuid());

@@ -42,9 +42,9 @@ public class FileDocumentTemplateService {
     }
 
     @Transactional
-    public Long createFileDocumentTemplate(@Valid FileDTO fileDTO, String authUserId) {
+    public Long createFileDocumentTemplate(@Valid FileDTO fileDTO) {
         validateFile(fileDTO);
-        FileDocumentTemplate fileDocumentTemplate = fileDocumentTemplateMapper.toFileDocumentTemplate(fileDTO, FileStatus.SUBMITTED, authUserId);
+        FileDocumentTemplate fileDocumentTemplate = fileDocumentTemplateMapper.toFileDocumentTemplate(fileDTO, FileStatus.SUBMITTED);
         fileDocumentTemplateRepository.save(fileDocumentTemplate);
         return fileDocumentTemplate.getId();
     }

@@ -42,21 +42,17 @@ public class FileAttachmentService {
     private static final FileMapper fileMapper = Mappers.getMapper(FileMapper.class);
     
     @Transactional
-    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status, 
-    		String createdBy) {
-    	return createFileAttachment(fileDTO, status, UUID.randomUUID().toString(), createdBy);
+    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status) {
+    	return createFileAttachment(fileDTO, status, UUID.randomUUID().toString());
     }
 
     @Transactional
-    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status, String fileUuid,
-                                       String createdBy) {
-
+    public String createFileAttachment(@Valid FileDTO fileDTO, FileStatus status, String fileUuid) {
         fileValidators.forEach(validator -> validator.validate(fileDTO));
 
         FileAttachment attachment = fileAttachmentMapper.toFileAttachment(fileDTO);
         attachment.setUuid(fileUuid);
         attachment.setStatus(status);
-        attachment.setCreatedBy(createdBy);
 
         fileAttachmentRepository.save(attachment);
 

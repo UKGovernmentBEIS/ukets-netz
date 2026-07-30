@@ -139,9 +139,10 @@ class FileDocumentTemplateServiceTest {
             .fileSize(2)
             .fileType(FileType.DOCX.getMimeTypes().iterator().next())
             .fileContent(fileContent.getBytes())
+            .createdBy(authUserId)
             .build();
 
-        service.createFileDocumentTemplate(fileDTO, authUserId);
+        service.createFileDocumentTemplate(fileDTO);
 
         ArgumentCaptor<FileDocumentTemplate> fileDocumentTemplateCaptor = ArgumentCaptor.forClass(FileDocumentTemplate.class);
         verify(fileDocumentTemplateRepository, times(1)).save(fileDocumentTemplateCaptor.capture());
@@ -167,10 +168,11 @@ class FileDocumentTemplateServiceTest {
             .fileSize(2)
             .fileType("application/pdf")
             .fileContent(fileContent.getBytes())
+            .createdBy(authUserId)
             .build();
 
         BusinessException be = assertThrows(BusinessException.class,
-            () -> service.createFileDocumentTemplate(fileDTO, authUserId));
+            () -> service.createFileDocumentTemplate(fileDTO));
 
         assertEquals(ErrorCode.INVALID_FILE_TYPE, be.getErrorCode());
 

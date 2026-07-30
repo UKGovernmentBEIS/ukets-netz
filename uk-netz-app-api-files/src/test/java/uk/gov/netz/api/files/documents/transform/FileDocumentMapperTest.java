@@ -44,6 +44,7 @@ class FileDocumentMapperTest {
         assertThat(result.getFileContent()).isEqualTo(content);
         assertThat(result.getFileType()).isEqualTo("docx");
         assertThat(result.getFileSize()).isEqualTo(content.length);
+        assertThat(result.getCreatedBy()).isEqualTo("user");
     }
     
     @Test

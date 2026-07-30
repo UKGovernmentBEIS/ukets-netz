@@ -67,6 +67,7 @@ class FileDocumentStorageServiceTest {
         
         assertThat(result).isEqualTo(FileDTO.builder()
                 .fileName(name).fileSize(content.length).fileType("docx").fileContent(content)
+                .createdBy("user")
                 .build());
         verify(fileDocumentRepository, times(1)).findByUuid(uuid);
     }

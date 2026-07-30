@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
+import uk.gov.netz.api.files.common.FileConstants;
 import uk.gov.netz.api.files.common.domain.FileStatus;
 import uk.gov.netz.api.files.common.domain.dto.FileDTO;
 import uk.gov.netz.api.files.common.domain.dto.FileInfoDTO;
@@ -72,7 +73,7 @@ public class FileDocumentStorageService {
                 .fileSize(fileContent.length)
                 .uuid(uuid)
                 .status(FileStatus.SUBMITTED)
-                .createdBy("system")
+                .createdBy(FileConstants.SYSTEM_USER)
                 .build();
         fileDocumentRepository.save(fileDocument);
         return FileInfoDTO.builder()

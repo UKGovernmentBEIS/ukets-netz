@@ -1,5 +1,6 @@
 package uk.gov.netz.api.files.notes.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -49,18 +50,18 @@ public class FileNoteService {
             ));
     }
 
-    public FileUuidDTO uploadAccountFile(String userId, FileDTO fileDTO, Long accountId) throws IOException {
+    public FileUuidDTO uploadAccountFile(@Valid final FileDTO fileDTO, Long accountId) throws IOException {
 
-        final FileNote fileNote = this.validateAndCreateFileNote(userId, fileDTO);
+        final FileNote fileNote = this.validateAndCreateFileNote(fileDTO);
         fileNote.setAccountId(accountId);
         fileNoteRepository.save(fileNote);
 
         return FileUuidDTO.builder().uuid(fileNote.getUuid()).build();
     }
     
-    public FileUuidDTO uploadRequestFile(final String userId, final FileDTO fileDTO, final String requestId) throws IOException {
+    public FileUuidDTO uploadRequestFile(@Valid final FileDTO fileDTO, final String requestId) throws IOException {
 
-        final FileNote fileNote = this.validateAndCreateFileNote(userId, fileDTO);
+        final FileNote fileNote = this.validateAndCreateFileNote(fileDTO);
         fileNote.setRequestId(requestId);
         fileNoteRepository.save(fileNote);
 
@@ -75,15 +76,13 @@ public class FileNoteService {
         fileNoteRepository.deleteNoteFilesByUuid(uuidsToStrings(uuids));
     }
 
-    private FileNote validateAndCreateFileNote(final String userId, final FileDTO fileDTO) throws IOException {
-
+    private FileNote validateAndCreateFileNote(final FileDTO fileDTO) throws IOException {
         fileValidators.forEach(validator -> validator.validate(fileDTO));
 
         final FileNote fileNote = fileNoteMapper.toFileNote(fileDTO);
         final String uuid = UUID.randomUUID().toString();
         fileNote.setUuid(uuid);
         fileNote.setStatus(FileStatus.PENDING);
-        fileNote.setCreatedBy(userId);
         
         return fileNote;
     }

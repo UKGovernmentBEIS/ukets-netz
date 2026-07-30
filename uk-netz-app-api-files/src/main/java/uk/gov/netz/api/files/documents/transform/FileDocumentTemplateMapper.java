@@ -19,5 +19,5 @@ public interface FileDocumentTemplateMapper {
     FileInfoDTO toFileInfoDTO(FileDocumentTemplate fileDocumentTemplate);
     
     @Mapping(target = "uuid", expression = "java(UUID.randomUUID().toString())")
-    FileDocumentTemplate toFileDocumentTemplate(FileDTO fileDTO, FileStatus status, String createdBy);
+    FileDocumentTemplate toFileDocumentTemplate(FileDTO fileDTO, FileStatus status);
 }

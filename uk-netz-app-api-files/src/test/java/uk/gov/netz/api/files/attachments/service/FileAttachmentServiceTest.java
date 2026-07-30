@@ -64,6 +64,7 @@ class FileAttachmentServiceTest {
                 .fileSize(contentBytes.length)
                 .fileType("application/pdf")
                 .fileContent(contentBytes)
+                .createdBy("user")
                 .build();
         FileStatus status = FileStatus.PENDING;
         
