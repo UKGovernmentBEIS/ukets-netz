@@ -27,7 +27,7 @@ public class RequestTaskAttachmentUploadService {
     	requestTaskActionFileValidatorResolver.resolve(requestTaskActionType)
 				.forEach(validator -> validator.validate(fileDTO));
 
-		final String attachmentUuid = fileAttachmentService.createFileAttachment(fileDTO, FileStatus.PENDING, authUser.getUserId());
+		final String attachmentUuid = fileAttachmentService.createFileAttachment(fileDTO, FileStatus.PENDING);
         
         requestTaskUploadAttachmentActionHandlerMapper.get(requestTaskActionType).uploadAttachment(requestTaskId,
                 attachmentUuid, fileDTO.getFileName());
