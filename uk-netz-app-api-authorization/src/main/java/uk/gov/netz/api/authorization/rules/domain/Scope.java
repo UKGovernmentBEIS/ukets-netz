@@ -13,4 +13,6 @@ public class Scope {
     public static final String MANAGE_VB = "MANAGE_VB";
     public static final String MANAGE_GUIDANCE = "MANAGE_GUIDANCE";
     public static final String MANAGE_THIRD_PARTY_DATA_PROVIDERS = "MANAGE_THIRD_PARTY_DATA_PROVIDERS";
+    public static final String MANAGE_MI_REPORT_USER_DEFINED = "MANAGE_MI_REPORT_USER_DEFINED";
+
 }
