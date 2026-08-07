@@ -13,8 +13,12 @@ public class MiReportUserDefinedGeneratorDelegator {
 	private final MiReportUserDefinedGenerator miReportUserDefinedGenerator;
 
 	public MiReportUserDefinedResult generateReport(CompetentAuthorityEnum competentAuthority, String sqlQuery) {
+		return generateReport(competentAuthority, sqlQuery, null);
+	}
+
+	public MiReportUserDefinedResult generateReport(CompetentAuthorityEnum competentAuthority, String sqlQuery, Integer maxRows) {
 		return miReportUserDefinedGenerator
-				.generateMiReport(miReportEntityManagerResolver.resolveByCA(competentAuthority), sqlQuery);
+				.generateMiReport(miReportEntityManagerResolver.resolveByCA(competentAuthority), sqlQuery, maxRows);
 	}
 
 	public void validateQuery(String sqlQuery) {

@@ -92,9 +92,10 @@ class MiReportUserDefinedMapperTest {
                 .description(description)
                 .categories(categoryDtos)
                 .lastUpdatedOn(lastUpdatedOn)
+                .favourite(false)
                 .build();
 
-        MiReportUserDefinedDTO actualDTO = mapper.toMiReportUserDefinedDTO(miReportQueryEntity);
+        MiReportUserDefinedDTO actualDTO = mapper.toMiReportUserDefinedDTO(miReportQueryEntity,false);
 
         assertThat(actualDTO).isEqualTo(expectedDTO);
     }

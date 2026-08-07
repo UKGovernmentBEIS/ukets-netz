@@ -13,8 +13,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.netz.api.authorization.core.domain.AppAuthority;
+import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -23,6 +24,8 @@ import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategory
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryMapper;
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryService;
 import uk.gov.netz.api.mireport.userdefined.custom.CustomMiReportQuery;
+import uk.gov.netz.api.mireport.userdefined.favourite.MiReportUserDefinedFavouriteService;
+import uk.gov.netz.api.mireport.userdefined.history.MiReportUserDefinedHistoryService;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -33,8 +36,10 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +57,12 @@ class MiReportUserDefinedServiceTest {
     @Mock
     private MiReportUserDefinedCategoryService miReportUserDefinedCategoryService;
 
+    @Mock
+    private MiReportUserDefinedHistoryService miReportUserDefinedHistoryService;
+
+    @Mock
+    private MiReportUserDefinedFavouriteService miReportUserDefinedFavouriteService;
+
     @BeforeEach
     void setUp() {
         MiReportUserDefinedMapper mapper = Mappers.getMapper(MiReportUserDefinedMapper.class);
@@ -62,7 +73,9 @@ class MiReportUserDefinedServiceTest {
                 miReportUserDefinedRepository,
                 miReportUserDefinedCategoryService,
                 miReportUserDefinedGeneratorDelegator,
-                mapper);
+                mapper,
+                miReportUserDefinedHistoryService,
+                miReportUserDefinedFavouriteService);
     }
 
     @Test
@@ -121,6 +134,8 @@ class MiReportUserDefinedServiceTest {
         final String searchTerm = "Report";
         final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
 
+        final AppUser appUser = getAppUser();
+
         final MiReportUserDefinedEntity entity1 = MiReportUserDefinedEntity.builder()
                 .id(queryId)
                 .reportName(reportName)
@@ -136,11 +151,11 @@ class MiReportUserDefinedServiceTest {
         final Page<MiReportUserDefinedEntity> page = new PageImpl<>(List.of(entity1, entity2));
 
         when(miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, categoryId, "%report%", pageable)).thenReturn(page);
+                CompetentAuthorityEnum.ENGLAND, categoryId, "%report%", appUser.getUserId(), pageable)).thenReturn(page);
 
         // invoke
         MiReportUserDefinedResults actualResults = service.findAllByCA(
-                CompetentAuthorityEnum.ENGLAND, pageNumber, pageSize, categoryId, searchTerm);
+                appUser, pageNumber, pageSize, categoryId, searchTerm, true);
 
         assertThat(actualResults.getTotal()).isEqualTo(2);
         assertThat(actualResults.getQueries()).hasSize(2).containsExactlyInAnyOrder(
@@ -149,7 +164,7 @@ class MiReportUserDefinedServiceTest {
         );
 
         verify(miReportUserDefinedRepository)
-                .findAllByCompetentAuthorityAndFilters(CompetentAuthorityEnum.ENGLAND, categoryId, "%report%", pageable);
+                .findAllByCompetentAuthorityAndFilters(CompetentAuthorityEnum.ENGLAND, categoryId, "%report%", appUser.getUserId(), pageable);
     }
 
     @Test
@@ -157,19 +172,20 @@ class MiReportUserDefinedServiceTest {
         final int pageNumber = 0;
         final int pageSize = 20;
         final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
+        final AppUser appUser = getAppUser();
 
         when(miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, null, pageable))
+                CompetentAuthorityEnum.ENGLAND, null, null, null, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
         MiReportUserDefinedResults actualResults = service.findAllByCA(
-                CompetentAuthorityEnum.ENGLAND, pageNumber, pageSize, null, null);
+                appUser, pageNumber, pageSize, null, null, false);
 
         assertThat(actualResults.getTotal()).isZero();
         assertThat(actualResults.getQueries()).isEmpty();
 
         verify(miReportUserDefinedRepository)
-                .findAllByCompetentAuthorityAndFilters(CompetentAuthorityEnum.ENGLAND, null, null, pageable);
+                .findAllByCompetentAuthorityAndFilters(CompetentAuthorityEnum.ENGLAND, null, null, null, pageable);
     }
 
     @Test
@@ -180,6 +196,7 @@ class MiReportUserDefinedServiceTest {
         final String description = "test description";
         final String userId = "test user id";
         final LocalDateTime lastUpdatedOn = LocalDateTime.of(2023, 9, 10, 12, 0);
+        final AppUser appUser = getAppUser();
 
         final MiReportUserDefinedEntity miReportQueryEntity = MiReportUserDefinedEntity.builder()
                 .queryDefinition(queryDefinition)
@@ -199,10 +216,22 @@ class MiReportUserDefinedServiceTest {
 
         when(miReportUserDefinedRepository.findById(queryId)).thenReturn(Optional.of(miReportQueryEntity));
 
-        // invoke
-        MiReportUserDefinedDTO actualResult = service.findById(queryId);
+        MiReportUserDefinedDTO actualResult = service.findById(appUser, queryId);
 
         assertEquals(actualResult, expectedResult);
+    }
+
+    @Test
+    void findById_setsFavouriteTrueWhenUserFavourited() {
+        final Long queryId = 1L;
+        final AppUser appUser = getAppUser();
+        final MiReportUserDefinedEntity entity = MiReportUserDefinedEntity.builder()
+                .queryDefinition("select 1").reportName("n").build();
+
+        when(miReportUserDefinedRepository.findById(queryId)).thenReturn(Optional.of(entity));
+        when(miReportUserDefinedFavouriteService.isFavourite(appUser, queryId)).thenReturn(true);
+
+        assertThat(service.findById(appUser, queryId).isFavourite()).isTrue();
     }
 
     @Test
@@ -211,6 +240,7 @@ class MiReportUserDefinedServiceTest {
         final String reportName = "test report name";
         final String description = "test description";
         final String userId = "test user id";
+        final AppUser appUser = getAppUser();
         CompetentAuthorityEnum ca = CompetentAuthorityEnum.ENGLAND;
 
         final MiReportUserDefinedDTO miReportQueryDTO = MiReportUserDefinedDTO.builder()
@@ -220,9 +250,10 @@ class MiReportUserDefinedServiceTest {
                 .build();
 
         when(miReportUserDefinedCategoryService.getByIds(new HashSet<>())).thenReturn(new HashSet<>());
+        when(miReportUserDefinedRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // invoke
-        service.create(userId, ca, miReportQueryDTO);
+        service.create(appUser, miReportQueryDTO);
 
         ArgumentCaptor<MiReportUserDefinedEntity> captor = ArgumentCaptor.forClass(MiReportUserDefinedEntity.class);
         verify(miReportUserDefinedRepository).save(captor.capture());
@@ -236,6 +267,7 @@ class MiReportUserDefinedServiceTest {
         assertEquals(userId, miReportQueryEntity.getCreatedBy());
         assertEquals(ca, miReportQueryEntity.getCompetentAuthority());
         assert(miReportQueryEntity.getCategories().isEmpty());
+        verify(miReportUserDefinedHistoryService).recordCreate(appUser, miReportQueryEntity);
     }
 
     @Test
@@ -244,6 +276,7 @@ class MiReportUserDefinedServiceTest {
         final String reportName = "test report name";
         final String description = "test description";
         final String userId = "test user id";
+        final AppUser appUser = getAppUser();
         final Set<Long> categoryIds = Set.of(1L, 2L);
         CompetentAuthorityEnum ca = CompetentAuthorityEnum.ENGLAND;
 
@@ -261,9 +294,10 @@ class MiReportUserDefinedServiceTest {
                 MiReportUserDefinedCategoryEntity.builder().id(1L).name("Category 1").build(),
                 MiReportUserDefinedCategoryEntity.builder().id(2L).name("Category 2").build()
         ));
+        when(miReportUserDefinedRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // invoke
-        service.create(userId, ca, miReportQueryDTO);
+        service.create(appUser, miReportQueryDTO);
 
         ArgumentCaptor<MiReportUserDefinedEntity> captor = ArgumentCaptor.forClass(MiReportUserDefinedEntity.class);
         verify(miReportUserDefinedRepository).save(captor.capture());
@@ -280,6 +314,7 @@ class MiReportUserDefinedServiceTest {
                 MiReportUserDefinedCategoryEntity.builder().id(1L).name("Category 1").build(),
                 MiReportUserDefinedCategoryEntity.builder().id(2L).name("Category 2").build()
         ), miReportQueryEntity.getCategories());
+        verify(miReportUserDefinedHistoryService).recordCreate(appUser, miReportQueryEntity);
     }
 
     @Test
@@ -287,7 +322,7 @@ class MiReportUserDefinedServiceTest {
         final String queryDefinition = "select * from facility_audit";
         final String reportName = "test report name";
         final String description = "test description";
-        final String userId = "test user id";
+        final AppUser appUser = getAppUser();
         CompetentAuthorityEnum ca = CompetentAuthorityEnum.ENGLAND;
 
         final MiReportUserDefinedDTO miReportQueryDTO = MiReportUserDefinedDTO.builder()
@@ -296,16 +331,18 @@ class MiReportUserDefinedServiceTest {
                 .description(description)
                 .build();
 
+
         when(miReportUserDefinedRepository.findIdByReportNameAndCA(reportName, ca))
                 .thenReturn(Optional.of(1L));
 
         // invoke
         final BusinessException be = assertThrows(BusinessException.class,
-                () -> service.create(userId, ca, miReportQueryDTO));
+                () -> service.create(appUser, miReportQueryDTO));
 
         // verify
         assertEquals(ErrorCode.MI_REPORT_NAME_EXISTS_FOR_CA, be.getErrorCode());
         verify(miReportUserDefinedRepository).findIdByReportNameAndCA(reportName, ca);
+        verifyNoInteractions(miReportUserDefinedHistoryService);
     }
 
 
@@ -317,6 +354,7 @@ class MiReportUserDefinedServiceTest {
         final String description = "test description";
         final String userId = "test user id";
         final LocalDateTime lastUpdatedOn = LocalDateTime.of(2023, 9, 10, 12, 0);
+        final AppUser appUser = AppUser.builder().userId(userId).build();
 
         final String queryDefinitionUpdated = "select * from facility_audit fd order by fd.id desc";
         final String reportNameUpdated = "test report name UPDATED";
@@ -326,6 +364,12 @@ class MiReportUserDefinedServiceTest {
                 .reportName(reportNameUpdated)
                 .description(description)
                 .build();
+
+        final MiReportUserDefinedUpdateDTO miReportUserDefinedUpdateDTO = MiReportUserDefinedUpdateDTO.builder()
+                .userDefinedDTO(miReportQueryDTO)
+                .reasonForChange("Updating report name and query definition")
+                .build();
+
 
         final MiReportUserDefinedEntity miReportQueryEntity = MiReportUserDefinedEntity.builder()
                 .queryDefinition(queryDefinition)
@@ -339,9 +383,10 @@ class MiReportUserDefinedServiceTest {
         when(miReportUserDefinedRepository.findById(queryId)).thenReturn(Optional.of(miReportQueryEntity));
         when(miReportUserDefinedRepository.findIdByReportNameAndCA(reportNameUpdated, miReportQueryEntity.getCompetentAuthority()))
                 .thenReturn(Optional.empty());
+        when(miReportUserDefinedRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // invoke
-        service.update(queryId, miReportQueryDTO);
+        service.update(queryId, appUser, miReportUserDefinedUpdateDTO);
 
         ArgumentCaptor<MiReportUserDefinedEntity> captor = ArgumentCaptor.forClass(MiReportUserDefinedEntity.class);
         verify(miReportUserDefinedRepository).save(captor.capture());
@@ -354,6 +399,8 @@ class MiReportUserDefinedServiceTest {
         assertEquals(description, updatedMiReportQueryEntity.getDescription());
         assertEquals(CompetentAuthorityEnum.ENGLAND, updatedMiReportQueryEntity.getCompetentAuthority());
         assertEquals(userId, updatedMiReportQueryEntity.getCreatedBy());
+        verify(miReportUserDefinedHistoryService).recordUpdate(appUser, updatedMiReportQueryEntity,
+                "Updating report name and query definition");
     }
 
     @Test
@@ -365,6 +412,7 @@ class MiReportUserDefinedServiceTest {
         final String description = "test description";
         final String userId = "test user id";
         final LocalDateTime lastUpdatedOn = LocalDateTime.of(2023, 9, 10, 12, 0);
+        final AppUser appUser = AppUser.builder().userId(userId).build();
 
         final String queryDefinitionUpdated = "select * from facility_audit fd order by fd.id desc";
         final String reportNameUpdated = "test report name UPDATED";
@@ -373,6 +421,11 @@ class MiReportUserDefinedServiceTest {
                 .queryDefinition(queryDefinitionUpdated)
                 .reportName(reportNameUpdated)
                 .description(description)
+                .build();
+
+        final MiReportUserDefinedUpdateDTO miReportUserDefinedUpdateDTO = MiReportUserDefinedUpdateDTO.builder()
+                .userDefinedDTO(miReportQueryDTO)
+                .reasonForChange("Updating report name and query definition")
                 .build();
 
         final MiReportUserDefinedEntity miReportQueryEntity = MiReportUserDefinedEntity.builder()
@@ -391,12 +444,13 @@ class MiReportUserDefinedServiceTest {
 
         // invoke
         final BusinessException be = assertThrows(BusinessException.class,
-                () -> service.update(queryId, miReportQueryDTO));
+                () -> service.update(queryId, appUser,miReportUserDefinedUpdateDTO));
 
         // verify
         assertEquals(ErrorCode.MI_REPORT_NAME_EXISTS_FOR_CA, be.getErrorCode());
         verify(miReportUserDefinedRepository).findById(queryId);
         verify(miReportUserDefinedRepository).findIdByReportNameAndCA(reportNameUpdated, miReportQueryEntity.getCompetentAuthority());
+        verifyNoInteractions(miReportUserDefinedHistoryService);
     }
 
     @Test
@@ -448,6 +502,34 @@ class MiReportUserDefinedServiceTest {
 
         assertThat(actualResult).isEqualTo(result);
         verify(miReportUserDefinedGeneratorDelegator, times(1)).generateReport(competentAuthority, customQuery.getSqlQuery());
+    }
+
+    @Test
+    void previewCustomReport() {
+        CompetentAuthorityEnum competentAuthority = CompetentAuthorityEnum.ENGLAND;
+        CustomMiReportQuery customQuery = CustomMiReportQuery.builder().sqlQuery("custom sql query").build();
+
+        MiReportUserDefinedResult result = MiReportUserDefinedResult.builder()
+                .columnNames(List.of("col1"))
+                .build();
+
+        when(miReportUserDefinedGeneratorDelegator.generateReport(competentAuthority, customQuery.getSqlQuery(), 10)).thenReturn(result);
+
+        var actualResult = service.previewCustomReport(competentAuthority, customQuery);
+
+        assertThat(actualResult).isEqualTo(result);
+        verify(miReportUserDefinedGeneratorDelegator, times(1)).generateReport(competentAuthority, customQuery.getSqlQuery(), 10);
+    }
+
+    private AppUser getAppUser() {
+        AppAuthority authority = AppAuthority.builder().competentAuthority(CompetentAuthorityEnum.ENGLAND).build();
+
+        AppUser appUser = new AppUser();
+        appUser.setFirstName("firstName");
+        appUser.setLastName("lastName");
+        appUser.setUserId("test user id");
+        appUser.setAuthorities(List.of(authority));
+        return appUser;
     }
 
 

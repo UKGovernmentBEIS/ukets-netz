@@ -18,7 +18,8 @@ public interface MiReportUserDefinedMapper {
           Set<MiReportUserDefinedCategoryEntity> categoryEntities,
 			CompetentAuthorityEnum competentAuthority, String createdBy);
 
-    MiReportUserDefinedDTO toMiReportUserDefinedDTO(MiReportUserDefinedEntity miReportUserDefinedEntity);
+    @Mapping(target = "favourite", source = "favourite")
+    MiReportUserDefinedDTO toMiReportUserDefinedDTO(MiReportUserDefinedEntity miReportUserDefinedEntity, boolean favourite);
 
     @Mapping(target = "categories", source = "categoryEntities")
     void updateMiReportUserDefinedEntity(

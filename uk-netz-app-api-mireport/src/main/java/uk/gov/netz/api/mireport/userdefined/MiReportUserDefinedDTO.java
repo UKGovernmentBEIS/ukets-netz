@@ -37,4 +37,7 @@ public class MiReportUserDefinedDTO {
     private Set<MiReportUserDefinedCategoryDTO> categories = new HashSet<>();
 
     private LocalDateTime lastUpdatedOn;
+
+    @Builder.Default
+    private boolean favourite = false;
 }

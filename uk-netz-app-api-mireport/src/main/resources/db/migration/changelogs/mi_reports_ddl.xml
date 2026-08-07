@@ -174,4 +174,81 @@
                                  constraintName="mi_report_user_defined_uc"/>
         </rollback>
     </changeSet>
+    <changeSet id="0_1_0_create_mi_report_user_defined_history_table" author="mitzelose@unisystems.gr">
+        <createSequence sequenceName="mi_report_user_defined_history_seq" cycle="false"
+                        incrementBy="1" minValue="0" maxValue="999999999999999999" startValue="1"/>
+        <createTable tableName="mi_report_user_defined_history"
+                     remarks="Append-only change history for user defined reports">
+            <column name="id" type="bigint" remarks="Primary key">
+                <constraints primaryKey="true" primaryKeyName="mi_report_user_defined_history_pk" nullable="false"/>
+            </column>
+            <column name="mi_report_id" type="bigint" remarks="The report this history row refers to">
+                <constraints nullable="false"/>
+            </column>
+            <column name="change_type" type="varchar(50)" remarks="The type of change (CREATE, UPDATE)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitted_by" type="varchar(255)" remarks="User full name that performed the change">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submission_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP" remarks="When the change occurred">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reason_for_change" type="varchar(10000)" remarks="Reason, set on update"/>
+            <column name="report_name" type="varchar(255)" remarks="Report name snapshot">
+                <constraints nullable="false"/>
+            </column>
+            <column name="categories" type="varchar(10000)" remarks="Comma-separated category name snapshot"/>
+            <column name="description" type="varchar(10000)" remarks="Description snapshot"/>
+            <column name="query_definition" type="varchar(10000)" remarks="Query snapshot">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="mi_report_user_defined_history" baseColumnNames="mi_report_id"
+                                 referencedTableName="mi_report_user_defined" referencedColumnNames="id"
+                                 constraintName="fk_mi_rep_user_def_hist_report" onDelete="CASCADE"/>
+        <createIndex tableName="mi_report_user_defined_history" indexName="idx_mi_rep_user_def_history_report_date">
+            <column name="mi_report_id"/>
+            <column name="submission_date"/>
+        </createIndex>
+        <sql>ALTER TABLE mi_report_user_defined_history ADD CONSTRAINT chk_mi_rep_user_def_hist_reason CHECK (change_type != 'UPDATE' OR reason_for_change IS NOT NULL);</sql>
+        <rollback>
+            <sql>ALTER TABLE mi_report_user_defined_history DROP CONSTRAINT chk_mi_rep_user_def_hist_reason;</sql>
+            <dropIndex tableName="mi_report_user_defined_history" indexName="idx_mi_rep_user_def_history_report_date"/>
+            <dropForeignKeyConstraint baseTableName="mi_report_user_defined_history" constraintName="fk_mi_rep_user_def_hist_report"/>
+            <dropTable tableName="mi_report_user_defined_history" cascadeConstraints="true"/>
+            <dropSequence sequenceName="mi_report_user_defined_history_seq"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="0_1_0_create_mi_report_user_defined_favourite" author="mitzelose@unisystems.gr">
+        <createSequence sequenceName="mi_report_user_defined_favourite_seq" cycle="false"
+                        incrementBy="1" minValue="0" maxValue="999999999999999999" startValue="1"/>
+        <createTable tableName="mi_report_user_defined_favourite"
+                     remarks="Ties a user to a user defined mi report they marked as favourite">
+            <column name="id" type="bigint" remarks="The id of the favourite">
+                <constraints primaryKey="true" primaryKeyName="mi_report_user_defined_favourite_pk" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(255)" remarks="The user that set the report as favourite">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mi_report_id" type="bigint" remarks="The favourite user defined report">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="mi_report_user_defined_favourite" columnNames="user_id, mi_report_id"
+                             constraintName="mi_report_user_defined_favourite_uc"/>
+        <addForeignKeyConstraint baseTableName="mi_report_user_defined_favourite" baseColumnNames="mi_report_id"
+                                 referencedTableName="mi_report_user_defined" referencedColumnNames="id"
+                                 constraintName="fk_mi_rep_user_def_fav_report" onDelete="CASCADE"/>
+        <createIndex tableName="mi_report_user_defined_favourite" indexName="idx_mi_rep_user_def_fav_user">
+            <column name="user_id"/>
+        </createIndex>
+        <rollback>
+            <dropIndex tableName="mi_report_user_defined_favourite" indexName="idx_mi_rep_user_def_fav_user"/>
+            <dropForeignKeyConstraint baseTableName="mi_report_user_defined_favourite" constraintName="fk_mi_rep_user_def_fav_report"/>
+            <dropUniqueConstraint tableName="mi_report_user_defined_favourite" constraintName="mi_report_user_defined_favourite_uc"/>
+            <dropTable tableName="mi_report_user_defined_favourite" cascadeConstraints="true"/>
+            <dropSequence sequenceName="mi_report_user_defined_favourite_seq"/>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

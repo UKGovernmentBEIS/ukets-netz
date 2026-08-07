@@ -15,6 +15,8 @@ import uk.gov.netz.api.common.AbstractContainerBaseTest;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryEntity;
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryRepository;
+import uk.gov.netz.api.mireport.userdefined.favourite.MiReportUserDefinedFavouriteEntity;
+import uk.gov.netz.api.mireport.userdefined.favourite.MiReportUserDefinedFavouriteRepository;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -35,10 +37,16 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
     @Autowired
     private MiReportUserDefinedCategoryRepository categoryRepository;
 
+    @Autowired
+    private MiReportUserDefinedFavouriteRepository favouriteRepository;
+
     private final Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "reportName"));
 
     private MiReportUserDefinedCategoryEntity financeCategory;
     private MiReportUserDefinedCategoryEntity complianceCategory;
+
+    private static final String USER_ID = "user-1";
+    private static final String USER_WITHOUT_FAVOURITES = "user-2";
 
     @BeforeEach
     void setUp() {
@@ -55,6 +63,7 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
 
         repository.flush();
         categoryRepository.flush();
+        favouriteRepository.flush();
     }
 
     @Test
@@ -71,7 +80,7 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
     @Test
     void findAllByFilters_withNoFilters_returnsAllForCa() {
         Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, null, pageable);
+                CompetentAuthorityEnum.ENGLAND, null, null, null, pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(3);
     }
@@ -79,7 +88,7 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
     @Test
     void findAllByFilters_filtersByCategory() {
         Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, financeCategory.getId(), null, pageable);
+                CompetentAuthorityEnum.ENGLAND, financeCategory.getId(), null, null, pageable);
 
         assertThat(result.getContent())
                 .extracting(MiReportUserDefinedEntity::getReportName)
@@ -89,7 +98,7 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
     @Test
     void findAllByFilters_filtersByTermOnReportName_caseInsensitive() {
         Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("COMPLIANCE"), pageable);
+                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("COMPLIANCE"), null, pageable);
 
         assertThat(result.getContent())
                 .extracting(MiReportUserDefinedEntity::getReportName)
@@ -99,7 +108,7 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
     @Test
     void findAllByFilters_filtersByTermOnDescription() {
         Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("Yearly"), pageable);
+                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("Yearly"), null, pageable);
 
         assertThat(result.getContent())
                 .extracting(MiReportUserDefinedEntity::getReportName)
@@ -109,7 +118,7 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
     @Test
     void findAllByFilters_escapesLikeWildcards() {
         Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("50%"), pageable);
+                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("50%"), null, pageable);
 
         assertThat(result.getContent())
                 .extracting(MiReportUserDefinedEntity::getReportName)
@@ -171,6 +180,117 @@ class MiReportUserDefinedRepositoryIT extends AbstractContainerBaseTest {
                 .extracting(MiReportUserDefinedEntity::getReportName)
                 .containsExactly("Welsh finance report");
         assertThat(active.get(0).getId()).isNotEqualTo(originalId);   // it's the new row
+    }
+
+    @Test
+    void findAllByFilters_filtersByFavourites_returnsOnlyUsersFavourites() {
+        Long financeReportId = reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND);
+        favourite(financeReportId);
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, null, null, USER_ID, pageable);
+
+        assertThat(result.getContent())
+                .extracting(MiReportUserDefinedEntity::getReportName)
+                .containsExactly("Annual finance report");
+    }
+
+    @Test
+    void findAllByFilters_filtersByFavourites_isScopedPerUser() {
+        favourite(reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, null, null, USER_WITHOUT_FAVOURITES, pageable);
+
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
+    void findAllByFilters_nullUserId_ignoresFavouritesFilter() {
+        favourite(reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, null, null, null, pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    void findAllByFilters_favouritesCombinedWithCategory() {
+        favourite(reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND));
+        favourite(reportId("Compliance overview", CompetentAuthorityEnum.ENGLAND));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, financeCategory.getId(), null, USER_ID, pageable);
+
+        assertThat(result.getContent())
+                .extracting(MiReportUserDefinedEntity::getReportName)
+                .containsExactly("Annual finance report");
+    }
+
+    @Test
+    void findAllByFilters_favouritesDoesNotCrossCompetentAuthority() {
+        favourite(reportId("Welsh finance report", CompetentAuthorityEnum.WALES));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, null, null, USER_ID, pageable);
+
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    private void favourite(Long miReportId) {
+        favouriteRepository.save(MiReportUserDefinedFavouriteEntity.builder()
+                .userId(MiReportUserDefinedRepositoryIT.USER_ID)
+                .miReportId(miReportId)
+                .build());
+        favouriteRepository.flush();
+    }
+
+    @Test
+    void findAllByFilters_favouritesCombinedWithSearchTerm() {
+        favourite(reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND));
+        favourite(reportId("Compliance overview", CompetentAuthorityEnum.ENGLAND));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, null, QuerySearchUtils.toSearchPattern("finance"), USER_ID, pageable);
+
+        assertThat(result.getContent())
+                .extracting(MiReportUserDefinedEntity::getReportName)
+                .containsExactly("Annual finance report");
+    }
+
+    @Test
+    void findAllByFilters_favouritesCombinedWithCategoryAndSearchTerm() {
+        favourite(reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND));
+        favourite(reportId("Compliance overview", CompetentAuthorityEnum.ENGLAND));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, financeCategory.getId(),
+                QuerySearchUtils.toSearchPattern("finance"), USER_ID, pageable);
+
+        assertThat(result.getContent())
+                .extracting(MiReportUserDefinedEntity::getReportName)
+                .containsExactly("Annual finance report");
+    }
+
+    @Test
+    void findAllByFilters_favouritesCategoryAndSearchTerm_noMatches() {
+        favourite(reportId("Annual finance report", CompetentAuthorityEnum.ENGLAND));
+
+        Page<MiReportUserDefinedEntity> result = repository.findAllByCompetentAuthorityAndFilters(
+                CompetentAuthorityEnum.ENGLAND, financeCategory.getId(),
+                QuerySearchUtils.toSearchPattern("compliance"), USER_ID, pageable);
+
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+    }
+
+    private Long reportId(String reportName, CompetentAuthorityEnum ca) {
+        return repository.findAllByCompetentAuthority(ca, pageable).getContent().stream()
+                .filter(r -> r.getReportName().equals(reportName))
+                .findFirst()
+                .orElseThrow()
+                .getId();
     }
 
     private void save(String reportName, String description, CompetentAuthorityEnum ca,

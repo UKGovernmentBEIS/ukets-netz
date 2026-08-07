@@ -41,14 +41,34 @@ class MiReportUserDefinedGeneratorDelegatorTest {
     			.columnNames(List.of("col1"))
     			.build();
     	
-    	when(miReportUserDefinedGenerator.generateMiReport(em, sqlQuery)).thenReturn(result);
+    	when(miReportUserDefinedGenerator.generateMiReport(em, sqlQuery, null)).thenReturn(result);
     	
     	var actualResult = cut.generateReport(competentAuthority, sqlQuery);
     	
     	assertThat(actualResult).isEqualTo(result);
     	verify(miReportEntityManagerResolver, times(1)).resolveByCA(competentAuthority);
-    	verify(miReportUserDefinedGenerator, times(1)).generateMiReport(em, sqlQuery);
+    	verify(miReportUserDefinedGenerator, times(1)).generateMiReport(em, sqlQuery, null);
     }
+
+	@Test
+	void generateReport_withMaxRows() {
+		CompetentAuthorityEnum competentAuthority = CompetentAuthorityEnum.ENGLAND;
+		String sqlQuery = "sql query";
+
+		EntityManager em = Mockito.mock(EntityManager.class);
+		when(miReportEntityManagerResolver.resolveByCA(competentAuthority)).thenReturn(em);
+
+		MiReportUserDefinedResult result = MiReportUserDefinedResult.builder()
+				.columnNames(List.of("col1"))
+				.build();
+
+		when(miReportUserDefinedGenerator.generateMiReport(em, sqlQuery, 10)).thenReturn(result);
+
+		var actualResult = cut.generateReport(competentAuthority, sqlQuery, 10);
+
+		assertThat(actualResult).isEqualTo(result);
+		verify(miReportUserDefinedGenerator, times(1)).generateMiReport(em, sqlQuery, 10);
+	}
 
 	@Test
 	void validateQuery() {

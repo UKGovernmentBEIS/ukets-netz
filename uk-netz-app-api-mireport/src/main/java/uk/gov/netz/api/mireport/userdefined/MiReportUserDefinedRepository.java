@@ -23,7 +23,10 @@ public interface MiReportUserDefinedRepository extends JpaRepository<MiReportUse
 			  and (:categoryId is null or c.id = :categoryId)
 			  and (:term is null
 				   or lower(r.reportName) like :term escape '\\'
-				   or lower(r.description) like :term escape '\\')""",
+				   or lower(r.description) like :term escape '\\')
+			  and (:userId is null
+				   or exists (select 1 from MiReportUserDefinedFavouriteEntity f
+							  where f.miReportId = r.id and f.userId = :userId))""",
 			countQuery = """
 			select count(distinct r) from MiReportUserDefinedEntity r
 			left join r.categories c
@@ -31,11 +34,15 @@ public interface MiReportUserDefinedRepository extends JpaRepository<MiReportUse
 			  and (:categoryId is null or c.id = :categoryId)
 			  and (:term is null
 				   or lower(r.reportName) like :term escape '\\'
-				   or lower(r.description) like :term escape '\\')""")
+				   or lower(r.description) like :term escape '\\')
+			  and (:userId is null
+				   or exists (select 1 from MiReportUserDefinedFavouriteEntity f
+							  where f.miReportId = r.id and f.userId = :userId))""")
 	Page<MiReportUserDefinedEntity> findAllByCompetentAuthorityAndFilters(
 			@Param("competentAuthority") CompetentAuthorityEnum competentAuthority,
 			@Param("categoryId") Long categoryId,
 			@Param("term") String term,
+			@Param("userId") String userId,
 			Pageable pageable);
 
 	@Transactional(readOnly = true)

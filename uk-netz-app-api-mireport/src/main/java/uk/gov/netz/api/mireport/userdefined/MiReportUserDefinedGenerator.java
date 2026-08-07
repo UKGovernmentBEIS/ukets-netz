@@ -37,6 +37,10 @@ class MiReportUserDefinedGenerator {
     private final UserInfoApi userInfoApi;
 
     public MiReportUserDefinedResult generateMiReport(EntityManager entityManager, String sqlQuery) {
+        return generateMiReport(entityManager, sqlQuery, null);
+    }
+
+    public MiReportUserDefinedResult generateMiReport(EntityManager entityManager, String sqlQuery, Integer maxRows) {
         try {
             Session session = entityManager.unwrap(Session.class);
 
@@ -45,6 +49,9 @@ class MiReportUserDefinedGenerator {
 
             session.doWork(connection -> {
                 try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
+                    if (maxRows != null && maxRows > 0) {
+                        ps.setMaxRows(maxRows);
+                    }
                     try (ResultSet rs = ps.executeQuery()) {
 
                         ResultSetMetaData metaData = rs.getMetaData();

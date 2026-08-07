@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import uk.gov.netz.api.authorization.core.domain.AppUser;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -16,6 +17,8 @@ import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategory
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryEntity;
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryService;
 import uk.gov.netz.api.mireport.userdefined.custom.CustomMiReportQuery;
+import uk.gov.netz.api.mireport.userdefined.favourite.MiReportUserDefinedFavouriteService;
+import uk.gov.netz.api.mireport.userdefined.history.MiReportUserDefinedHistoryService;
 
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +35,10 @@ public class MiReportUserDefinedService {
     private final MiReportUserDefinedCategoryService miReportUserDefinedCategoryService;
     private final MiReportUserDefinedGeneratorDelegator miReportUserDefinedGeneratorDelegator;
     private final MiReportUserDefinedMapper miReportUserDefinedMapper;
+    private final MiReportUserDefinedHistoryService miReportUserDefinedHistoryService;
+    private final MiReportUserDefinedFavouriteService miReportUserDefinedFavouriteService;
+
+    private static final int PREVIEW_ROW_LIMIT = 10;
 
     @Transactional(readOnly = true)
     public MiReportUserDefinedResults findAllByCA(CompetentAuthorityEnum competentAuthority, int pageNumber,
@@ -47,10 +54,10 @@ public class MiReportUserDefinedService {
     }
 
     @Transactional(readOnly = true)
-    public MiReportUserDefinedResults findAllByCA(CompetentAuthorityEnum competentAuthority, int pageNumber,
-                                                  int pageSize, Long categoryId, String searchTerm) {
-        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(competentAuthority,
-                categoryId, QuerySearchUtils.toSearchPattern(searchTerm), getPageable(pageNumber, pageSize));
+    public MiReportUserDefinedResults findAllByCA(AppUser appUser, int pageNumber,
+                                                  int pageSize, Long categoryId, String searchTerm, boolean favourites) {
+        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(appUser.getCompetentAuthority(),
+                categoryId, QuerySearchUtils.toSearchPattern(searchTerm), favourites ? appUser.getUserId() : null, getPageable(pageNumber, pageSize));
 
         return page.isEmpty() ? MiReportUserDefinedResults.emptyMiReportUserDefinedResults()
                 : MiReportUserDefinedResults.builder()
@@ -58,16 +65,20 @@ public class MiReportUserDefinedService {
                 .total(page.getTotalElements())
                 .build();
     }
-	
-	@Transactional(readOnly = true)
-    public MiReportUserDefinedDTO findById(Long miReportUserDefinedId) {
-        return miReportUserDefinedRepository.findById(miReportUserDefinedId)
-                .map(miReportUserDefinedMapper::toMiReportUserDefinedDTO)
+
+    @Transactional(readOnly = true)
+    public MiReportUserDefinedDTO findById(AppUser appUser, Long miReportUserDefinedId) {
+        MiReportUserDefinedEntity entity = miReportUserDefinedRepository.findById(miReportUserDefinedId)
                 .orElseThrow(() -> new BusinessException(RESOURCE_NOT_FOUND));
+
+        return miReportUserDefinedMapper.toMiReportUserDefinedDTO(entity,
+                miReportUserDefinedFavouriteService.isFavourite(appUser, miReportUserDefinedId));
     }
 
     @Transactional
-    public void create(String userId, CompetentAuthorityEnum competentAuthority, @Valid MiReportUserDefinedDTO miReportUserDefinedDTO) {
+    public void create(AppUser appUser, @Valid MiReportUserDefinedDTO miReportUserDefinedDTO) {
+        CompetentAuthorityEnum competentAuthority = appUser.getCompetentAuthority();
+
         Optional<Long> miReportIdWithSameName =
                 miReportUserDefinedRepository.findIdByReportNameAndCA(miReportUserDefinedDTO.getReportName(), competentAuthority);
 
@@ -77,14 +88,18 @@ public class MiReportUserDefinedService {
 
         Set<MiReportUserDefinedCategoryEntity> categories = miReportUserDefinedCategoryService.getByIds(extractCategoryIds(miReportUserDefinedDTO));
 
-        final MiReportUserDefinedEntity entity = miReportUserDefinedMapper
-				.toMiReportUserDefinedEntity(miReportUserDefinedDTO, categories,competentAuthority, userId);
+        final MiReportUserDefinedEntity entity =
+                miReportUserDefinedMapper.toMiReportUserDefinedEntity(miReportUserDefinedDTO, categories, competentAuthority, appUser.getUserId());
 
-        miReportUserDefinedRepository.save(entity);
+        MiReportUserDefinedEntity miReportUserDefinedEntity = miReportUserDefinedRepository.save(entity);
+
+        miReportUserDefinedHistoryService.recordCreate(appUser, miReportUserDefinedEntity);
+
     }
 
     @Transactional
-    public void update(Long id, @Valid MiReportUserDefinedDTO miReportUserDefinedDTO) {
+    public void update(Long id, AppUser appUser, @Valid MiReportUserDefinedUpdateDTO miReportUserDefinedUpdateDTO) {
+        MiReportUserDefinedDTO miReportUserDefinedDTO = miReportUserDefinedUpdateDTO.getUserDefinedDTO();
         final MiReportUserDefinedEntity queryEntity = miReportUserDefinedRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(RESOURCE_NOT_FOUND));
 
@@ -99,7 +114,9 @@ public class MiReportUserDefinedService {
 
         miReportUserDefinedMapper.updateMiReportUserDefinedEntity(queryEntity, miReportUserDefinedDTO, categories);
 
-        miReportUserDefinedRepository.save(queryEntity);
+        MiReportUserDefinedEntity miReportUserDefinedEntity = miReportUserDefinedRepository.save(queryEntity);
+
+        miReportUserDefinedHistoryService.recordUpdate(appUser, miReportUserDefinedEntity, miReportUserDefinedUpdateDTO.getReasonForChange());
     }
 
     @Transactional
@@ -119,6 +136,11 @@ public class MiReportUserDefinedService {
     @Transactional(readOnly = true)
     public MiReportUserDefinedResult generateCustomReport(CompetentAuthorityEnum competentAuthority, CustomMiReportQuery customQuery) {
         return miReportUserDefinedGeneratorDelegator.generateReport(competentAuthority, customQuery.getSqlQuery());
+    }
+
+    @Transactional(readOnly = true)
+    public MiReportUserDefinedResult previewCustomReport(CompetentAuthorityEnum competentAuthority, CustomMiReportQuery customQuery) {
+        return miReportUserDefinedGeneratorDelegator.generateReport(competentAuthority, customQuery.getSqlQuery(),PREVIEW_ROW_LIMIT);
     }
     
     private Pageable getPageable(int page, int pageSize) {
