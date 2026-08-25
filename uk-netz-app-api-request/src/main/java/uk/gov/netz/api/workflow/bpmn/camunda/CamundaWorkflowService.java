@@ -38,6 +38,11 @@ public class CamundaWorkflowService implements WorkflowService {
         return startProcess(request, vars);
     }
 
+    @Override
+    public String startProcessDefinitionByKey(String processDefinitionKey, String businessKey, Map<String, Object> variables) {
+        return startProcess(processDefinitionKey, businessKey, variables);
+    }
+
     /**
      * Starts a process definition in the workflow engine passing some paramaters.
      *
@@ -73,7 +78,7 @@ public class CamundaWorkflowService implements WorkflowService {
             .setVariables(variables)
             .correlateAll();
     }
-    
+
     @Override
 	public void sendEvent(String requestId, String message) {
     	sendEvent(requestId, message, new HashMap<>());
@@ -83,12 +88,12 @@ public class CamundaWorkflowService implements WorkflowService {
     public void deleteProcessInstance(String processInstanceId, String deleteReason) {
         runtimeService.deleteProcessInstance(processInstanceId, deleteReason);
     }
-    
+
     @Override
 	public Object getVariable(String processInstanceId, String variableName) {
     	return runtimeService.getVariable(processInstanceId, variableName);
 	}
-    
+
     @Override
     public void setVariable(String processInstanceId, String variableName, Object value) {
         runtimeService.setVariable(processInstanceId, variableName, value);
@@ -105,7 +110,11 @@ public class CamundaWorkflowService implements WorkflowService {
     private String startProcess(Request request, Map<String, Object> vars) {
         final String businessKey = WorkflowService.constructBusinessKey((String) vars.get(BpmnProcessConstants.REQUEST_ID));
         vars.put(BpmnProcessConstants.BUSINESS_KEY, businessKey);
-        ProcessInstance instance = runtimeService.startProcessInstanceByKey(request.getType().getProcessDefinitionId(), businessKey, vars);
+        return startProcess(request.getType().getProcessDefinitionId(), businessKey, vars);
+    }
+
+    private String startProcess(String processDefinitionKey, String businessKey, Map<String, Object> variables) {
+        ProcessInstance instance = runtimeService.startProcessInstanceByKey(processDefinitionKey, businessKey, variables);
         return instance.getProcessInstanceId();
     }
 

@@ -30,6 +30,11 @@ public class FlowableWorkflowService implements WorkflowService, InitializingBea
     }
 
     @Override
+    public String startProcessDefinitionByKey(String processDefinitionKey, String businessKey, Map<String, Object> variables) {
+        return startProcess(processDefinitionKey, businessKey, variables);
+    }
+
+    @Override
     public String reStartProcessDefinition(Request request, Map<String, Object> vars) {
         return startProcess(request, vars);
     }
@@ -104,7 +109,11 @@ public class FlowableWorkflowService implements WorkflowService, InitializingBea
     private String startProcess(Request request, Map<String, Object> vars) {
         final String businessKey = WorkflowService.constructBusinessKey((String) vars.get(BpmnProcessConstants.REQUEST_ID));
         vars.put(BpmnProcessConstants.BUSINESS_KEY, businessKey);
-        ProcessInstance instance = runtimeService.startProcessInstanceByKey(request.getType().getProcessDefinitionId(), businessKey, vars);
+        return startProcess(request.getType().getProcessDefinitionId(), businessKey, vars);
+    }
+
+    private String startProcess(String processDefinitionKey, String businessKey, Map<String, Object> variables) {
+        ProcessInstance instance = runtimeService.startProcessInstanceByKey(processDefinitionKey, businessKey, variables);
         return instance.getProcessInstanceId();
     }
 }

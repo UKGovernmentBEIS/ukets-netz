@@ -10,21 +10,23 @@ public interface WorkflowService {
 
     String startProcessDefinition(Request request, Map<String, Object> vars);
 
+    String startProcessDefinitionByKey(String processDefinitionKey, String businessKey, Map<String, Object> variables);
+
     String reStartProcessDefinition(Request request, Map<String, Object> vars);
 
     void completeTask(String processTaskId);
 
     void completeTask(String processTaskId, Map<String, Object> variables);
-
     void sendEvent(String requestId, String message, Map<String, Object> variables);
+
     void sendEvent(String requestId, String message);
 
     void deleteProcessInstance(String processInstanceId, String deleteReason);
-    
+
     Object getVariable(String processInstanceId, String variableName);
-    
+
     void setVariable(String processInstanceId, String variableName, Object value);
-    
+
     boolean hasMessageEventSubscriptionWithName(final String requestId, final String messageName);
 
     static String constructBusinessKey(String requestId) {

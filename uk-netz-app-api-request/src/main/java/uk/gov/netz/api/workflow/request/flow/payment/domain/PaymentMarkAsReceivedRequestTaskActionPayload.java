@@ -1,13 +1,13 @@
 package uk.gov.netz.api.workflow.request.flow.payment.domain;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import uk.gov.netz.api.workflow.request.core.domain.RequestTaskActionPayload;
+import uk.gov.netz.api.common.validation.NotAfterCurrentDateInZone;
 
 import java.time.LocalDate;
 
@@ -19,6 +19,6 @@ import java.time.LocalDate;
 public class PaymentMarkAsReceivedRequestTaskActionPayload extends RequestTaskActionPayload {
 
     @NotNull
-    @PastOrPresent
+    @NotAfterCurrentDateInZone
     private LocalDate receivedDate;
 }

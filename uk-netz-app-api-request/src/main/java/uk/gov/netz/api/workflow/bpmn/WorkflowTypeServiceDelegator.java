@@ -27,6 +27,11 @@ public class WorkflowTypeServiceDelegator implements WorkflowService {
     }
 
     @Override
+    public String startProcessDefinitionByKey(String processDefinitionKey, String businessKey, Map<String, Object> variables) {
+        return getWorkflowServiceByType(processDefinitionKey).startProcessDefinitionByKey(processDefinitionKey, businessKey, variables);
+    }
+
+    @Override
     public String reStartProcessDefinition(Request request, Map<String, Object> vars) {
         return getWorkflowServiceByEngine(request.getEngine()).reStartProcessDefinition(request, vars);
     }
@@ -70,13 +75,13 @@ public class WorkflowTypeServiceDelegator implements WorkflowService {
     	WorkflowEngineType engine = requestTypeProvider.findWorkflowEngineByProcessInstanceId(processInstanceId);
     	getWorkflowServiceByEngine(engine).setVariable(processInstanceId, variableName, value);
     }
-    
+
     @Override
     public boolean hasMessageEventSubscriptionWithName(String requestId, String messageName) {
     	WorkflowEngineType engine = requestTypeProvider.findWorkflowEngineByRequestId(requestId);
         return getWorkflowServiceByEngine(engine).hasMessageEventSubscriptionWithName(requestId, messageName);
     }
-    
+
     public WorkflowEngineType getWorkflowEngineByType(String workflowType) {
 		return workflowTypeServiceProperties.getFlowableWorkflows().contains(workflowType) ? WorkflowEngineType.FLOWABLE
 				: WorkflowEngineType.CAMUNDA;
