@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class CustomStringDeserializer extends StringDeserializer {
 
     private static final long serialVersionUID = 1L;
-    private static final int MAX_LENGTH_ALLOWED = 30000;
+    private static final int MAX_LENGTH_ALLOWED = 50000;
     private static final Pattern REGEX_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\\p{Space}]]");
 
     @Override
