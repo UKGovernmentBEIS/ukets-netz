@@ -69,8 +69,8 @@ public class MiReportUserDefinedEntity {
     @Size(max = 10000)
     private String description;
 
-    @Column(name = "query_definition")
-    @Size(max = 10000)
+    @Column(name = "query_definition", length = 50000)
+    @Size(max = 50000)
     @NotNull
     private String queryDefinition;
 

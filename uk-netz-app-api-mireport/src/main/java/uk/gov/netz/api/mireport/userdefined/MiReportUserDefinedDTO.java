@@ -27,7 +27,7 @@ public class MiReportUserDefinedDTO {
     @Size(max = 10000)
     private String description;
 
-    @Size(max = 10000)
+    @Size(max = 50000)
     @NotNull
     @ValidSqlQuery
     private String queryDefinition;

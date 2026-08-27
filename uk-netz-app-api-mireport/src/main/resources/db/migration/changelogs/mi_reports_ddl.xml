@@ -251,4 +251,24 @@
             <dropSequence sequenceName="mi_report_user_defined_favourite_seq"/>
         </rollback>
     </changeSet>
+    <changeSet id="0_1_0_expand_query_definition_column_size" author="mitzelose@unisystems.gr">
+        <modifyDataType
+            tableName="mi_report_user_defined"
+            columnName="query_definition"
+            newDataType="VARCHAR(50000)"/>
+        <modifyDataType
+                tableName="mi_report_user_defined_history"
+                columnName="query_definition"
+                newDataType="VARCHAR(50000)"/>
+        <rollback>
+            <modifyDataType
+                    tableName="mi_report_user_defined"
+                    columnName="query_definition"
+                    newDataType="VARCHAR(10000)"/>
+            <modifyDataType
+                    tableName="mi_report_user_defined_history"
+                    columnName="query_definition"
+                    newDataType="VARCHAR(10000)"/>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

@@ -80,7 +80,7 @@ public class MiReportUserDefinedHistoryEntity {
 
     @Column(name = "query_definition",nullable = false)
     @NotNull
-    @Size(max = 10000)
+    @Size(max = 50000)
     private String queryDefinition;
 
 }

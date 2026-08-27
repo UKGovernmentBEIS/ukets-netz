@@ -3,6 +3,8 @@ package uk.gov.netz.api.mireport.userdefined;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -16,6 +18,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.netz.api.authorization.core.domain.AppAuthority;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.rules.domain.Scope;
+import uk.gov.netz.api.authorization.rules.services.resource.CompAuthAuthorizationResourceService;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -40,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +55,9 @@ class MiReportUserDefinedServiceTest {
 
     @Mock
     private MiReportUserDefinedRepository miReportUserDefinedRepository;
+
+    @Mock
+    private CompAuthAuthorizationResourceService compAuthAuthorizationResourceService;
 
     @Mock
     private MiReportUserDefinedGeneratorDelegator miReportUserDefinedGeneratorDelegator;
@@ -73,6 +81,7 @@ class MiReportUserDefinedServiceTest {
                 miReportUserDefinedRepository,
                 miReportUserDefinedCategoryService,
                 miReportUserDefinedGeneratorDelegator,
+                compAuthAuthorizationResourceService,
                 mapper,
                 miReportUserDefinedHistoryService,
                 miReportUserDefinedFavouriteService);
@@ -519,6 +528,26 @@ class MiReportUserDefinedServiceTest {
 
         assertThat(actualResult).isEqualTo(result);
         verify(miReportUserDefinedGeneratorDelegator, times(1)).generateReport(competentAuthority, customQuery.getSqlQuery(), 10);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void canManageCustomReports(boolean hasUserScopeToCompAuth) {
+        final AppUser appUser = getAppUser();
+
+        when(compAuthAuthorizationResourceService.hasUserScopeToCompAuth(appUser, Scope.MANAGE_MI_REPORT_USER_DEFINED)).thenReturn(hasUserScopeToCompAuth);
+
+        boolean actual = service.canManageCustomReports(appUser);
+
+        assertThat(actual).isEqualTo(hasUserScopeToCompAuth);
+
+        verify(compAuthAuthorizationResourceService).hasUserScopeToCompAuth(appUser, Scope.MANAGE_MI_REPORT_USER_DEFINED);
+        verifyNoMoreInteractions(compAuthAuthorizationResourceService);
+        verifyNoInteractions(miReportUserDefinedRepository,
+            miReportUserDefinedCategoryService,
+            miReportUserDefinedGeneratorDelegator,
+            miReportUserDefinedHistoryService,
+            miReportUserDefinedFavouriteService);
     }
 
     private AppUser getAppUser() {

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.authorization.rules.domain.Scope;
+import uk.gov.netz.api.authorization.rules.services.resource.CompAuthAuthorizationResourceService;
 import uk.gov.netz.api.common.exception.BusinessException;
 import uk.gov.netz.api.common.exception.ErrorCode;
 import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
@@ -34,6 +36,7 @@ public class MiReportUserDefinedService {
     private final MiReportUserDefinedRepository miReportUserDefinedRepository;
     private final MiReportUserDefinedCategoryService miReportUserDefinedCategoryService;
     private final MiReportUserDefinedGeneratorDelegator miReportUserDefinedGeneratorDelegator;
+    private final CompAuthAuthorizationResourceService compAuthAuthorizationResourceService;
     private final MiReportUserDefinedMapper miReportUserDefinedMapper;
     private final MiReportUserDefinedHistoryService miReportUserDefinedHistoryService;
     private final MiReportUserDefinedFavouriteService miReportUserDefinedFavouriteService;
@@ -142,7 +145,13 @@ public class MiReportUserDefinedService {
     public MiReportUserDefinedResult previewCustomReport(CompetentAuthorityEnum competentAuthority, CustomMiReportQuery customQuery) {
         return miReportUserDefinedGeneratorDelegator.generateReport(competentAuthority, customQuery.getSqlQuery(),PREVIEW_ROW_LIMIT);
     }
-    
+
+    @Transactional(readOnly = true)
+    public boolean canManageCustomReports(AppUser appUser) {
+        return compAuthAuthorizationResourceService
+            .hasUserScopeToCompAuth(appUser, Scope.MANAGE_MI_REPORT_USER_DEFINED);
+    }
+
     private Pageable getPageable(int page, int pageSize) {
         return PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
     }
