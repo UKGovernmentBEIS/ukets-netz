@@ -47,7 +47,7 @@ public class MiReportUserDefinedService {
     public MiReportUserDefinedResults findAllByCA(CompetentAuthorityEnum competentAuthority, int pageNumber,
                                                   int pageSize) {
         Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthority(competentAuthority,
-                getPageable(pageNumber, pageSize));
+                getPageable(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn")));
 
         return page.isEmpty() ? MiReportUserDefinedResults.emptyMiReportUserDefinedResults()
                 : MiReportUserDefinedResults.builder()
@@ -57,10 +57,15 @@ public class MiReportUserDefinedService {
     }
 
     @Transactional(readOnly = true)
-    public MiReportUserDefinedResults findAllByCA(AppUser appUser, int pageNumber,
-                                                  int pageSize, Long categoryId, String searchTerm, boolean favourites) {
-        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(appUser.getCompetentAuthority(),
-                categoryId, QuerySearchUtils.toSearchPattern(searchTerm), favourites ? appUser.getUserId() : null, getPageable(pageNumber, pageSize));
+    public MiReportUserDefinedResults findAllByCA(AppUser appUser, int pageNumber, int pageSize,
+                                                  MiReportUserDefinedSearchCriteriaDTO searchCriteriaDTO) {
+        Sort sortBy = Sort.by(searchCriteriaDTO.getDirection(), searchCriteriaDTO.getSortBy().getColumn());
+        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(
+            appUser.getCompetentAuthority(),
+            searchCriteriaDTO.getCategoryId(),
+            QuerySearchUtils.toSearchPattern(searchCriteriaDTO.getTerm()),
+            searchCriteriaDTO.isFavourites() ? appUser.getUserId() : null,
+            getPageable(pageNumber, pageSize, sortBy));
 
         return page.isEmpty() ? MiReportUserDefinedResults.emptyMiReportUserDefinedResults()
                 : MiReportUserDefinedResults.builder()
@@ -152,8 +157,8 @@ public class MiReportUserDefinedService {
             .hasUserScopeToCompAuth(appUser, Scope.MANAGE_MI_REPORT_USER_DEFINED);
     }
 
-    private Pageable getPageable(int page, int pageSize) {
-        return PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
+    private Pageable getPageable(int page, int pageSize, Sort sortBy) {
+        return PageRequest.of(page, pageSize, sortBy);
     }
 
     private Set<Long> extractCategoryIds(MiReportUserDefinedDTO dto) {

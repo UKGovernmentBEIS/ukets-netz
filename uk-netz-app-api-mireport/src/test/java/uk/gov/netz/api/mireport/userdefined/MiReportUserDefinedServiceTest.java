@@ -156,7 +156,9 @@ class MiReportUserDefinedServiceTest {
                 .reportName(reportName2)
                 .description(description2)
                 .build();
-
+        final MiReportUserDefinedSearchCriteriaDTO searchCriteriaDTO = MiReportUserDefinedSearchCriteriaDTO.builder()
+            .categoryId(categoryId).term(searchTerm).favourites(true)
+            .build();
         final Page<MiReportUserDefinedEntity> page = new PageImpl<>(List.of(entity1, entity2));
 
         when(miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(
@@ -164,7 +166,7 @@ class MiReportUserDefinedServiceTest {
 
         // invoke
         MiReportUserDefinedResults actualResults = service.findAllByCA(
-                appUser, pageNumber, pageSize, categoryId, searchTerm, true);
+                appUser, pageNumber, pageSize, searchCriteriaDTO);
 
         assertThat(actualResults.getTotal()).isEqualTo(2);
         assertThat(actualResults.getQueries()).hasSize(2).containsExactlyInAnyOrder(
@@ -182,13 +184,15 @@ class MiReportUserDefinedServiceTest {
         final int pageSize = 20;
         final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
         final AppUser appUser = getAppUser();
+        final MiReportUserDefinedSearchCriteriaDTO searchCriteriaDTO = MiReportUserDefinedSearchCriteriaDTO.builder()
+            .build();
 
         when(miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(
                 CompetentAuthorityEnum.ENGLAND, null, null, null, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
         MiReportUserDefinedResults actualResults = service.findAllByCA(
-                appUser, pageNumber, pageSize, null, null, false);
+                appUser, pageNumber, pageSize, searchCriteriaDTO);
 
         assertThat(actualResults.getTotal()).isZero();
         assertThat(actualResults.getQueries()).isEmpty();
