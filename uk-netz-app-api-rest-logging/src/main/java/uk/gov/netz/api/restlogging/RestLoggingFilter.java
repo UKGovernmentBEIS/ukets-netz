@@ -13,10 +13,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Filter used to log Rest API requests/responses.
  */
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class RestLoggingFilter extends OncePerRequestFilter {
@@ -26,31 +28,33 @@ public class RestLoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+		addCorrelationIdToResponseHeader(request, response);
+		addCorrelationParentIdToResponseHeader(request, response);
+
 		if (RestLoggingUtils.isUriContainedInList(request.getRequestURI(), restLoggingProperties.getExcludedTotallyUriPatterns())) {
+			log.info("Rest logging skipped for uri={}, correlationId={}",
+					request.getRequestURI(), response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER));
 			filterChain.doFilter(request, response);
 			return;
-		} else {
-			addCorrelationIdToResponseHeader(request, response);
-			addCorrelationParentIdToResponseHeader(request, response);
-
-			LocalDateTime requestTimestamp = LocalDateTime.now();
-
-			MultiReadHttpServletRequestWrapper wrappedRequest = new MultiReadHttpServletRequestWrapper(request);
-
-			ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
-			if (isAsyncDispatch(request)) {
-				filterChain.doFilter(request, response);
-				return;
-			}
-
-			filterChain.doFilter(wrappedRequest, wrappedResponse);
-
-			restLoggingService.log(wrappedRequest, wrappedResponse, requestTimestamp,
-					response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER),
-					response.getHeader(RestLoggingUtils.CORRELATION_PARENT_ID_HEADER));
-
-			wrappedResponse.copyBodyToResponse();
 		}
+
+		LocalDateTime requestTimestamp = LocalDateTime.now();
+
+		MultiReadHttpServletRequestWrapper wrappedRequest = new MultiReadHttpServletRequestWrapper(request);
+
+		ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
+		if (isAsyncDispatch(request)) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		filterChain.doFilter(wrappedRequest, wrappedResponse);
+
+		restLoggingService.log(wrappedRequest, wrappedResponse, requestTimestamp,
+				response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER),
+				response.getHeader(RestLoggingUtils.CORRELATION_PARENT_ID_HEADER));
+
+		wrappedResponse.copyBodyToResponse();
     }
     
 	private void addCorrelationIdToResponseHeader(HttpServletRequest request, HttpServletResponse response) {

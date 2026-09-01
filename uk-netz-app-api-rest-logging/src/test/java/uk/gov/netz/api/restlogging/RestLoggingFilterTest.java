@@ -59,7 +59,7 @@ class RestLoggingFilterTest {
         when(restLoggingProperties.getExcludedTotallyUriPatterns()).thenReturn(List.of("/api/test"));
         
         restLoggingFilter.doFilterInternal(request, response, filterChain);
-        assertThat(response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER)).isNull();
+        assertThat(response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER)).isNotNull();
         assertThat(response.getHeader(RestLoggingUtils.CORRELATION_PARENT_ID_HEADER)).isNull();
         
         Mockito.verify(filterChain, times(1)).doFilter(request, response);
