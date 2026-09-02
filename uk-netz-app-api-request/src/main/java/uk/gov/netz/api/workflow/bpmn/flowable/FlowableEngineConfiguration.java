@@ -18,7 +18,7 @@ public class FlowableEngineConfiguration implements EngineConfigurationConfigure
     private final String databaseSchema;
 
     public FlowableEngineConfiguration(DataSource dataSource, PlatformTransactionManager transactionManager,
-                                       @Value("${flowable.database-schema}") String databaseSchema) {
+    			@Value("${flowable-db.schema:}") String databaseSchema) {
         this.dataSource = dataSource;
         this.transactionManager = transactionManager;
         this.databaseSchema = databaseSchema;
@@ -28,7 +28,6 @@ public class FlowableEngineConfiguration implements EngineConfigurationConfigure
     public void configure(SpringProcessEngineConfiguration engineConfiguration) {
         engineConfiguration.setDataSource(dataSource);
         engineConfiguration.setTransactionManager(transactionManager);
-        engineConfiguration.setDatabaseSchema(null);
         engineConfiguration.setDatabaseTablePrefix(databaseSchema + ".");
         engineConfiguration.setTablePrefixIsSchema(true);
     }

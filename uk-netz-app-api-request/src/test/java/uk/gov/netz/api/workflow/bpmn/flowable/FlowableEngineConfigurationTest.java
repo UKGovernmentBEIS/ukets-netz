@@ -7,8 +7,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -29,7 +29,7 @@ class FlowableEngineConfigurationTest {
 
         assertEquals("sch_flowable.", engineConfiguration.getDatabaseTablePrefix());
         assertTrue(engineConfiguration.isTablePrefixIsSchema());
-        assertNull(engineConfiguration.getDatabaseSchema());
+        assertNotNull(engineConfiguration.getDatabaseSchema());
         TransactionAwareDataSourceProxy configuredDataSource =
             (TransactionAwareDataSourceProxy) engineConfiguration.getDataSource();
         assertSame(dataSource, configuredDataSource.getTargetDataSource());
