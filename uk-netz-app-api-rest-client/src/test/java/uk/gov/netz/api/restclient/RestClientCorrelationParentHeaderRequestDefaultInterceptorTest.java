@@ -58,4 +58,17 @@ class RestClientCorrelationParentHeaderRequestDefaultInterceptorTest {
         assertThat(headers.getFirst(RestLoggingUtils.CORRELATION_PARENT_ID_HEADER)).isEqualTo(correlationId);
 	}
 
+	@Test
+	void intercept_without_correlation_does_not_add_null_parent_header() throws IOException {
+		ServletRequestAttributes servletRequestAttributes = Mockito.mock(ServletRequestAttributes.class);
+		when(servletRequestAttributes.getResponse()).thenReturn(servletResponse);
+		RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+		when(servletResponse.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER)).thenReturn(null);
+
+		cut.intercept(httpRequest, null, execution);
+
+		verify(execution, times(1)).execute(httpRequest, null);
+		verify(httpRequest, Mockito.never()).getHeaders();
+	}
+
 }

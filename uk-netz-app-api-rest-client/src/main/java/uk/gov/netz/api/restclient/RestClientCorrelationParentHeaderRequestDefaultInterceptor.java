@@ -35,8 +35,10 @@ public class RestClientCorrelationParentHeaderRequestDefaultInterceptor
 			return;
 		}
 
-		request.getHeaders().add(RestLoggingUtils.CORRELATION_PARENT_ID_HEADER,
-				response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER));
+		final String correlationId = response.getHeader(RestLoggingUtils.CORRELATION_ID_HEADER);
+		if (correlationId != null) {
+			request.getHeaders().add(RestLoggingUtils.CORRELATION_PARENT_ID_HEADER, correlationId);
+		}
 	}
 
 }
