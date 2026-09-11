@@ -1,8 +1,8 @@
 package uk.gov.netz.api.files.common.domain.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class FileDTO {
 
     @NotBlank
+    @Size(max = 255)
     private String fileName;
     
     @NotBlank
