@@ -6,16 +6,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
  * {@link HttpServletRequestWrapper} Wrapper that caches the servlet input stream,
  * so as can be read multiple times. Solution based on
  * <a href="https://www.jvt.me/posts/2020/05/25/read-servlet-request-body-multiple">...</a>.
+ *
+ * @deprecated The REST logging filter now uses bounded pass-through capture. This wrapper remains for compatibility
+ * with direct callers of {@link RestLoggingService} and still retains the complete request body.
  */
+@Deprecated(forRemoval = false)
 public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrapper {
-    private ByteArrayOutputStream cachedBytes;
+    private byte[] cachedBytes;
 
     public MultiReadHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
@@ -27,12 +30,11 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
             cacheInputStream();
         }
 
-        return new CachedServletInputStream(cachedBytes.toByteArray());
+        return new CachedServletInputStream(cachedBytes);
     }
 
     private void cacheInputStream() throws IOException {
-        cachedBytes = new ByteArrayOutputStream();
-        super.getInputStream().transferTo(cachedBytes);
+        cachedBytes = super.getInputStream().readAllBytes();
     }
 
     /* An input stream which reads the cached request body */

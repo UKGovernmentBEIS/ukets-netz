@@ -2,9 +2,9 @@
 <Configuration status="INFO">
     <Appenders>
         <Console name="consoleJSONAppender" target="SYSTEM_OUT">
-            <JsonTemplateLayout  eventTemplateUri="classpath:ApplicationLogJsonLayout.json"
-                                 stackTraceEnabled="true" maxStringLength="32768">
-            </JsonTemplateLayout >
+            <BoundedRestJsonTemplateLayout eventTemplateUri="classpath:ApplicationLogJsonLayout.json"
+                                           stackTraceEnabled="true" maxStringLength="32768"
+                                           maxEventBytes="${env:REST_LOGGING_MAX_RENDERED_EVENT_BYTES:-1000000}"/>
         </Console>
         <Console name="noMaskAppender" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'} %-5level [%logger] - %msg%n"/>
