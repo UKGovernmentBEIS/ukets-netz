@@ -156,8 +156,12 @@ public enum ErrorCode implements NetzErrorCode {
     THIRD_PARTY_DATA_PROVIDER_NAME_EXISTS("THIRDPARTYDATAPROVIDER1000", HttpStatus.BAD_REQUEST, "Third party data provider name already exists"),
     THIRD_PARTY_DATA_PROVIDER_JWKS_URL_EXISTS("THIRDPARTYDATAPROVIDER1001", HttpStatus.BAD_REQUEST, "Third party data provider JWKS url already exists"),
     THIRD_PARTY_DATA_PROVIDER_ALREADY_APPOINTED_TO_ACCOUNT("THIRDPARTYDATAPROVIDER1002", HttpStatus.BAD_REQUEST, "Third party data provider has already been appointed to the account"),
-    THIRD_PARTY_DATA_PROVIDER_ALREADY_APPOINTED_TO_VERIFICATION_BODY("THIRDPARTYDATAPROVIDER1003", HttpStatus.BAD_REQUEST, "Third party data provider has already been appointed to the verification body");
+    THIRD_PARTY_DATA_PROVIDER_ALREADY_APPOINTED_TO_VERIFICATION_BODY("THIRDPARTYDATAPROVIDER1003", HttpStatus.BAD_REQUEST, "Third party data provider has already been appointed to the verification body"),
 
+    /**
+     * Rate limit
+     */
+    API_REQUEST_LIMIT_EXCEEDED("API_REQUEST_LIMIT_EXCEEDED", HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded");
 
     private final String code;
     private final HttpStatus httpStatus;
