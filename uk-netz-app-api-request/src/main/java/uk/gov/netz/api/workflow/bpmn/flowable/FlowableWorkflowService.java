@@ -1,12 +1,16 @@
 package uk.gov.netz.api.workflow.bpmn.flowable;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
+
 import uk.gov.netz.api.workflow.request.WorkflowService;
 import uk.gov.netz.api.workflow.request.core.domain.Request;
 import uk.gov.netz.api.workflow.request.flow.common.constants.BpmnProcessConstants;
@@ -14,7 +18,9 @@ import uk.gov.netz.api.workflow.request.flow.common.constants.BpmnProcessConstan
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class FlowableWorkflowService implements WorkflowService, InitializingBean {
@@ -61,6 +67,24 @@ public class FlowableWorkflowService implements WorkflowService, InitializingBea
     @Override
     public void sendEvent(String requestId, String message) {
         sendEvent(requestId, message, new HashMap<>());
+    }
+    
+    public void sendEventInProcessesThatContainVariable(String requestId, String messageName, String varName, Object varValue) {
+    	List<Execution> subscribed = runtimeService.createExecutionQuery()
+		        .messageEventSubscriptionName(messageName)
+		        .processInstanceBusinessKey(WorkflowService.constructBusinessKey(requestId), true)
+		        .list();
+
+		List<Execution> matches = subscribed.stream()
+		        .filter(exec -> varValue.equals(runtimeService.getVariable(exec.getId(), varName)))
+		        .collect(Collectors.toList());
+
+		if (matches == null || matches.size() == 0) {
+		    log.warn("No waiting execution found for requestId={}, with var name ={} and var value ={}", requestId, varName, varValue);
+		    return;
+		}
+		
+		matches.forEach(exec -> runtimeService.messageEventReceived(messageName, exec.getId(), Map.of()));
     }
     
     public String getProcessInstanceIdByBusinessKey(String businessKey) {

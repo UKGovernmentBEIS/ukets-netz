@@ -1,14 +1,19 @@
 package uk.gov.netz.api.workflow.bpmn.flowable;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Map;
 
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.runtime.Execution;
+import org.flowable.engine.runtime.ExecutionQuery;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.runtime.ProcessInstanceQuery;
 import org.junit.jupiter.api.Test;
@@ -30,6 +35,9 @@ class FlowableWorkflowServiceTest {
 	
 	@Mock
     private TaskService taskService;
+	
+	@Mock
+    private ExecutionQuery executionQuery;
 	
 	@Test
 	void completeTask() {
@@ -67,5 +75,32 @@ class FlowableWorkflowServiceTest {
 		verify(processInstanceMock, times(1)).getProcessInstanceId();
 	    
 	}
+	
+	@Test
+    void shouldSendMessageToAllMatchingExecutions() {
+		when(runtimeService.createExecutionQuery()).thenReturn(executionQuery);
+		when(executionQuery.messageEventSubscriptionName(any())).thenReturn(executionQuery);
+		when(executionQuery.processInstanceBusinessKey(anyString(), Mockito.eq(true))).thenReturn(executionQuery);
+
+        Execution e1 = Mockito.mock(Execution.class);
+        Execution e2 = Mockito.mock(Execution.class);
+
+        when(e1.getId()).thenReturn("exec1");
+        when(e2.getId()).thenReturn("exec2");
+
+        when(executionQuery.list()).thenReturn(List.of(e1, e2));
+
+        when(runtimeService.getVariable("exec1", "myVar")).thenReturn("VALUE");
+        when(runtimeService.getVariable("exec2", "myVar")).thenReturn("VALUE");
+
+        workflowService.sendEventInProcessesThatContainVariable(
+                "123",
+                "MESSAGE",
+                "myVar",
+                "VALUE");
+
+        verify(runtimeService).messageEventReceived("MESSAGE", "exec1", Map.of());
+        verify(runtimeService).messageEventReceived("MESSAGE", "exec2", Map.of());
+    }
 
 }
