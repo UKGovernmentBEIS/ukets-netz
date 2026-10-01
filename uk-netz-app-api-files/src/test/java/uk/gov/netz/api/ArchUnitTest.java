@@ -20,12 +20,14 @@ public class ArchUnitTest {
     static final String COMMON_PACKAGE = BASE_PACKAGE + ".common..";
     static final String AUTHORIZATION_PACKAGE = BASE_PACKAGE + ".authorization..";
     static final String TOKEN_PACKAGE = BASE_PACKAGE + ".token..";
+    static final String NOTIFICATION_API_PACKAGE = BASE_PACKAGE + ".notificationapi..";
 
     static final List<String> ALL_PACKAGES = List.of(
             FILES_PACKAGE,
             COMMON_PACKAGE,
             AUTHORIZATION_PACKAGE,
-            TOKEN_PACKAGE
+            TOKEN_PACKAGE,
+            NOTIFICATION_API_PACKAGE
     );
 
     @ArchTest
@@ -38,6 +40,18 @@ public class ArchUnitTest {
                             COMMON_PACKAGE,
                             AUTHORIZATION_PACKAGE,
                             TOKEN_PACKAGE));
+
+    @ArchTest
+    public static final ArchRule filesHaveNoNotificationDependencies =
+            noClasses().that().resideInAPackage(FILES_PACKAGE)
+                    .should().dependOnClassesThat()
+                    .resideInAnyPackage(NOTIFICATION_API_PACKAGE, BASE_PACKAGE + ".notification..");
+
+    @ArchTest
+    public static final ArchRule storageContractIsProviderNeutral =
+            noClasses().that().resideInAPackage(BASE_PACKAGE + ".files.storage")
+                    .should().dependOnClassesThat()
+                    .resideInAnyPackage("io.awspring..", "software.amazon..", BASE_PACKAGE + ".files.storage.s3..");
 
     private static String[] except(String... packages) {
         return ALL_PACKAGES.stream()
