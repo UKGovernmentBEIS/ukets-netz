@@ -22,12 +22,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PreviewDocumentAbstractHandlerTest {
+class SyncPreviewDocumentAbstractHandlerTest {
     private static final long REQUEST_TASK_ID = 1L;
     private static final String TASK_CODE = "code";
 
     @InjectMocks
-    private TestPreviewDocumentAbstractHandler testPreviewDocumentAbstractHandler;
+    private TestSyncPreviewDocumentAbstractHandler testPreviewDocumentAbstractHandler;
 
     @Mock
     private RequestTaskService requestTaskService;
@@ -61,9 +61,9 @@ class PreviewDocumentAbstractHandlerTest {
         verifyNoMoreInteractions(requestTaskService);
     }
 
-    private static class TestPreviewDocumentAbstractHandler extends PreviewDocumentAbstractHandler {
+    private static class TestSyncPreviewDocumentAbstractHandler extends SyncPreviewDocumentAbstractHandler {
 
-        public TestPreviewDocumentAbstractHandler(RequestTaskService requestTaskService) {
+        public TestSyncPreviewDocumentAbstractHandler(RequestTaskService requestTaskService) {
             super(requestTaskService);
         }
 

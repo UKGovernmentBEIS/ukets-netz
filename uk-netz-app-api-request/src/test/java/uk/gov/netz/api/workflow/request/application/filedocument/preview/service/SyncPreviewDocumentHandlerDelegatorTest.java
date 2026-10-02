@@ -17,15 +17,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class PreviewDocumentHandlerDelegatorTest {
+class SyncPreviewDocumentHandlerDelegatorTest {
     private static final byte[] FILE = "test".getBytes();
 
     @Mock
-    private PreviewDocumentHandler previewDocumentHandler;
+    private SyncPreviewDocumentHandler syncPreviewDocumentHandler;
 
     @BeforeEach
     void setUp() {
-        previewDocumentHandler = new PreviewDocumentHandler() {
+        syncPreviewDocumentHandler = new SyncPreviewDocumentHandler() {
             @Override
             public FileDTO previewDocument(Long taskId, DecisionNotification decisionNotification) {
                 return FileDTO.builder().fileContent(FILE).build();
@@ -40,9 +40,9 @@ class PreviewDocumentHandlerDelegatorTest {
 
     @Test
     void getDocument() {
-        List<PreviewDocumentHandler> handlers = List.of(previewDocumentHandler);
+        List<SyncPreviewDocumentHandler> handlers = List.of(syncPreviewDocumentHandler);
 
-        PreviewDocumentHandlerDelegator requestCreateActionHandlerMapper = new PreviewDocumentHandlerDelegator(handlers);
+        SyncPreviewDocumentHandlerDelegator requestCreateActionHandlerMapper = new SyncPreviewDocumentHandlerDelegator(handlers);
         FileDTO fileDTO = requestCreateActionHandlerMapper
             .getDocument(1L, PreviewDocumentRequest.builder().documentType("DUMMY_TYPE").build());
 
@@ -51,9 +51,9 @@ class PreviewDocumentHandlerDelegatorTest {
 
     @Test
     void getDocument_throws_error_for_invalid_type() {
-        List<PreviewDocumentHandler> handlers = List.of(previewDocumentHandler);
+        List<SyncPreviewDocumentHandler> handlers = List.of(syncPreviewDocumentHandler);
 
-        PreviewDocumentHandlerDelegator requestCreateActionHandlerMapper = new PreviewDocumentHandlerDelegator(handlers);
+        SyncPreviewDocumentHandlerDelegator requestCreateActionHandlerMapper = new SyncPreviewDocumentHandlerDelegator(handlers);
         BusinessException exception = assertThrows(BusinessException.class, () -> requestCreateActionHandlerMapper
             .getDocument(1L, PreviewDocumentRequest.builder().documentType("invalid type").build()));
 

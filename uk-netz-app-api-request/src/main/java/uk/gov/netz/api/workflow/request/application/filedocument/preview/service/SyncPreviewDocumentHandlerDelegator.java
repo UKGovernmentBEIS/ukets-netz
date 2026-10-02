@@ -12,13 +12,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PreviewDocumentHandlerDelegator {
+public class SyncPreviewDocumentHandlerDelegator {
 
-    private final List<PreviewDocumentHandler> handlers;
+    private final List<SyncPreviewDocumentHandler> handlers;
 
     public FileDTO getDocument(final Long taskId, final PreviewDocumentRequest previewDocumentRequest) {
 
-        final PreviewDocumentHandler documentService =
+        final SyncPreviewDocumentHandler documentService =
             handlers.stream().filter(s -> s.getTypes().contains(previewDocumentRequest.getDocumentType()))
                 .findFirst()
                 .orElseThrow(
