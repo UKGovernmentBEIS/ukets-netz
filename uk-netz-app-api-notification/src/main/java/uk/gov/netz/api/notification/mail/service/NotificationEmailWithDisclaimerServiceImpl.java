@@ -1,10 +1,13 @@
 package uk.gov.netz.api.notification.mail.service;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import uk.gov.netz.api.notificationapi.domain.NotificationContent;
 import uk.gov.netz.api.notificationapi.mail.config.property.NotificationProperties;
+import uk.gov.netz.api.notificationapi.mail.service.EmailLinkedFileStorageService;
 import uk.gov.netz.api.notification.template.service.NotificationTemplateProcessService;
 import uk.gov.netz.api.notificationapi.mail.service.SendEmailService;
 
@@ -23,6 +26,16 @@ class NotificationEmailWithDisclaimerServiceImpl extends NotificationEmailServic
                                                       NotificationTemplateProcessService notificationTemplateProcessService,
                                                       NotificationProperties notificationProperties) {
         super(sendEmailService, notificationTemplateProcessService, notificationProperties);
+    }
+
+    @Autowired
+    public NotificationEmailWithDisclaimerServiceImpl(SendEmailService sendEmailService,
+                                                      NotificationTemplateProcessService notificationTemplateProcessService,
+                                                      NotificationProperties notificationProperties,
+                                                      ObjectProvider<EmailLinkedFileStorageService>
+                                                              linkedFileStorageServiceProvider) {
+        super(sendEmailService, notificationTemplateProcessService, notificationProperties,
+                linkedFileStorageServiceProvider);
     }
 
     @Override

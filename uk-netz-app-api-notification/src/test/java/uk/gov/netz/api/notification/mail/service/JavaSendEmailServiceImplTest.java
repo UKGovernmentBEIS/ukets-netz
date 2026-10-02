@@ -86,16 +86,43 @@ class JavaSendEmailServiceImplTest {
         String body = IOUtils.toString(MimeUtility.decode(message.getInputStream(), "quoted-printable"), "UTF-8");
         assertThat(body).contains(email.getText());
 
+        assertThat(countAttachments(message)).isEqualTo(1);
+    }
+
+    @Test
+    void linkedFileHtmlIsRenderedOnlyInBodyAndNotAsMimeAttachment() throws Exception {
+        Email email = Email.builder()
+                .from("sender@email")
+                .recipients(EmailRecipients.builder()
+                        .to(List.of("receiver@email"))
+                        .build())
+                .subject("mail subject")
+                .text("body\n<p>Files shared with this email:</p>\n<ul>\n"
+                        + "  <li><a href=\"https://files.example.test/id\">linked.pdf</a></li>\n</ul>")
+                .attachments(Map.of())
+                .build();
+        MimeMessage message = new MimeMessage((Session) null);
+        when(javaMailSender.createMimeMessage()).thenReturn(message);
+
+        sendMailService.sendMail(email);
+
+        ArgumentCaptor<MimeMessage> messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(javaMailSender).send(messageCaptor.capture());
+        assertThat(countAttachments(messageCaptor.getValue())).isZero();
+        String body = IOUtils.toString(
+                MimeUtility.decode(messageCaptor.getValue().getInputStream(), "quoted-printable"), "UTF-8");
+        assertThat(body).contains("https://files.example.test/id").contains("linked.pdf");
+    }
+
+    private int countAttachments(MimeMessage message) throws MessagingException, IOException {
         MimeMultipart multiPart = (MimeMultipart) message.getContent();
         int countAttachments = 0;
         for (int i = 0; i < multiPart.getCount(); i++) {
             MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(i);
-            if(Part.ATTACHMENT.equals(part.getDisposition())) {
+            if (Part.ATTACHMENT.equals(part.getDisposition())) {
                 countAttachments++;
             }
         }
-        assertThat(countAttachments).isEqualTo(1);
+        return countAttachments;
     }
-
-
 }
