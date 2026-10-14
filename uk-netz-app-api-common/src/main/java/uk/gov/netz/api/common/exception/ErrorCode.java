@@ -161,7 +161,14 @@ public enum ErrorCode implements NetzErrorCode {
     /**
      * Rate limit
      */
-    API_REQUEST_LIMIT_EXCEEDED("API_REQUEST_LIMIT_EXCEEDED", HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded");
+    API_REQUEST_LIMIT_EXCEEDED("API_REQUEST_LIMIT_EXCEEDED", HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded"),
+
+    /**
+     * Request feedback
+     */
+    REQUEST_FEEDBACK_EXPIRED("REQUESTFEEDBACK1000", HttpStatus.BAD_REQUEST, "Request feedback form has expired"),
+    REQUEST_FEEDBACK_ALREADY_SUBMITTED("REQUESTFEEDBACK1001", HttpStatus.BAD_REQUEST, "Request feedback form has already been submitted"),
+    REQUEST_FEEDBACK_INVALID_PAYLOAD("REQUESTFEEDBACK1002", HttpStatus.BAD_REQUEST, "Request feedback invalid payload");
 
     private final String code;
     private final HttpStatus httpStatus;
