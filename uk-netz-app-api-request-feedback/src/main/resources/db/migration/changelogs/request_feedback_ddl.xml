@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        logicalFilePath="request_feedback_ddl.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.11.xsd">
+
+    <changeSet id="0_1_0_create_request_feedback_table" author="P44065">
+        <createSequence sequenceName="request_feedback_seq"/>
+        <createTable tableName="request_feedback">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="request_feedback_pk" nullable="false"/>
+            </column>
+            <column name="request_id" type="varchar(20)">
+                <constraints foreignKeyName="request_id_fk" references="request(id)" nullable="false"/>
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="jsonb"/>
+            <column name="created_by" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_on" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submitter" type="varchar(512)"/>
+            <column name="submitter_id" type="varchar(255)"/>
+            <column name="submission_date" type="timestamp"/>
+        </createTable>
+        <addUniqueConstraint tableName="request_feedback" columnNames="request_id, type" constraintName="request_feedback_uc"/>
+        <rollback>
+            <sql>
+                DROP TABLE IF EXISTS request_feedback CASCADE;
+                DROP SEQUENCE IF EXISTS request_feedback_seq;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

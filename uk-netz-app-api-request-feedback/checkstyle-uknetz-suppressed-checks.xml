@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+        "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+
+<suppressions>
+    <suppress checks="FileTabCharacter" files=".+\.java"/>
+    <suppress checks="CustomImportOrder" files=".+\.java"/>
+    <suppress checks="MissingJavadocMethod" files=".+\.java"/>
+    <suppress checks="SummaryJavadoc" files=".+\.java"/>
+    <suppress checks="SingleLineJavadoc" files=".+\.java"/>
+
+    <suppress checks="OverloadMethodsDeclarationOrder" files=".+\.java"/>
+    <suppress checks="CustomImportOrder" files=".+\.java"/>
+
+    <suppress checks="JavadocTagContinuationIndentation" files=".+\.java"/>
+    <suppress checks="MissingJavadocMethod" files=".+\.java"/>
+    <suppress checks="SingleLineJavadoc" files=".+\.java"/>
+    <suppress checks="SummaryJavadoc" files=".+\.java"/>
+    <suppress checks="JavadocParagraph" files=".+\.java"/>
+    <suppress checks="AbbreviationAsWordInName" files=".+\.java"/>
+
+</suppressions>
