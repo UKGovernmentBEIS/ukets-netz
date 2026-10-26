@@ -13,7 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.netz.api.common.AbstractContainerBaseTest;
-import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.mireport.userdefined.MiReportUserDefinedEntity;
 import uk.gov.netz.api.mireport.userdefined.MiReportUserDefinedRepository;
 
@@ -105,8 +104,8 @@ class MiReportUserDefinedFavouriteRepositoryIT extends AbstractContainerBaseTest
 
     @Test
     void filter_withUserId_returnsOnlyFavouritedReports() {
-        Page<MiReportUserDefinedEntity> result = reportRepository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, null, USER_ID, pageable);
+        Page<MiReportUserDefinedEntity> result = reportRepository.findAllBySearchCriteria(
+                null, null, USER_ID, pageable);
 
         assertThat(result.getContent())
                 .extracting(MiReportUserDefinedEntity::getId)
@@ -115,16 +114,16 @@ class MiReportUserDefinedFavouriteRepositoryIT extends AbstractContainerBaseTest
 
     @Test
     void filter_withNullUserId_returnsAllReports() {
-        Page<MiReportUserDefinedEntity> result = reportRepository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, null, null, pageable);
+        Page<MiReportUserDefinedEntity> result = reportRepository.findAllBySearchCriteria(
+                null, null, null, pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(2);
     }
 
     @Test
     void filter_withUserIdWithoutFavourites_returnsEmpty() {
-        Page<MiReportUserDefinedEntity> result = reportRepository.findAllByCompetentAuthorityAndFilters(
-                CompetentAuthorityEnum.ENGLAND, null, null, OTHER_USER_ID, pageable);
+        Page<MiReportUserDefinedEntity> result = reportRepository.findAllBySearchCriteria(
+                null, null, OTHER_USER_ID, pageable);
 
         assertThat(result.getContent()).isEmpty();
     }
@@ -134,7 +133,6 @@ class MiReportUserDefinedFavouriteRepositoryIT extends AbstractContainerBaseTest
                 .reportName(reportName)
                 .description("desc")
                 .queryDefinition("select 1")
-                .competentAuthority(CompetentAuthorityEnum.ENGLAND)
                 .createdBy("test-user")
                 .lastUpdatedOn(LocalDateTime.now())
                 .categories(new HashSet<>())

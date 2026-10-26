@@ -44,10 +44,9 @@ public class MiReportUserDefinedService {
     private static final int PREVIEW_ROW_LIMIT = 10;
 
     @Transactional(readOnly = true)
-    public MiReportUserDefinedResults findAllByCA(CompetentAuthorityEnum competentAuthority, int pageNumber,
-                                                  int pageSize) {
-        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthority(competentAuthority,
-                getPageable(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn")));
+    public MiReportUserDefinedResults findAll(int pageNumber, int pageSize) {
+        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository
+            .findAll(getPageable(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "lastUpdatedOn")));
 
         return page.isEmpty() ? MiReportUserDefinedResults.emptyMiReportUserDefinedResults()
                 : MiReportUserDefinedResults.builder()
@@ -57,11 +56,10 @@ public class MiReportUserDefinedService {
     }
 
     @Transactional(readOnly = true)
-    public MiReportUserDefinedResults findAllByCA(AppUser appUser, int pageNumber, int pageSize,
-                                                  MiReportUserDefinedSearchCriteriaDTO searchCriteriaDTO) {
+    public MiReportUserDefinedResults findAllBySearchCriteria(AppUser appUser, int pageNumber, int pageSize,
+                                                              MiReportUserDefinedSearchCriteriaDTO searchCriteriaDTO) {
         Sort sortBy = Sort.by(searchCriteriaDTO.getDirection(), searchCriteriaDTO.getSortBy().getColumn());
-        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllByCompetentAuthorityAndFilters(
-            appUser.getCompetentAuthority(),
+        Page<MiReportUserDefinedEntity> page = miReportUserDefinedRepository.findAllBySearchCriteria(
             searchCriteriaDTO.getCategoryId(),
             QuerySearchUtils.toSearchPattern(searchCriteriaDTO.getTerm()),
             searchCriteriaDTO.isFavourites() ? appUser.getUserId() : null,
@@ -88,7 +86,7 @@ public class MiReportUserDefinedService {
         CompetentAuthorityEnum competentAuthority = appUser.getCompetentAuthority();
 
         Optional<Long> miReportIdWithSameName =
-                miReportUserDefinedRepository.findIdByReportNameAndCA(miReportUserDefinedDTO.getReportName(), competentAuthority);
+                miReportUserDefinedRepository.findIdByReportName(miReportUserDefinedDTO.getReportName());
 
         if (miReportIdWithSameName.isPresent()) {
             throw new BusinessException(ErrorCode.MI_REPORT_NAME_EXISTS_FOR_CA);
@@ -112,7 +110,7 @@ public class MiReportUserDefinedService {
                 .orElseThrow(() -> new BusinessException(RESOURCE_NOT_FOUND));
 
         Optional<Long> miReportIdWithSameName =
-                miReportUserDefinedRepository.findIdByReportNameAndCA(miReportUserDefinedDTO.getReportName(), queryEntity.getCompetentAuthority());
+                miReportUserDefinedRepository.findIdByReportName(miReportUserDefinedDTO.getReportName());
 
         if (miReportIdWithSameName.map(existingId -> !existingId.equals(id)).orElse(Boolean.FALSE)) {
             throw new BusinessException(ErrorCode.MI_REPORT_NAME_EXISTS_FOR_CA);
@@ -133,11 +131,11 @@ public class MiReportUserDefinedService {
     }
 
     @Transactional(readOnly = true)
-    public MiReportUserDefinedResult generateReport(Long miReportUserDefinedId) {
+    public MiReportUserDefinedResult generateReport(Long miReportUserDefinedId, AppUser appUser) {
         final MiReportUserDefinedEntity miReportEntity = miReportUserDefinedRepository.findById(miReportUserDefinedId)
                 .orElseThrow(() -> new BusinessException(RESOURCE_NOT_FOUND));
 
-		return miReportUserDefinedGeneratorDelegator.generateReport(miReportEntity.getCompetentAuthority(),
+		return miReportUserDefinedGeneratorDelegator.generateReport(appUser.getCompetentAuthority(),
 				miReportEntity.getQueryDefinition());
     }
     

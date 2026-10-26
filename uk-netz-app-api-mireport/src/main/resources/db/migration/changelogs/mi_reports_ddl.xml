@@ -271,4 +271,51 @@
                     newDataType="VARCHAR(10000)"/>
         </rollback>
     </changeSet>
+
+    <changeSet id="0_1_0_drop_unique_constraint_mi_report_user_defined_table" author="P44065">
+        <dropIndex tableName="mi_report_user_defined" indexName="mi_report_user_defined_uc"/>
+    </changeSet>
+
+    <changeSet id="0_1_1_migrate_mi_report_user_defined_to_append_competent_authority_to_duplicate_report_names" author="P44065">
+        <sql>
+            UPDATE mi_report_user_defined mrud
+            SET report_name = mrud.report_name || ' by ' ||
+                              CASE mrud.competent_authority
+                                  WHEN 'ENGLAND'          THEN 'EA'
+                                  WHEN 'NORTHERN_IRELAND' THEN 'NIEA'
+                                  WHEN 'OPRED'            THEN 'DECC'
+                                  WHEN 'SCOTLAND'         THEN 'SEPA'
+                                  WHEN 'WALES'            THEN 'NRW'
+                                  ELSE mrud.competent_authority
+                                  END
+            WHERE mrud.active = true
+              AND mrud.report_name IN (
+                SELECT report_name
+                FROM mi_report_user_defined
+                WHERE active = true
+                GROUP BY report_name
+                HAVING COUNT(DISTINCT competent_authority) > 1
+            );
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE mi_report_user_defined
+                SET report_name = LEFT(report_name, LENGTH(report_name) - LENGTH(' by ' || competent_authority))
+                WHERE report_name LIKE '% by ' || competent_authority;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_add_report_name_unique_constraint_mi_report_user_defined_table" author="P44065">
+        <sql>
+            CREATE UNIQUE INDEX mi_report_user_defined_uc ON mi_report_user_defined (report_name) WHERE active = true;
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS mi_report_user_defined;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="0_1_0_drop_competent_authority_col_from_mi_report_user_defined_table" author="P44065">
+        <dropColumn tableName="mi_report_user_defined" columnName="competent_authority"/>
+    </changeSet>
 </databaseChangeLog>

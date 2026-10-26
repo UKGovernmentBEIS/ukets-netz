@@ -54,7 +54,6 @@ class MiReportUserDefinedMapperTest {
         assertThat(entity.getReportName()).isEqualTo(reportName);
         assertThat(entity.getDescription()).isEqualTo(description);
         assertThat(entity.getQueryDefinition()).isEqualTo(queryDefinition);
-        assertThat(entity.getCompetentAuthority()).isEqualTo(CompetentAuthorityEnum.ENGLAND);
         assertThat(entity.getCreatedBy()).isEqualTo(userId);
         assertThat(entity.getCategories()).isEqualTo(categories);
     }
