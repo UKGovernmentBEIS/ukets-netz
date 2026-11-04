@@ -18,10 +18,12 @@ public class ArchUnitTest {
 
     static final String FEEDBACK_PACKAGE = BASE_PACKAGE + ".feedback..";
     static final String NOTIFICATIONAPI_PACKAGE = BASE_PACKAGE + ".notificationapi..";
+    static final String AUTHORIZATION_PACKAGE = BASE_PACKAGE + ".authorization..";
 
     static final List<String> ALL_PACKAGES = List.of(
-            FEEDBACK_PACKAGE,
-            NOTIFICATIONAPI_PACKAGE
+        FEEDBACK_PACKAGE,
+        NOTIFICATIONAPI_PACKAGE,
+        AUTHORIZATION_PACKAGE
     );
 
     @ArchTest
@@ -31,6 +33,7 @@ public class ArchUnitTest {
                     .should().dependOnClassesThat()
                     .resideInAnyPackage(except(
                             FEEDBACK_PACKAGE,
+                            AUTHORIZATION_PACKAGE,
                             NOTIFICATIONAPI_PACKAGE));
 
     private static String[] except(String... packages) {

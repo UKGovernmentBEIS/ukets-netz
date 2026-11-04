@@ -1,4 +1,4 @@
-package uk.gov.netz.api.feedback;
+package uk.gov.netz.api.feedback.domain;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

@@ -1,4 +1,4 @@
-package uk.gov.netz.api.feedback;
+package uk.gov.netz.api.feedback.domain;
 
 public enum FeedbackRating {
     VERY_SATISFIED("Very satisfied"),

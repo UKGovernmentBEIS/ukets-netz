@@ -1,5 +1,9 @@
 package uk.gov.netz.api.feedback;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -9,12 +13,24 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.common.utils.DateService;
+import uk.gov.netz.api.feedback.config.UserFeedbackConfig;
+import uk.gov.netz.api.feedback.domain.Feedback;
+import uk.gov.netz.api.feedback.domain.FeedbackPayload;
+import uk.gov.netz.api.feedback.domain.constants.NotificationTemplateConstants;
+import uk.gov.netz.api.feedback.domain.constants.NotificationTemplateName;
+import uk.gov.netz.api.feedback.domain.FeedbackRating;
+import uk.gov.netz.api.feedback.domain.UserFeedbackDto;
+import uk.gov.netz.api.feedback.repository.FeedbackRepository;
+import uk.gov.netz.api.feedback.service.UserFeedbackService;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailData;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailNotificationTemplateData;
 import uk.gov.netz.api.notificationapi.mail.service.NotificationEmailService;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,8 +39,11 @@ import java.util.Map;
 
 import static java.util.Map.entry;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,8 +58,37 @@ public class UserFeedbackServiceTest {
     @Mock
     private UserFeedbackConfig userFeedbackConfig;
 
+    @Mock
+    private FeedbackRepository repository;
+
+    @Mock
+    private DateService dateService;
+
     @Spy
     private Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.of("UTC"));
+
+    @Test
+    void submitFeedback() {
+        String userId = "userId";
+        AppUser appUser = AppUser.builder().userId(userId).build();
+        TestFeedbackPayload payload = mock(TestFeedbackPayload.class);
+        LocalDateTime now = LocalDateTime.now();
+        Feedback feedback = Feedback.builder()
+            .payload(payload)
+            .submitterId(appUser.getUserId())
+            .submissionDate(now)
+            .build();
+
+        when(dateService.getLocalDateTime()).thenReturn(now);
+
+        userFeedbackService.submitFeedback(appUser, payload);
+
+        verify(repository).save(feedback);
+        verify(dateService).getLocalDateTime();
+
+        verifyNoInteractions(userFeedbackConfig, notificationEmailService);
+        verifyNoMoreInteractions(repository, dateService);
+    }
 
     @Test
     void sendFeedback() {
@@ -60,6 +108,9 @@ public class UserFeedbackServiceTest {
         EmailData<EmailNotificationTemplateData> actualEmailData = emailDataArgumentCaptor.getValue();
         assertThat(actualEmailData.getAttachments().size()).isEqualTo(0);
         assertThat(actualEmailData.getNotificationTemplateData()).isEqualTo(expectedTemplateData);
+
+        verifyNoMoreInteractions(userFeedbackConfig, notificationEmailService);
+        verifyNoInteractions(repository, dateService);
     }
 
     private UserFeedbackDto createUserFeedbackDto() {
@@ -108,4 +159,10 @@ public class UserFeedbackServiceTest {
             .build();
     }
 
+    @EqualsAndHashCode(callSuper = true)
+    @SuperBuilder
+    @AllArgsConstructor
+    @Data
+    public static class TestFeedbackPayload extends FeedbackPayload {
+    }
 }

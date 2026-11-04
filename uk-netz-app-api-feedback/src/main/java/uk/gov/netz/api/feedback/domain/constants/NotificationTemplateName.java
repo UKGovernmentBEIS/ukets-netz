@@ -1,4 +1,4 @@
-package uk.gov.netz.api.feedback;
+package uk.gov.netz.api.feedback.domain.constants;
 
 import lombok.experimental.UtilityClass;
 

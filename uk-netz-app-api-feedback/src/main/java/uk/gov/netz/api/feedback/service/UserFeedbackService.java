@@ -1,7 +1,17 @@
-package uk.gov.netz.api.feedback;
+package uk.gov.netz.api.feedback.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.netz.api.authorization.core.domain.AppUser;
+import uk.gov.netz.api.common.utils.DateService;
+import uk.gov.netz.api.feedback.domain.constants.NotificationTemplateConstants;
+import uk.gov.netz.api.feedback.domain.constants.NotificationTemplateName;
+import uk.gov.netz.api.feedback.config.UserFeedbackConfig;
+import uk.gov.netz.api.feedback.domain.Feedback;
+import uk.gov.netz.api.feedback.domain.FeedbackPayload;
+import uk.gov.netz.api.feedback.domain.UserFeedbackDto;
+import uk.gov.netz.api.feedback.repository.FeedbackRepository;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailData;
 import uk.gov.netz.api.notificationapi.mail.domain.EmailNotificationTemplateData;
 import uk.gov.netz.api.notificationapi.mail.service.NotificationEmailService;
@@ -22,6 +32,19 @@ public class UserFeedbackService {
     private final NotificationEmailService<EmailNotificationTemplateData> notificationEmailService;
     private final UserFeedbackConfig userFeedbackConfig;
     private final Clock clock;
+    private final FeedbackRepository repository;
+    private final DateService dateService;
+
+    @Transactional
+    public void submitFeedback(AppUser appUser, FeedbackPayload payload) {
+        Feedback feedback = Feedback.builder()
+            .payload(payload)
+            .submitterId(appUser.getUserId())
+            .submissionDate(dateService.getLocalDateTime())
+            .build();
+
+        repository.save(feedback);
+    }
 
     public void sendFeedback(String domainUrl, UserFeedbackDto userFeedbackDto) {
         notificationEmailService.notifyRecipients(

@@ -1,4 +1,4 @@
-package uk.gov.netz.api.feedback;
+package uk.gov.netz.api.feedback.config;
 
 import lombok.Getter;
 import lombok.Setter;
