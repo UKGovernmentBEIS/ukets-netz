@@ -30,6 +30,7 @@ public final class NotificationTemplateConstants {
     public static final String CONTACT_REGULATOR = "contactRegulator";
     public static final String USER_INVITEE_FNAME = "userInviteeFirstName";
     public static final String USER_INVITEE_LNAME = "userInviteeLastName";
+    public static final String USER_INVITEE_EMAIL = "userInviteeEmail";
     public static final String EXPIRATION_MINUTES = "expirationMinutes";
     
     public static final String WORKFLOW_ID = "workflowId";

@@ -235,6 +235,7 @@ class OperatorUserNotificationGatewayTest {
                 NotificationTemplateConstants.USER_ACCOUNT_CREATED_USER_LNAME, inviterUser.getLastName(),
                 NotificationTemplateConstants.USER_INVITEE_FNAME, inviteeUser.getFirstName(),
                 NotificationTemplateConstants.USER_INVITEE_LNAME, inviteeUser.getLastName(),
+                NotificationTemplateConstants.USER_INVITEE_EMAIL, inviteeUser.getEmail(),
                 NotificationTemplateConstants.CONTACT_REGULATOR, helpdesk,
                 NotificationTemplateConstants.HOME_URL, "url"
         ));

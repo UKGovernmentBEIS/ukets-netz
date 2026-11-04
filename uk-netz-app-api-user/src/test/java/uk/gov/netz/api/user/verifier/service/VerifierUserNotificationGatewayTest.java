@@ -148,6 +148,7 @@ class VerifierUserNotificationGatewayTest {
         		NotificationTemplateConstants.USER_ACCOUNT_CREATED_USER_LNAME, inviter.getLastName(),
         		NotificationTemplateConstants.USER_INVITEE_FNAME, invitee.getFirstName(),
         		NotificationTemplateConstants.USER_INVITEE_LNAME, invitee.getLastName(),
+                NotificationTemplateConstants.USER_INVITEE_EMAIL, invitee.getEmail(),
         		NotificationTemplateConstants.CONTACT_REGULATOR, "contactLink",
         		NotificationTemplateConstants.HOME_URL, "url"
         ));

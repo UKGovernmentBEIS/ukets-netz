@@ -118,7 +118,7 @@ class RegulatorUserNotificationGatewayTest {
     
     @Test
     void notifyInviterAcceptedInvitation() {
-    	UserInfoDTO invitee = UserInfoDTO.builder().firstName("invitee_f").lastName("invitee_l").build();
+    	UserInfoDTO invitee = UserInfoDTO.builder().firstName("invitee_f").lastName("invitee_l").email("invitee_e").build();
         UserInfoDTO inviter = UserInfoDTO.builder().firstName("inviter_f").lastName("inviter_l").email("email").build();
         when(notificationProperties.getEmail().getContactUsLink()).thenReturn("helpdesk@netz.com");
         when(webAppProperties.getUrl()).thenReturn("url");
@@ -139,6 +139,7 @@ class RegulatorUserNotificationGatewayTest {
                         NotificationTemplateConstants.USER_ACCOUNT_CREATED_USER_LNAME, "inviter_l",
                         NotificationTemplateConstants.USER_INVITEE_FNAME, "invitee_f",
                         NotificationTemplateConstants.USER_INVITEE_LNAME, "invitee_l",
+                        NotificationTemplateConstants.USER_INVITEE_EMAIL, "invitee_e",
                         NotificationTemplateConstants.CONTACT_REGULATOR, "helpdesk@netz.com",
                         NotificationTemplateConstants.HOME_URL, "url"
                         ));
