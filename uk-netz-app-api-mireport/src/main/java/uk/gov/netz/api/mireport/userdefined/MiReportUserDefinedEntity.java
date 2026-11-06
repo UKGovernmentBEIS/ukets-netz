@@ -3,6 +3,8 @@ package uk.gov.netz.api.mireport.userdefined;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +27,7 @@ import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.SoftDeleteType;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryEntity;
 
 import java.time.LocalDateTime;
@@ -61,6 +64,10 @@ public class MiReportUserDefinedEntity {
     @Size(max = 50000)
     @NotNull
     private String queryDefinition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "competent_authority")
+    private CompetentAuthorityEnum competentAuthority;
 
     /** The user id */
     @Column(name = "created_by")

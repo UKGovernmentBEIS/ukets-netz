@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 import uk.gov.netz.api.mireport.userdefined.category.MiReportUserDefinedCategoryDTO;
 import uk.gov.netz.api.mireport.userdefined.custom.ValidSqlQuery;
 
@@ -31,6 +32,8 @@ public class MiReportUserDefinedDTO {
     @NotNull
     @ValidSqlQuery
     private String queryDefinition;
+
+    private CompetentAuthorityEnum competentAuthority;
 
     @Valid
     @Builder.Default

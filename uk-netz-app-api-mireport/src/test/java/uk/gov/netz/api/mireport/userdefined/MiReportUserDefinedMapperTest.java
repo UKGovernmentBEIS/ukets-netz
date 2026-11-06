@@ -163,6 +163,7 @@ class MiReportUserDefinedMapperTest {
         final String reportName = "test report name";
         final String description = "test description";
         final String userId = "test user id";
+        final CompetentAuthorityEnum competentAuthority = CompetentAuthorityEnum.ENGLAND;
         final LocalDateTime lastUpdatedOn = LocalDateTime.of(2023, 9, 10, 12, 0);
 
         final String queryDefinitionNew = "select * from facility_audit order by created_on desc";
@@ -185,10 +186,11 @@ class MiReportUserDefinedMapperTest {
                 .description(descriptionNew)
                 .build();
 
-        mapper.updateMiReportUserDefinedEntity(miReportQueryEntity, miReportQueryDTO, null);
+        mapper.updateMiReportUserDefinedEntity(miReportQueryEntity, miReportQueryDTO, competentAuthority, null);
 
         assertThat(miReportQueryEntity.getReportName()).isEqualTo(reportNameNew);
         assertThat(miReportQueryEntity.getDescription()).isEqualTo(descriptionNew);
         assertThat(miReportQueryEntity.getQueryDefinition()).isEqualTo(queryDefinitionNew);
+        assertThat(miReportQueryEntity.getCompetentAuthority()).isEqualTo(competentAuthority);
     }
 }

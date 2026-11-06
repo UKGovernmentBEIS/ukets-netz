@@ -105,6 +105,7 @@ public class MiReportUserDefinedService {
 
     @Transactional
     public void update(Long id, AppUser appUser, @Valid MiReportUserDefinedUpdateDTO miReportUserDefinedUpdateDTO) {
+        CompetentAuthorityEnum competentAuthority = appUser.getCompetentAuthority();
         MiReportUserDefinedDTO miReportUserDefinedDTO = miReportUserDefinedUpdateDTO.getUserDefinedDTO();
         final MiReportUserDefinedEntity queryEntity = miReportUserDefinedRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(RESOURCE_NOT_FOUND));
@@ -118,7 +119,7 @@ public class MiReportUserDefinedService {
 
         Set<MiReportUserDefinedCategoryEntity> categories = miReportUserDefinedCategoryService.getByIds(extractCategoryIds(miReportUserDefinedDTO));
 
-        miReportUserDefinedMapper.updateMiReportUserDefinedEntity(queryEntity, miReportUserDefinedDTO, categories);
+        miReportUserDefinedMapper.updateMiReportUserDefinedEntity(queryEntity, miReportUserDefinedDTO, competentAuthority, categories);
 
         MiReportUserDefinedEntity miReportUserDefinedEntity = miReportUserDefinedRepository.save(queryEntity);
 

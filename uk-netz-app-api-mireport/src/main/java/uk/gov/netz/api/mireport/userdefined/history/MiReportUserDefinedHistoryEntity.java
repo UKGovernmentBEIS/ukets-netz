@@ -22,6 +22,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Check;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
 import java.time.LocalDateTime;
 
@@ -51,6 +52,10 @@ public class MiReportUserDefinedHistoryEntity {
     @Column(name = "change_type", nullable = false)
     @NotNull
     private MiReportUserDefinedChangeType changeType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "competent_authority")
+    private CompetentAuthorityEnum competentAuthority;
 
     @Column(name = "submission_date", nullable = false)
     @NotNull

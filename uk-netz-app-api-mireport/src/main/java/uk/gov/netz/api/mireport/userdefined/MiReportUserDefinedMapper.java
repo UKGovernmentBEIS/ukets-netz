@@ -22,9 +22,11 @@ public interface MiReportUserDefinedMapper {
     MiReportUserDefinedDTO toMiReportUserDefinedDTO(MiReportUserDefinedEntity miReportUserDefinedEntity, boolean favourite);
 
     @Mapping(target = "categories", source = "categoryEntities")
+    @Mapping(target = "competentAuthority", source = "competentAuthority")
     void updateMiReportUserDefinedEntity(
             @MappingTarget MiReportUserDefinedEntity entity,
             MiReportUserDefinedDTO dto,
+            CompetentAuthorityEnum competentAuthority,
             Set<MiReportUserDefinedCategoryEntity> categoryEntities);
 
     MiReportUserDefinedInfoDTO toMiReportUserDefinedInfoDTO(MiReportUserDefinedEntity entity);

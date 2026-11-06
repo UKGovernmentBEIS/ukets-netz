@@ -318,4 +318,20 @@
     <changeSet id="0_1_0_drop_competent_authority_col_from_mi_report_user_defined_table" author="P44065">
         <dropColumn tableName="mi_report_user_defined" columnName="competent_authority"/>
     </changeSet>
+
+    <changeSet id="0_1_0_add_competent_authority_col_from_mi_report_user_defined_table" author="P44065">
+        <addColumn tableName="mi_report_user_defined">
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0_1_0_add_competent_authority_col_from_mi_report_user_defined_history_table" author="P44065">
+        <addColumn tableName="mi_report_user_defined_history">
+            <column name="competent_authority" type="varchar(255)" remarks="The competent authority">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.netz.api.competentauthority.CompetentAuthorityEnum;
 
 import java.time.LocalDateTime;
 
@@ -21,5 +22,5 @@ public class MiReportUserDefinedHistoryDTO {
     private String description;
     private String queryDefinition;
     private MiReportUserDefinedChangeType changeType;
-
+    private CompetentAuthorityEnum competentAuthority;
 }
