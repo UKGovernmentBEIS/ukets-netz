@@ -2,6 +2,7 @@ package uk.gov.netz.api.files.documents.service.storage;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.mapstruct.factory.Mappers;
@@ -40,6 +41,16 @@ public class FileDocumentStorageService {
     	return fileDocumentMapper.toFileInfoDTO(fileDocumentRepository.findByUuid(uuid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, uuid)));
 	}
+
+    @Transactional(readOnly = true)
+    public Optional<FileInfoDTO> findFileInfoDTO(String uuid) {
+        return fileDocumentRepository.findByUuid(uuid).map(fileDocumentMapper::toFileInfoDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByUuid(String uuid) {
+        return fileDocumentRepository.existsByUuid(uuid);
+    }
     
     public FileToken generateGetFileDocumentToken(String uuid) {
         if (!fileDocumentRepository.existsByUuid(uuid)) {

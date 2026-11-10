@@ -94,6 +94,42 @@ class FileDocumentStorageServiceTest {
     }
 
     @Test
+    void findFileInfoDTO_present() {
+        String uuid = UUID.randomUUID().toString();
+        String name = "file document name";
+        FileDocument fileDocument = FileDocument.builder()
+            .uuid(uuid)
+            .fileName(name)
+            .lastUpdatedOn(LocalDateTime.now())
+            .build();
+
+        when(fileDocumentRepository.findByUuid(uuid)).thenReturn(Optional.of(fileDocument));
+
+        assertThat(service.findFileInfoDTO(uuid)).contains(FileInfoDTO.builder().name(name).uuid(uuid).build());
+        verify(fileDocumentRepository, times(1)).findByUuid(uuid);
+    }
+
+    @Test
+    void findFileInfoDTO_empty() {
+        String uuid = UUID.randomUUID().toString();
+
+        when(fileDocumentRepository.findByUuid(uuid)).thenReturn(Optional.empty());
+
+        assertThat(service.findFileInfoDTO(uuid)).isEmpty();
+        verify(fileDocumentRepository, times(1)).findByUuid(uuid);
+    }
+
+    @Test
+    void existsByUuid() {
+        String uuid = UUID.randomUUID().toString();
+
+        when(fileDocumentRepository.existsByUuid(uuid)).thenReturn(true);
+
+        assertThat(service.existsByUuid(uuid)).isTrue();
+        verify(fileDocumentRepository, times(1)).existsByUuid(uuid);
+    }
+
+    @Test
     void generateGetFileDocumentToken() {
         String uuid = UUID.randomUUID().toString();
         
