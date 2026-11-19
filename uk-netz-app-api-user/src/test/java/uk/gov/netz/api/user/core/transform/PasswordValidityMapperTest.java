@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PasswordValidityMapperTest {
 
-
     private PasswordValidityMapper mapper;
 
     @BeforeEach
@@ -26,10 +25,12 @@ class PasswordValidityMapperTest {
     @Test
     void toVerifierUserDTO() {
         List<KeycloakPasswordValidationError> messages = List.of(
-            KeycloakPasswordValidationError.builder()
-                .code(PasswordPolicyErrorCodeEnum.PWNED)
-                .message("message")
-                .build());
+            createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum.WEAK, "message 1"),
+            createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum.WEAK, "message 2"),
+            createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum.INVALID_MAX_LENGTH, "message 3"),
+            createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum.PWNED_SERVICE_UNAVAILABLE, "message 4"),
+            createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum.OTHER, "message 5"),
+            createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum.OTHER, "message 6"));
 
         KeycloakPasswordValidationResponse response = KeycloakPasswordValidationResponse.builder()
             .valid(true)
@@ -37,10 +38,12 @@ class PasswordValidityMapperTest {
             .build();
 
         List<PasswordValidationErrorDTO> messagesDTO = List.of(
-            PasswordValidationErrorDTO.builder()
-                .code(PasswordPolicyErrorCodeEnum.PWNED)
-                .message("message")
-                .build());
+            createPasswordValidationErrorDTO(PasswordPolicyErrorCodeEnum.WEAK, "message 1"),
+            createPasswordValidationErrorDTO(PasswordPolicyErrorCodeEnum.INVALID_MAX_LENGTH, "message 3"),
+            createPasswordValidationErrorDTO(PasswordPolicyErrorCodeEnum.PWNED_SERVICE_UNAVAILABLE, "message 4"),
+            createPasswordValidationErrorDTO(PasswordPolicyErrorCodeEnum.OTHER, "message 5"),
+            createPasswordValidationErrorDTO(PasswordPolicyErrorCodeEnum.OTHER, "message 6")
+        );
 
         PasswordValidationResponseDTO expected = PasswordValidationResponseDTO.builder()
             .valid(true)
@@ -50,5 +53,21 @@ class PasswordValidityMapperTest {
         PasswordValidationResponseDTO actual = mapper.toPasswordValidationResponseDTO(response);
 
         assertEquals(expected, actual);
+    }
+
+    private KeycloakPasswordValidationError createKeycloakPasswordValidationError(PasswordPolicyErrorCodeEnum blacklisted,
+                                                                                  String message) {
+        return KeycloakPasswordValidationError.builder()
+            .code(blacklisted)
+            .message(message)
+            .build();
+    }
+
+    private PasswordValidationErrorDTO createPasswordValidationErrorDTO(PasswordPolicyErrorCodeEnum blacklisted,
+                                                                        String message) {
+        return PasswordValidationErrorDTO.builder()
+            .code(blacklisted)
+            .message(message)
+            .build();
     }
 }
