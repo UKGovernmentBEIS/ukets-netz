@@ -14,6 +14,7 @@ import java.util.Set;
 public interface MiReportUserDefinedMapper {
 
     @Mapping(target = "categories", source = "categoryEntities")
+    @Mapping(target = "competentAuthority", source = "competentAuthority")
     MiReportUserDefinedEntity toMiReportUserDefinedEntity(MiReportUserDefinedDTO miReportUserDefinedDTO,
           Set<MiReportUserDefinedCategoryEntity> categoryEntities,
 			CompetentAuthorityEnum competentAuthority, String createdBy);
